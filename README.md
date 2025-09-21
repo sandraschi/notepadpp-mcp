@@ -12,13 +12,28 @@
 🧪 **18 comprehensive tests** with real Windows API integration
 🎯 **Production-ready** with structured logging and error handling
 
-## 🚀 Quick Start
+## 🚀 Installation & Setup
 
+### 📦 **Option 1: DXT Installation** (Recommended)
+1. **Download** the latest DXT file from [Releases](https://github.com/sandraschi/notepadpp-mcp/releases)
+2. **Open Claude Desktop**
+3. **Go to Settings** → **Developer** → **MCP Servers**
+4. **Drag & Drop** the DXT file onto the extensions screen
+5. **Restart Claude Desktop** - the server will auto-install and configure
+
+### 🐍 **Option 2: Python Installation**
 ```bash
+# Install from PyPI
 pip install notepadpp-mcp
+
+# Or install from source
+git clone https://github.com/sandraschi/notepadpp-mcp.git
+cd notepadpp-mcp
+pip install -e .
 ```
 
-Add to Claude Desktop config:
+### ⚙️ **Claude Desktop Configuration**
+Add to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
@@ -29,6 +44,41 @@ Add to Claude Desktop config:
   }
 }
 ```
+
+### 🔧 **Manual Configuration** (if needed)
+```json
+{
+  "mcpServers": {
+    "notepadpp-mcp": {
+      "command": "python",
+      "args": ["-m", "notepadpp_mcp.tools.server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      }
+    }
+  }
+}
+```
+
+## 📋 Requirements
+
+### 🖥️ **System Requirements**
+- **Windows 10/11** (64-bit)
+- **Notepad++ 8.0+** installed and accessible
+- **Python 3.10+** with pip
+- **pywin32** for Windows API integration
+
+### 🛠️ **Dependencies**
+- **FastMCP 2.12+** - MCP framework
+- **pywin32** - Windows API bindings
+- **psutil** - System monitoring
+- **pathlib** - Path operations
+
+### 🚨 **Important Notes**
+- Notepad++ must be installed on the system
+- Server requires Windows API access (pywin32)
+- First run may require Notepad++ to be started manually
 
 ## 🎯 **New in v1.0: Advanced Workspace Management**
 
@@ -154,6 +204,158 @@ python dev.py test|format|build|validate-dxt
 - **Real Windows API testing** with actual Notepad++ integration
 - **Demonstration script** (`demonstration_test.py`) tests live functionality
 - **CI/CD ready** with automated testing pipeline
+
+## 🏗️ Architecture
+
+### 🎯 **Core Components**
+- **NotepadPPController** - Windows API integration layer
+- **FastMCP Server** - MCP protocol implementation
+- **Tool Decorators** - Automatic tool registration
+- **Structured Logging** - Professional error handling
+
+### 🔧 **Integration Flow**
+1. **MCP Client** (Claude Desktop) → **FastMCP Server**
+2. **Server** → **NotepadPPController** → **Windows API**
+3. **Windows API** → **Notepad++ Application** → **User Interface**
+
+### 📁 **File Structure**
+```
+src/notepadpp_mcp/
+├── tools/server.py     # Main MCP server (966 lines)
+├── tests/              # Comprehensive test suite
+├── docs/               # Documentation and examples
+└── dxt/                # DXT packaging configuration
+```
+
+## 🐛 Troubleshooting
+
+### ❌ **Common Issues**
+
+#### **"Notepad++ not found"**
+```bash
+# Check if Notepad++ is installed
+python demonstration_test.py
+
+# Install Notepad++
+# Download from: https://notepad-plus-plus.org/downloads/
+# Or via Chocolatey: choco install notepadplusplus
+```
+
+#### **"Windows API not available"**
+```bash
+# Install pywin32
+pip install pywin32
+
+# Restart Python environment
+# Try running demonstration script again
+python demonstration_test.py
+```
+
+#### **"Server not connecting"**
+```json
+{
+  "mcpServers": {
+    "notepadpp-mcp": {
+      "command": "python",
+      "args": ["-m", "notepadpp_mcp.tools.server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      }
+    }
+  }
+}
+```
+
+#### **"Tools not appearing in Claude"**
+1. **Restart Claude Desktop** after configuration
+2. **Check logs** in Claude developer console
+3. **Verify Notepad++** is running on the system
+4. **Run demonstration** script to test functionality
+
+### 🆘 **Getting Help**
+
+#### **Run Diagnostics**
+```bash
+# Test all functionality
+python demonstration_test.py
+
+# Check tool availability
+python -c "from notepadpp_mcp.tools.server import app; print('Tools:', len(app._tools))"
+```
+
+#### **Debug Mode**
+```bash
+# Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Run server with debug output
+python -m notepadpp_mcp.tools.server
+```
+
+#### **Manual Testing**
+```python
+# Test individual tools
+from notepadpp_mcp.tools.server import get_status, get_help
+
+# Get status
+status = await get_status()
+print("Status:", status)
+
+# Get help
+help_info = await get_help()
+print("Help:", help_info)
+```
+
+## 🤝 Contributing
+
+### 📝 **Development Setup**
+```bash
+# Clone repository
+git clone https://github.com/sandraschi/notepadpp-mcp.git
+cd notepadpp-mcp
+
+# Install development dependencies
+pip install -e .[dev]
+
+# Run tests
+python -m pytest
+
+# Format code
+black src/
+
+# Build DXT package
+python dev.py build
+```
+
+### 🐛 **Reporting Issues**
+1. **Run demonstration script** first: `python demonstration_test.py`
+2. **Check existing issues** on GitHub
+3. **Include error logs** and system information
+4. **Test with different Notepad++ versions** if possible
+
+### 💡 **Feature Requests**
+- **Check existing tools** in the tools overview
+- **Consider Windows API limitations**
+- **Test with real Notepad++ workflows**
+- **Follow FastMCP 2.12 patterns**
+
+## 📜 Changelog
+
+### **v1.0.0** - Current Release
+- ✅ **15 comprehensive tools** for Notepad++ automation
+- ✅ **Real Windows API integration** with pywin32
+- ✅ **Advanced tab and session management**
+- ✅ **18 comprehensive tests** with full coverage
+- ✅ **DXT packaging** for easy installation
+- ✅ **Production-ready** error handling and logging
+
+### **Planned Features**
+- **Multi-instance support** for multiple Notepad++ windows
+- **Plugin integration** for extended functionality
+- **Configuration files** for custom settings
+- **Batch operations** for multiple file processing
 
 ## 📄 License
 
