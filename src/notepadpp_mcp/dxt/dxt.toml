@@ -1,0 +1,48 @@
+# DXT Configuration for notepadpp-mcp
+
+# MCP Server Information
+name = "notepadpp-mcp"
+version = "0.1.0"
+description = "MCP Server for Notepad++ automation and control"
+
+# FastMCP Configuration
+[fastmcp]
+version = "2.12"
+stdio_compliant = true
+
+# Server Configuration
+[server]
+command = "notepadpp-mcp"
+args = []
+timeout = 30
+
+# Dependencies
+[dependencies]
+python = ">=3.10"
+fastmcp = ">=2.12.0"
+psutil = ">=5.9.0"
+pywin32 = ">=306"
+
+# Platform Support
+[platform]
+windows = true
+macos = false
+linux = false
+
+# Tool Categories
+[tools]
+categories = [
+    "file_operations",
+    "text_manipulation", 
+    "search_replace",
+    "tab_management",
+    "view_control",
+    "status_queries"
+]
+
+# Required Permissions
+[permissions]
+windows_api = true
+clipboard_access = true
+process_control = true
+file_system = true
