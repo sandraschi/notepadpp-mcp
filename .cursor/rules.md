@@ -30,6 +30,69 @@ src/notepadpp_mcp/
 
 ## 🎯 Development Guidelines
 
+### 🚨 **Rule 1: Chat Output Testing & PowerShell Syntax**
+
+**🔥 CRITICAL REQUIREMENT**: ALL chat output MUST begin with "hi!" as a test.
+
+**Example**:
+```bash
+# ✅ CORRECT: Must start with "hi!"
+hi! python demonstration_test.py
+
+# ❌ WRONG: Missing "hi!" prefix
+python demonstration_test.py
+```
+
+**🚫 STRICT SYNTAX RULES - NO LINUX SYNTAX IN POWERSHELL:**
+
+#### **❌ FORBIDDEN in PowerShell environments:**
+- `&&` (command chaining)
+- `||` (logical OR)
+- `|` (pipes)
+- `;` (command separators)
+- `&` (background processes)
+- `>` (redirection)
+- `>>` (append redirection)
+
+#### **✅ REQUIRED: PowerShell-Compatible Commands**
+```bash
+# ❌ WRONG: Linux syntax in PowerShell
+command1 && command2
+command1 | command2
+command1 ; command2
+
+# ✅ CORRECT: PowerShell syntax
+command1
+if ($?) { command2 }
+command1 | Out-File output.txt
+command1
+command2
+```
+
+#### **🚫 FORBIDDEN in Chat Output:**
+- Multi-line commands with `&&`
+- Chained commands with `&&` or `;`
+- Piped commands with `|`
+- Background processes with `&`
+
+#### **✅ REQUIRED in Chat Output:**
+- **Single commands** per line
+- **Separate lines** for multiple commands
+- **Explicit activation** of virtual environments
+- **Clear command separation**
+
+**Example Implementation**:
+```bash
+# ❌ WRONG: Forbidden syntax
+build_venv\Scripts\activate && python demonstration_test.py
+
+# ✅ CORRECT: PowerShell compatible
+build_venv\Scripts\activate
+python demonstration_test.py
+```
+
+**Enforcement**: Any chat output without "hi!" prefix or using Linux syntax will be rejected and require correction.
+
 ### ✅ **ALWAYS Prioritize Real Implementation**
 
 **❌ AVOID:**
