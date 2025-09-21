@@ -1,0 +1,7 @@
+# Notepad++ MCP Server Requirements
+# Compatible with Python 3.10+
+# Windows only
+
+fastmcp>=2.12.0
+psutil>=5.9.0
+pywin32==311; platform_system=='Windows'
