@@ -116,7 +116,7 @@
     {
       "label": "Clean Build Environment",
       "type": "shell",
-      "command": "if (Test-Path build_venv) { Remove-Item build_venv -Recurse -Force }; if (Test-Path dist) { Remove-Item dist -Recurse -Force }",
+      "command": "if (Test-Path build_venv) { Remove-Item build_venv -Recurse -Force }; if (Test-Path dist) { Remove-Item dist -Recurse -Force }; if (Test-Path *.dxt) { Remove-Item *.dxt -Force }",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -128,7 +128,20 @@
     {
       "label": "Development Server",
       "type": "shell",
-      "command": "build_venv\\Scripts\\activate && python -m notepadpp_mcp.tools.server",
+      "command": "build_venv\\Scripts\\activate",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Run MCP Server",
+      "type": "shell",
+      "command": "python -m notepadpp_mcp.tools.server",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -141,7 +154,19 @@
     {
       "label": "Check Tool Registration",
       "type": "shell",
-      "command": "build_venv\\Scripts\\activate && python -c \"from notepadpp_mcp.tools.server import app; tools = app._tools; print(f'Total tools: {len(tools)}'); [print(f'- {tool.name}') for tool in tools.values()]\"",
+      "command": "build_venv\\Scripts\\activate",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "List Available Tools",
+      "type": "shell",
+      "command": "python -c \"from notepadpp_mcp.tools.server import app; tools = app._tools; print(f'Total tools: {len(tools)}'); [print(f'- {tool.name}') for tool in tools.values()]\"",
       "group": "test",
       "presentation": {
         "echo": true,

@@ -53,6 +53,11 @@ python demonstration_test.py
 - `&` (background processes)
 - `>` (redirection)
 - `>>` (append redirection)
+- `mkdir -p` (Linux directory creation)
+- `ls -la` (Linux directory listing)
+- `rm -rf` (Linux recursive deletion)
+- `cp -r` (Linux recursive copy)
+- `mv` (Linux move/rename)
 
 #### **✅ REQUIRED: PowerShell-Compatible Commands**
 ```bash
@@ -60,6 +65,11 @@ python demonstration_test.py
 command1 && command2
 command1 | command2
 command1 ; command2
+mkdir -p new_folder/subfolder
+ls -la
+rm -rf folder
+cp -r source dest
+mv file.txt newfile.txt
 
 # ✅ CORRECT: PowerShell syntax
 command1
@@ -67,6 +77,16 @@ if ($?) { command2 }
 command1 | Out-File output.txt
 command1
 command2
+
+# Directory operations
+New-Item -ItemType Directory -Force -Path "new_folder/subfolder"
+Get-ChildItem -Recurse | Select-Object Name, Length
+Remove-Item -Recurse -Force "folder"
+Copy-Item -Recurse "source" "dest"
+Move-Item "file.txt" "newfile.txt"
+
+# Virtual environment activation
+build_venv\Scripts\activate
 ```
 
 #### **🚫 FORBIDDEN in Chat Output:**
@@ -85,10 +105,20 @@ command2
 ```bash
 # ❌ WRONG: Forbidden syntax
 build_venv\Scripts\activate && python demonstration_test.py
+mkdir -p dist && dxt pack
 
 # ✅ CORRECT: PowerShell compatible
 build_venv\Scripts\activate
 python demonstration_test.py
+
+# Directory creation
+New-Item -ItemType Directory -Force -Path "dist"
+dxt pack
+
+# Virtual environment setup (step by step)
+python -m venv build_venv
+build_venv\Scripts\activate
+pip install -e .[dev]
 ```
 
 **Enforcement**: Any chat output without "hi!" prefix or using Linux syntax will be rejected and require correction.
