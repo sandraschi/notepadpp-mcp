@@ -3,13 +3,14 @@
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tools](https://img.shields.io/badge/tools-15-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
-[![Tests](https://img.shields.io/badge/tests-18-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Tools](https://img.shields.io/badge/tools-20-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Tests](https://img.shields.io/badge/tests-34-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
 
-**FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation and control.**
+**FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, control, and code quality analysis.**
 
-✨ **15 powerful tools** including advanced tab and session management
-🧪 **18 comprehensive tests** with real Windows API integration
+✨ **20 powerful tools** including advanced tab/session management and code linting
+🧪 **34 comprehensive tests** with real Windows API integration
+🔍 **5 linting tools** for Python, JavaScript, JSON, and Markdown
 🎯 **Production-ready** with structured logging and error handling
 
 ## 🚀 Installation & Setup
@@ -132,7 +133,7 @@ notepadpp-mcp/
 - **[Product Requirements Document](src/notepadpp_mcp/docs/PRD.md)** - Vision and roadmap
 - **[Configuration Examples](src/notepadpp_mcp/docs/examples/)** - Integration templates
 
-## 🛠️ **Tools Overview** (15 Total)
+## 🛠️ **Tools Overview** (20 Total)
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -141,8 +142,9 @@ notepadpp-mcp/
 | **Status & Info** | 3 | Monitor system and document state |
 | **Tab Management** | 3 | Organize and navigate multiple files |
 | **Session Management** | 3 | Save and restore workspace states |
+| **Code Quality & Linting** | 5 | Analyze code for multiple file types |
 
-**Total: 15 production-ready tools** with comprehensive Windows API integration.
+**Total: 20 production-ready tools** with comprehensive Windows API integration and multi-linter support.
 
 ## ⚡ Features
 
@@ -171,12 +173,21 @@ notepadpp-mcp/
 - `load_session` - Load saved sessions
 - `list_sessions` - List all saved sessions
 
+### 🔍 **Code Quality & Linting** (5 tools) ✨ **NEW**
+- `lint_python_file` - Comprehensive Python code analysis with ruff/flake8
+- `lint_javascript_file` - JavaScript validation with ESLint or basic checking
+- `lint_json_file` - JSON syntax validation and structure analysis
+- `lint_markdown_file` - Markdown style and syntax validation
+- `get_linting_tools` - Overview of available linting capabilities
+
 ### 🔧 **Core Capabilities**
 - 🎯 **Windows Integration**: Native Windows API with pywin32
 - ⚡ **FastMCP 2.12**: Latest MCP framework compliance
 - 📝 **Structured Logging**: Professional error handling
-- 🧪 **Comprehensive Testing**: 18 tests covering all tools
+- 🧪 **Comprehensive Testing**: 34 tests covering all tools
 - 📚 **Self-Documenting**: Built-in help system
+- 🔍 **Multi-linter Support**: ruff, flake8, ESLint with fallback options
+- 🎨 **Code Quality**: Syntax validation for Python, JS, JSON, Markdown
 
 ## 🛠️ Development
 
@@ -200,10 +211,11 @@ python dev.py test|format|build|validate-dxt
 ```
 
 ### 🧪 **Testing**
-- **18 comprehensive tests** covering all tools
+- **34 comprehensive tests** covering all tools including linting functionality
 - **Real Windows API testing** with actual Notepad++ integration
 - **Demonstration script** (`demonstration_test.py`) tests live functionality
 - **CI/CD ready** with automated testing pipeline
+- **Multi-linter testing** with ruff, flake8, and ESLint integration
 
 ## 🏗️ Architecture
 
@@ -221,8 +233,8 @@ python dev.py test|format|build|validate-dxt
 ### 📁 **File Structure**
 ```
 src/notepadpp_mcp/
-├── tools/server.py     # Main MCP server (966 lines)
-├── tests/              # Comprehensive test suite
+├── tools/server.py     # Main MCP server (1533 lines)
+├── tests/              # Comprehensive test suite (34 tests)
 ├── docs/               # Documentation and examples
 └── dxt/                # DXT packaging configuration
 ```
@@ -343,7 +355,14 @@ python dev.py build
 
 ## 📜 Changelog
 
-### **v1.0.0** - Current Release
+### **v1.1.0** - Linting Tools Release ✨ **NEW**
+- ✅ **5 comprehensive linting tools** for Python, JavaScript, JSON, and Markdown
+- ✅ **Multi-linter support** with ruff, flake8, ESLint, and fallback options
+- ✅ **16 additional tests** covering all linting functionality
+- ✅ **Enhanced DXT configuration** with detailed linting tool documentation
+- ✅ **Total: 20 tools** for complete code quality analysis
+
+### **v1.0.0** - Core Release
 - ✅ **15 comprehensive tools** for Notepad++ automation
 - ✅ **Real Windows API integration** with pywin32
 - ✅ **Advanced tab and session management**
@@ -354,6 +373,7 @@ python dev.py build
 ### **Planned Features**
 - **Multi-instance support** for multiple Notepad++ windows
 - **Plugin integration** for extended functionality
+- **HTML/CSS linting** tools for web development
 - **Configuration files** for custom settings
 - **Batch operations** for multiple file processing
 

@@ -33,7 +33,7 @@ def mock_win32():
 @pytest.fixture
 def mock_notepadpp_controller(mock_win32):
     """Create a mocked NotepadPPController."""
-    from notepadpp_mcp.server import NotepadPPController
+    from notepadpp_mcp.tools.server import NotepadPPController
     
     with patch.object(NotepadPPController, '_find_notepadpp_exe') as mock_find_exe:
         mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"

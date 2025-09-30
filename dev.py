@@ -54,7 +54,7 @@ def run_type_check():
 
 def format_code():
     """Format code with black and isort."""
-    print("Formatting code...")
+    logger.info("Formatting code...")
     success = True
     success &= run_command([sys.executable, "-m", "black", "src", "tests"])
     success &= run_command([sys.executable, "-m", "isort", "src", "tests"])
@@ -62,7 +62,7 @@ def format_code():
 
 def lint_code():
     """Run linting checks."""
-    print("Running linting...")
+    logger.info("Running linting...")
     success = True
     success &= run_command([sys.executable, "-m", "black", "--check", "src", "tests"])
     success &= run_command([sys.executable, "-m", "isort", "--check-only", "src", "tests"])
@@ -70,12 +70,12 @@ def lint_code():
 
 def build_package():
     """Build package for distribution."""
-    print("Building package...")
+    logger.info("Building package...")
     return run_command([sys.executable, "-m", "build"])
 
 def test_install():
     """Test installation in clean environment."""
-    print("Testing installation...")
+    logger.info("Testing installation...")
     # Create temporary virtual environment
     venv_path = Path("test_venv")
     if venv_path.exists():
@@ -93,7 +93,7 @@ def test_install():
         python_path = venv_path / "bin" / "python"
     
     success &= run_command([str(pip_path), "install", "."])
-    success &= run_command([str(python_path), "-c", "import notepadpp_mcp; print('Import successful')"])
+    success &= run_command([str(python_path), "-c", "import notepadpp_mcp; logger.info('Import successful')"])
     
     # Cleanup
     import shutil
@@ -103,29 +103,29 @@ def test_install():
 
 def validate_dxt():
     """Validate DXT configuration."""
-    print("Validating DXT configuration...")
+    logger.info("Validating DXT configuration...")
     return run_command(["dxt", "validate"])
 
 def build_dxt():
     """Build DXT package."""
-    print("Building DXT package...")
+    logger.info("Building DXT package...")
     return run_command(["dxt", "pack"])
 
 def main():
     """Main development script."""
     if len(sys.argv) < 2:
-        print("Usage: python dev.py <command>")
-        print("Commands:")
-        print("  install-dev  - Install development dependencies")
-        print("  test         - Run tests")
-        print("  type-check   - Run type checking")
-        print("  format       - Format code")
-        print("  lint         - Run linting")
-        print("  build        - Build package")
-        print("  test-install - Test installation")
-        print("  validate-dxt - Validate DXT config")
-        print("  build-dxt    - Build DXT package")
-        print("  all          - Run all checks")
+        logger.info("Usage: python dev.py <command>")
+        logger.info("Commands:")
+        logger.info("  install-dev  - Install development dependencies")
+        logger.info("  test         - Run tests")
+        logger.info("  type-check   - Run type checking")
+        logger.info("  format       - Format code")
+        logger.info("  lint         - Run linting")
+        logger.info("  build        - Build package")
+        logger.info("  test-install - Test installation")
+        logger.info("  validate-dxt - Validate DXT config")
+        logger.info("  build-dxt    - Build DXT package")
+        logger.info("  all          - Run all checks")
         return 1
     
     command = sys.argv[1]
@@ -157,7 +157,7 @@ def main():
         success &= validate_dxt()
         return 0 if success else 1
     else:
-        print(f"Unknown command: {command}")
+        logger.info(f"Unknown command: {command}")
         return 1
 
 if __name__ == "__main__":

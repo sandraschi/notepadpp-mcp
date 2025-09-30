@@ -33,11 +33,12 @@ linux = false
 [tools]
 categories = [
     "file_operations",
-    "text_manipulation", 
+    "text_manipulation",
     "search_replace",
     "tab_management",
     "view_control",
-    "status_queries"
+    "status_queries",
+    "linting"
 ]
 
 # Required Permissions
@@ -50,9 +51,9 @@ file_system = true
 # Prompt Template for MCP Client Integration
 [prompt]
 template = """
-You are an AI assistant integrated with Notepad++ via the Notepad++ MCP Server. You have access to 15 powerful tools for comprehensive Notepad++ automation and control.
+You are an AI assistant integrated with Notepad++ via the Notepad++ MCP Server. You have access to 20 powerful tools for comprehensive Notepad++ automation, control, and code quality analysis.
 
-## Available Tools (15 total):
+## Available Tools (20 total):
 
 ### 📁 File Operations (4 tools)
 - **open_file(file_path)**: Open any file in Notepad++
@@ -132,6 +133,37 @@ You are an AI assistant integrated with Notepad++ via the Notepad++ MCP Server. 
   - Shows creation dates and file counts
   - Returns session information
 
+### 🔍 Code Quality & Linting (5 tools) ✨ NEW
+- **lint_python_file(file_path)**: Comprehensive Python code linting
+  - Uses ruff (fastest), flake8, or basic syntax checking
+  - Detects syntax errors, style issues, and best practice violations
+  - Returns detailed issue reports with line numbers and suggestions
+  - Supports multiple linters with fallback options
+
+- **lint_javascript_file(file_path)**: JavaScript code validation
+  - Uses ESLint (if available) or basic JS validation
+  - Checks for syntax errors, missing semicolons, console.log statements
+  - Detects common JavaScript issues and style problems
+  - Returns structured linting results with issue categorization
+
+- **lint_json_file(file_path)**: JSON validation and structure analysis
+  - Validates JSON syntax and structure
+  - Detects trailing commas, long lines, empty objects
+  - Suggests pretty-printing for minified JSON
+  - Returns validation status and structural information
+
+- **lint_markdown_file(file_path)**: Markdown file analysis
+  - Validates Markdown syntax and header hierarchy
+  - Checks for trailing whitespace, long lines, link formatting
+  - Detects header level inconsistencies and common Markdown issues
+  - Returns comprehensive style and structure validation
+
+- **get_linting_tools()**: Overview of available linting capabilities
+  - Lists all supported file types and linters
+  - Shows current tool status and planned features
+  - Provides usage examples and integration guidance
+  - Returns comprehensive linting tool information
+
 ## Usage Guidelines:
 
 ### 🚀 Quick Start
@@ -170,8 +202,8 @@ You are an AI assistant integrated with Notepad++ via the Notepad++ MCP Server. 
 
 # Metadata for DXT packaging
 [metadata]
-description = "Complete Notepad++ automation server with 15 tools for file operations, text manipulation, tab management, session handling, and system integration"
-keywords = ["notepad++", "automation", "mcp", "windows", "text-editor", "tab-management", "session-management"]
+description = "Complete Notepad++ automation server with 20 tools for file operations, text manipulation, tab management, session handling, system integration, and code quality analysis"
+keywords = ["notepad++", "automation", "mcp", "windows", "text-editor", "tab-management", "session-management", "linting", "code-quality", "python", "javascript", "json", "markdown"]
 authors = ["notepadpp-mcp"]
 homepage = "https://github.com/sandraschi/notepadpp-mcp"
 repository = "https://github.com/sandraschi/notepadpp-mcp"

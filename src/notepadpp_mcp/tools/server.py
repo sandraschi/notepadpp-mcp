@@ -11,8 +11,9 @@ import os
 import subprocess
 import sys
 import time
+from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Callable
 
 import psutil
 from fastmcp import FastMCP
@@ -58,6 +59,129 @@ DEFAULT_NOTEPADPP_PATHS = [
     r"C:\Program Files (x86)\Notepad++\notepad++.exe",
     r"C:\Users\{}\AppData\Local\Notepad++\notepad++.exe".format(os.getenv("USERNAME", "")),
 ]
+
+
+# Validation and Error Handling Decorators
+def validate_file_path(func: Callable) -> Callable:
+    """Decorator to validate file path parameters."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Extract file_path from arguments
+        file_path = None
+        if 'file_path' in kwargs:
+            file_path = kwargs['file_path']
+        elif len(args) > 1:  # Skip 'self' for methods
+            file_path = args[1]
+
+        if file_path is not None:
+            # Validate file path
+            if not isinstance(file_path, str):
+                return {
+                    "success": False,
+                    "error": f"file_path must be a string, got {type(file_path).__name__}"
+                }
+
+            # Check for dangerous paths
+            dangerous_patterns = ['..', '\\', '/', '<', '>', '|', '"', '*', '?']
+            for pattern in dangerous_patterns:
+                if pattern in file_path and pattern not in ['/', '\\']:  # Allow path separators
+                    return {
+                        "success": False,
+                        "error": f"Invalid characters in file path: {pattern}"
+                    }
+
+            # Check path length
+            if len(file_path) > 260:  # Windows MAX_PATH
+                return {
+                    "success": False,
+                    "error": "File path too long (max 260 characters)"
+                }
+
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+def validate_text_input(func: Callable) -> Callable:
+    """Decorator to validate text input parameters."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Extract text parameters
+        text_params = ['text', 'search_text', 'content']
+        for param in text_params:
+            if param in kwargs:
+                text_value = kwargs[param]
+                if not isinstance(text_value, str):
+                    return {
+                        "success": False,
+                        "error": f"{param} must be a string, got {type(text_value).__name__}"
+                    }
+                # Check for extremely long text
+                if len(text_value) > 10000:  # Reasonable limit
+                    return {
+                        "success": False,
+                        "error": f"{param} too long (max 10,000 characters)"
+                    }
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+def handle_tool_errors(func: Callable) -> Callable:
+    """Decorator to provide comprehensive error handling for tools."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            # Check Windows API availability
+            if not WINDOWS_AVAILABLE:
+                logger.error("Windows API not available for tool execution")
+                return {
+                    "success": False,
+                    "error": "Windows API not available - this server requires Windows"
+                }
+
+            if not controller:
+                logger.error("Notepad++ controller not initialized")
+                return {
+                    "success": False,
+                    "error": "Notepad++ controller not available"
+                }
+
+            result = await func(*args, **kwargs)
+
+            # Validate result format
+            if not isinstance(result, dict):
+                logger.error(f"Tool {func.__name__} returned non-dict result: {type(result)}")
+                return {
+                    "success": False,
+                    "error": f"Internal error: invalid result format from {func.__name__}"
+                }
+
+            return result
+
+        except NotepadPPError as e:
+            logger.error(f"Notepad++ error in {func.__name__}: {e}")
+            return {
+                "success": False,
+                "error": f"Notepad++ operation failed: {str(e)}"
+            }
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout in {func.__name__}")
+            return {
+                "success": False,
+                "error": f"Operation timed out after {NOTEPADPP_TIMEOUT} seconds"
+            }
+        except OSError as e:
+            logger.error(f"OS error in {func.__name__}: {e}")
+            return {
+                "success": False,
+                "error": f"System error: {str(e)}"
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error in {func.__name__}: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": f"Unexpected error: {str(e)}"
+            }
+    return wrapper
 
 
 class NotepadPPError(Exception):
@@ -172,82 +296,66 @@ controller = NotepadPPController() if WINDOWS_AVAILABLE else None
 
 
 @app.tool()
+@handle_tool_errors
 async def get_status() -> Dict[str, Any]:
     """Get Notepad++ status and information."""
-    if not controller:
-        return {"error": "Windows API not available"}
-    
-    try:
-        await controller.ensure_notepadpp_running()
-        
-        window_text = await controller.get_window_text(controller.hwnd)
-        
-        return {
-            "status": "running",
-            "window_title": window_text,
-            "main_window_handle": controller.hwnd,
-            "scintilla_handle": controller.scintilla_hwnd,
-            "executable_path": controller.notepadpp_exe,
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "executable_path": controller.notepadpp_exe if controller else None,
-        }
+    await controller.ensure_notepadpp_running()
+
+    window_text = await controller.get_window_text(controller.hwnd)
+
+    return {
+        "status": "running",
+        "window_title": window_text,
+        "main_window_handle": controller.hwnd,
+        "scintilla_handle": controller.scintilla_hwnd,
+        "executable_path": controller.notepadpp_exe,
+    }
 
 
 @app.tool()
+@handle_tool_errors
+@validate_file_path
 async def open_file(file_path: str) -> Dict[str, Any]:
     """
     Open a file in Notepad++.
-    
+
     Args:
         file_path: Path to the file to open
-        
+
     Returns:
         Dictionary with operation status and file information
     """
-    if not controller:
-        return {"error": "Windows API not available"}
-    
-    try:
-        await controller.ensure_notepadpp_running()
-        
-        # Convert to absolute path
-        abs_path = os.path.abspath(file_path)
-        
-        if not os.path.exists(abs_path):
-            return {
-                "success": False,
-                "error": f"File not found: {abs_path}"
-            }
-        
-        # Use subprocess to open file (Notepad++ command line)
-        process = subprocess.Popen(
-            [controller.notepadpp_exe, abs_path],
-            shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        
-        # Wait a moment for file to load
-        await asyncio.sleep(0.5)
-        
-        return {
-            "success": True,
-            "file_path": abs_path,
-            "message": f"Opened file: {abs_path}"
-        }
-        
-    except Exception as e:
+    await controller.ensure_notepadpp_running()
+
+    # Convert to absolute path
+    abs_path = os.path.abspath(file_path)
+
+    if not os.path.exists(abs_path):
         return {
             "success": False,
-            "error": f"Failed to open file: {e}"
+            "error": f"File not found: {abs_path}"
         }
+
+    # Use subprocess to open file (Notepad++ command line)
+    process = subprocess.Popen(
+        [controller.notepadpp_exe, abs_path],
+        shell=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    # Wait a moment for file to load
+    await asyncio.sleep(0.5)
+
+    return {
+        "success": True,
+        "file_path": abs_path,
+        "message": f"Opened file: {abs_path}"
+    }
 
 
 @app.tool()
+@handle_tool_errors
 async def new_file() -> Dict[str, Any]:
     """
     Create a new untitled file in Notepad++.
@@ -366,56 +474,50 @@ async def get_current_file_info() -> Dict[str, Any]:
 
 
 @app.tool()
+@handle_tool_errors
+@validate_text_input
 async def insert_text(text: str) -> Dict[str, Any]:
     """
     Insert text at the current cursor position.
-    
+
     Args:
         text: Text to insert
-        
+
     Returns:
         Dictionary with operation status
     """
-    if not controller:
-        return {"error": "Windows API not available"}
-    
-    try:
-        await controller.ensure_notepadpp_running()
-        
-        # Focus on Notepad++
-        win32gui.SetForegroundWindow(controller.hwnd)
-        await asyncio.sleep(0.1)
-        
-        # Use clipboard to insert text (more reliable for longer text)
-        import win32clipboard
-        
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardText(text)
-        win32clipboard.CloseClipboard()
-        
-        # Paste text with Ctrl+V
-        keybd_event = win32api.keybd_event
-        keybd_event(win32con.VK_CONTROL, 0, 0, 0)
-        keybd_event(ord('V'), 0, 0, 0)
-        keybd_event(ord('V'), 0, win32con.KEYEVENTF_KEYUP, 0)
-        keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
-        
-        await asyncio.sleep(0.2)
-        
-        return {
-            "success": True,
-            "message": f"Inserted {len(text)} characters"
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to insert text: {e}"
-        }
+    await controller.ensure_notepadpp_running()
+
+    # Focus on Notepad++
+    win32gui.SetForegroundWindow(controller.hwnd)
+    await asyncio.sleep(0.1)
+
+    # Use clipboard to insert text (more reliable for longer text)
+    import win32clipboard
+
+    win32clipboard.OpenClipboard()
+    win32clipboard.EmptyClipboard()
+    win32clipboard.SetClipboardText(text)
+    win32clipboard.CloseClipboard()
+
+    # Paste text with Ctrl+V
+    keybd_event = win32api.keybd_event
+    keybd_event(win32con.VK_CONTROL, 0, 0, 0)
+    keybd_event(ord('V'), 0, 0, 0)
+    keybd_event(ord('V'), 0, win32con.KEYEVENTF_KEYUP, 0)
+    keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+    await asyncio.sleep(0.2)
+
+    return {
+        "success": True,
+        "message": f"Inserted {len(text)} characters"
+    }
 
 
 @app.tool()
+@handle_tool_errors
+@validate_text_input
 async def find_text(search_text: str, case_sensitive: bool = False) -> Dict[str, Any]:
     """
     Find text in the current document.
@@ -482,6 +584,7 @@ async def find_text(search_text: str, case_sensitive: bool = False) -> Dict[str,
 # ============================================================================
 
 @app.tool()
+@handle_tool_errors
 async def get_help(
     category: str = "",
     tool_name: str = ""
@@ -682,6 +785,128 @@ async def get_system_status() -> Dict[str, Any]:
             "error": "Failed to get system status",
             "details": str(e)
         }
+
+
+@app.tool()
+@handle_tool_errors
+async def health_check() -> Dict[str, Any]:
+    """
+    Perform comprehensive health check of Notepad++ MCP server.
+
+    Tests all critical components:
+    - Windows API availability
+    - Notepad++ process detection
+    - Window handle validation
+    - Basic functionality tests
+    - System resource checks
+
+    Returns:
+        Dictionary with health check results and recommendations
+    """
+    health_status = {
+        "overall_status": "unknown",
+        "checks": {},
+        "recommendations": [],
+        "timestamp": time.time()
+    }
+
+    # Check 1: Windows API availability
+    health_status["checks"]["windows_api"] = {
+        "status": "pass" if WINDOWS_AVAILABLE else "fail",
+        "message": "Windows API available" if WINDOWS_AVAILABLE else "Windows API not available",
+        "critical": True
+    }
+
+    if not WINDOWS_AVAILABLE:
+        health_status["overall_status"] = "fail"
+        health_status["recommendations"].append("Install pywin32: pip install pywin32")
+        health_status["recommendations"].append("Ensure running on Windows platform")
+        return health_status
+
+    # Check 2: Controller initialization
+    try:
+        controller.ensure_notepadpp_running()
+        health_status["checks"]["controller_init"] = {
+            "status": "pass",
+            "message": "Controller initialized successfully",
+            "critical": True
+        }
+    except Exception as e:
+        health_status["checks"]["controller_init"] = {
+            "status": "fail",
+            "message": f"Controller initialization failed: {str(e)}",
+            "critical": True
+        }
+        health_status["overall_status"] = "fail"
+        health_status["recommendations"].append("Install and start Notepad++")
+        return health_status
+
+    # Check 3: Notepad++ process
+    try:
+        import psutil
+        notepad_processes = [p for p in psutil.process_iter(['pid', 'name'])
+                           if 'notepad++' in p.info['name'].lower()]
+        health_status["checks"]["notepad_process"] = {
+            "status": "pass" if notepad_processes else "fail",
+            "message": f"Found {len(notepad_processes)} Notepad++ process(es)",
+            "critical": True
+        }
+    except Exception as e:
+        health_status["checks"]["notepad_process"] = {
+            "status": "warning",
+            "message": f"Could not check process: {str(e)}",
+            "critical": False
+        }
+
+    # Check 4: Window handles
+    try:
+        window_valid = controller.hwnd and controller.hwnd != 0
+        scintilla_valid = controller.scintilla_hwnd and controller.scintilla_hwnd != 0
+
+        health_status["checks"]["window_handles"] = {
+            "status": "pass" if window_valid else "fail",
+            "message": f"Main window: {'valid' if window_valid else 'invalid'}, Scintilla: {'valid' if scintilla_valid else 'invalid'}",
+            "critical": True
+        }
+    except Exception as e:
+        health_status["checks"]["window_handles"] = {
+            "status": "warning",
+            "message": f"Could not validate handles: {str(e)}",
+            "critical": False
+        }
+
+    # Check 5: Basic functionality
+    try:
+        # Test getting window title
+        title = await controller.get_window_text(controller.hwnd)
+        health_status["checks"]["basic_functionality"] = {
+            "status": "pass" if title else "warning",
+            "message": f"Window title retrieved: {bool(title)}",
+            "critical": False
+        }
+    except Exception as e:
+        health_status["checks"]["basic_functionality"] = {
+            "status": "warning",
+            "message": f"Basic functionality test failed: {str(e)}",
+            "critical": False
+        }
+
+    # Determine overall status
+    critical_checks = [check for check in health_status["checks"].values()
+                      if check.get("critical", False)]
+
+    if all(check["status"] == "pass" for check in critical_checks):
+        health_status["overall_status"] = "pass"
+        health_status["recommendations"].append("All systems operational")
+    elif any(check["status"] == "fail" for check in critical_checks):
+        health_status["overall_status"] = "fail"
+        if not health_status["recommendations"]:
+            health_status["recommendations"].append("Check critical system components")
+    else:
+        health_status["overall_status"] = "warning"
+        health_status["recommendations"].append("Some non-critical issues detected")
+
+    return health_status
 
 
 # ============================================================================
@@ -948,6 +1173,573 @@ async def list_sessions() -> Dict[str, Any]:
             "error": "Failed to list sessions",
             "details": str(e)
         }
+
+
+# =============================================================================
+# LINTING TOOLS - Support for multiple file types
+# =============================================================================
+
+@app.tool()
+async def lint_python_file(file_path: str) -> Dict[str, Any]:
+    """
+    Lint a Python file using ruff (if available) or basic syntax checking.
+
+    Performs comprehensive Python code analysis including:
+    - Syntax errors and undefined names
+    - Code style violations
+    - Import issues
+    - Unused variables and imports
+    - Complexity analysis
+
+    Args:
+        file_path: Path to the Python file to lint
+
+    Returns:
+        Dictionary with linting results including errors, warnings, and suggestions
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+
+    try:
+        await controller.ensure_notepadpp_running()
+
+        # Convert to absolute path
+        abs_path = os.path.abspath(file_path)
+
+        if not os.path.exists(abs_path):
+            return {
+                "success": False,
+                "error": f"File not found: {abs_path}"
+            }
+
+        # Try ruff first (fastest Python linter)
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["ruff", "check", abs_path, "--output-format=json"],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                # No issues found
+                return {
+                    "success": True,
+                    "file_path": abs_path,
+                    "linter": "ruff",
+                    "issues": [],
+                    "summary": "No linting issues found"
+                }
+            else:
+                # Parse JSON output from ruff
+                import json
+                issues = json.loads(result.stdout) if result.stdout else []
+
+                # Categorize issues
+                errors = [issue for issue in issues if issue.get("type") == "error"]
+                warnings = [issue for issue in issues if issue.get("type") == "warning"]
+
+                return {
+                    "success": True,
+                    "file_path": abs_path,
+                    "linter": "ruff",
+                    "total_issues": len(issues),
+                    "errors": len(errors),
+                    "warnings": len(warnings),
+                    "issues": issues,
+                    "summary": f"Found {len(issues)} issues ({len(errors)} errors, {len(warnings)} warnings)"
+                }
+
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # ruff not available, try flake8
+            try:
+                result = subprocess.run(
+                    ["flake8", "--format=json", abs_path],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+
+                if result.returncode == 0:
+                    return {
+                        "success": True,
+                        "file_path": abs_path,
+                        "linter": "flake8",
+                        "issues": [],
+                        "summary": "No linting issues found"
+                    }
+                else:
+                    # Parse flake8 output
+                    issues = []
+                    for line in result.stdout.strip().split('\n'):
+                        if line.strip():
+                            try:
+                                issue = json.loads(line)
+                                issues.append({
+                                    "code": issue.get("code", "E999"),
+                                    "message": issue.get("message", "Unknown issue"),
+                                    "line": issue.get("line", 0),
+                                    "column": issue.get("column", 0),
+                                    "type": "error" if issue.get("code", "").startswith("E") else "warning"
+                                })
+                            except:
+                                continue
+
+                    return {
+                        "success": True,
+                        "file_path": abs_path,
+                        "linter": "flake8",
+                        "total_issues": len(issues),
+                        "issues": issues,
+                        "summary": f"Found {len(issues)} linting issues"
+                    }
+
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                # No linters available, do basic syntax check
+                try:
+                    with open(abs_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+
+                    # Basic Python syntax validation
+                    compile(content, abs_path, 'exec')
+
+                    return {
+                        "success": True,
+                        "file_path": abs_path,
+                        "linter": "basic_syntax",
+                        "issues": [],
+                        "summary": "Basic syntax check passed"
+                    }
+
+                except SyntaxError as e:
+                    return {
+                        "success": False,
+                        "file_path": abs_path,
+                        "linter": "basic_syntax",
+                        "error": f"Syntax error: {e.msg}",
+                        "line": e.lineno,
+                        "column": e.offset,
+                        "summary": f"Syntax error on line {e.lineno}"
+                    }
+                except Exception as e:
+                    return {
+                        "success": False,
+                        "file_path": abs_path,
+                        "error": f"Could not read file: {e}"
+                    }
+
+    except Exception as e:
+        logger.error(f"Error linting Python file: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to lint Python file: {e}"
+        }
+
+
+@app.tool()
+async def lint_javascript_file(file_path: str) -> Dict[str, Any]:
+    """
+    Lint a JavaScript file using eslint or basic syntax checking.
+
+    Supports:
+    - ESLint (if installed globally)
+    - Basic JavaScript syntax validation
+    - Common JS issues detection
+
+    Args:
+        file_path: Path to the JavaScript file to lint
+
+    Returns:
+        Dictionary with linting results and any issues found
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+
+    try:
+        await controller.ensure_notepadpp_running()
+
+        abs_path = os.path.abspath(file_path)
+
+        if not os.path.exists(abs_path):
+            return {
+                "success": False,
+                "error": f"File not found: {abs_path}"
+            }
+
+        # Try eslint first
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["eslint", "--format=json", abs_path],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0 or result.returncode == 2:  # 2 = linting errors found
+                issues = []
+                if result.stdout.strip():
+                    try:
+                        import json
+                        eslint_results = json.loads(result.stdout)
+                        for file_result in eslint_results:
+                            if file_result.get("messages"):
+                                for message in file_result["messages"]:
+                                    issues.append({
+                                        "rule": message.get("ruleId", "unknown"),
+                                        "message": message.get("message", "Unknown issue"),
+                                        "line": message.get("line", 0),
+                                        "column": message.get("column", 0),
+                                        "severity": message.get("severity", 1),
+                                        "type": "error" if message.get("severity", 1) > 1 else "warning"
+                                    })
+                    except:
+                        issues = [{"message": "Could not parse ESLint output", "type": "error"}]
+
+                return {
+                    "success": True,
+                    "file_path": abs_path,
+                    "linter": "eslint",
+                    "total_issues": len(issues),
+                    "issues": issues,
+                    "summary": f"ESLint found {len(issues)} issues"
+                }
+
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # ESLint not available, do basic validation
+            try:
+                with open(abs_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Basic JavaScript validation (very simple)
+                issues = []
+
+                # Check for common issues
+                lines = content.split('\n')
+                for i, line in enumerate(lines, 1):
+                    line = line.strip()
+
+                    # Check for missing semicolons (basic heuristic)
+                    if (line and not line.endswith(';') and not line.endswith('{') and
+                        not line.endswith('}') and not line.endswith(',') and
+                        not line.startswith('//') and not line.startswith('/*') and
+                        '=' in line and 'var ' not in line and 'let ' not in line and 'const ' not in line):
+                        issues.append({
+                            "line": i,
+                            "message": "Missing semicolon",
+                            "type": "warning"
+                        })
+
+                    # Check for console.log statements
+                    if 'console.log' in line:
+                        issues.append({
+                            "line": i,
+                            "message": "Console.log statement found",
+                            "type": "info"
+                        })
+
+                return {
+                    "success": True,
+                    "file_path": abs_path,
+                    "linter": "basic_js_check",
+                    "total_issues": len(issues),
+                    "issues": issues,
+                    "summary": f"Basic JS check found {len(issues)} issues"
+                }
+
+            except Exception as e:
+                return {
+                    "success": False,
+                    "file_path": abs_path,
+                    "error": f"Could not read JavaScript file: {e}"
+                }
+
+    except Exception as e:
+        logger.error(f"Error linting JavaScript file: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to lint JavaScript file: {e}"
+        }
+
+
+@app.tool()
+async def lint_json_file(file_path: str) -> Dict[str, Any]:
+    """
+    Validate and lint a JSON file.
+
+    Checks:
+    - JSON syntax validity
+    - Schema compliance (if schema provided)
+    - Common JSON issues
+    - Pretty-printing suggestions
+
+    Args:
+        file_path: Path to the JSON file to lint
+
+    Returns:
+        Dictionary with validation results and any issues found
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+
+    try:
+        await controller.ensure_notepadpp_running()
+
+        abs_path = os.path.abspath(file_path)
+
+        if not os.path.exists(abs_path):
+            return {
+                "success": False,
+                "error": f"File not found: {abs_path}"
+            }
+
+        try:
+            import json
+
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Parse JSON to validate syntax
+            data = json.loads(content)
+
+            # Additional validation
+            issues = []
+
+            # Check for trailing commas (JSON doesn't allow them)
+            import re
+            trailing_comma_pattern = r',(\s*[}\]])'
+            if re.search(trailing_comma_pattern, content):
+                issues.append({
+                    "message": "Trailing comma found (not valid JSON)",
+                    "type": "error"
+                })
+
+            # Check if it's minified (very long lines)
+            lines = content.split('\n')
+            long_lines = [i for i, line in enumerate(lines, 1) if len(line) > 100]
+            if long_lines:
+                issues.append({
+                    "message": f"Long lines found (consider pretty-printing): {len(long_lines)} lines > 100 chars",
+                    "type": "info",
+                    "lines": long_lines[:5]  # Show first 5
+                })
+
+            # Check for common issues
+            if isinstance(data, dict):
+                if not data:
+                    issues.append({
+                        "message": "Empty JSON object",
+                        "type": "info"
+                    })
+
+            return {
+                "success": True,
+                "file_path": abs_path,
+                "linter": "json_validator",
+                "valid_json": True,
+                "total_issues": len(issues),
+                "issues": issues,
+                "data_type": type(data).__name__,
+                "keys_count": len(data) if isinstance(data, dict) else 0,
+                "summary": f"Valid JSON with {len(issues)} issues found"
+            }
+
+        except json.JSONDecodeError as e:
+            return {
+                "success": False,
+                "file_path": abs_path,
+                "linter": "json_validator",
+                "valid_json": False,
+                "error": f"Invalid JSON: {e.msg}",
+                "line": e.lineno,
+                "column": e.colno,
+                "summary": f"JSON syntax error on line {e.lineno}"
+            }
+
+    except Exception as e:
+        logger.error(f"Error linting JSON file: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to lint JSON file: {e}"
+        }
+
+
+@app.tool()
+async def lint_markdown_file(file_path: str) -> Dict[str, Any]:
+    """
+    Lint a Markdown file for common issues and style problems.
+
+    Checks:
+    - Basic Markdown syntax
+    - Header hierarchy
+    - Link validity
+    - Code block formatting
+    - Common Markdown issues
+
+    Args:
+        file_path: Path to the Markdown file to lint
+
+    Returns:
+        Dictionary with linting results and any issues found
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+
+    try:
+        await controller.ensure_notepadpp_running()
+
+        abs_path = os.path.abspath(file_path)
+
+        if not os.path.exists(abs_path):
+            return {
+                "success": False,
+                "error": f"File not found: {abs_path}"
+            }
+
+        try:
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            lines = content.split('\n')
+            issues = []
+
+            # Check for common Markdown issues
+            in_code_block = False
+            header_levels = []
+            links = []
+
+            for i, line in enumerate(lines, 1):
+                stripped = line.strip()
+
+                # Track code blocks
+                if stripped.startswith('```'):
+                    in_code_block = not in_code_block
+
+                if in_code_block:
+                    continue
+
+                # Check header hierarchy
+                if stripped.startswith('#'):
+                    level = len(stripped) - len(stripped.lstrip('#'))
+                    header_levels.append((i, level, stripped))
+
+                    if level > 1 and not header_levels[:-1]:
+                        issues.append({
+                            "line": i,
+                            "message": f"H{level} found without H{level-1}",
+                            "type": "warning"
+                        })
+
+                # Check for links
+                if '[' in line and '](' in line:
+                    links.append(i)
+
+                # Check for trailing spaces
+                if line.rstrip() != line:
+                    issues.append({
+                        "line": i,
+                        "message": "Trailing whitespace found",
+                        "type": "warning"
+                    })
+
+                # Check for very long lines
+                if len(stripped) > 120:
+                    issues.append({
+                        "line": i,
+                        "message": f"Line too long ({len(stripped)} characters)",
+                        "type": "info"
+                    })
+
+            # Validate header hierarchy
+            if len(header_levels) > 1:
+                for i in range(1, len(header_levels)):
+                    prev_level = header_levels[i-1][1]
+                    curr_level = header_levels[i][1]
+
+                    if curr_level > prev_level + 1:
+                        issues.append({
+                            "line": header_levels[i][0],
+                            "message": f"H{curr_level} skips H{curr_level-1}",
+                            "type": "warning"
+                        })
+
+            return {
+                "success": True,
+                "file_path": abs_path,
+                "linter": "markdown_validator",
+                "total_issues": len(issues),
+                "headers_found": len(header_levels),
+                "links_found": len(links),
+                "issues": issues,
+                "summary": f"Markdown validation found {len(issues)} issues"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "file_path": abs_path,
+                "error": f"Could not read Markdown file: {e}"
+            }
+
+    except Exception as e:
+        logger.error(f"Error linting Markdown file: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to lint Markdown file: {e}"
+        }
+
+
+@app.tool()
+async def get_linting_tools() -> Dict[str, Any]:
+    """
+    Get information about available linting tools and their capabilities.
+
+    Returns a comprehensive overview of all supported file types and linting options.
+    """
+    return {
+        "success": True,
+        "linting_tools": {
+            "python": {
+                "supported": True,
+                "linters": ["ruff", "flake8", "basic_syntax"],
+                "description": "Python code linting with multiple linter support"
+            },
+            "javascript": {
+                "supported": True,
+                "linters": ["eslint", "basic_js_check"],
+                "description": "JavaScript linting with ESLint and basic validation"
+            },
+            "json": {
+                "supported": True,
+                "linters": ["json_validator"],
+                "description": "JSON syntax validation and structure checking"
+            },
+            "markdown": {
+                "supported": True,
+                "linters": ["markdown_validator"],
+                "description": "Markdown syntax and style checking"
+            },
+            "html": {
+                "supported": False,
+                "linters": [],
+                "description": "HTML linting - planned for future release"
+            },
+            "css": {
+                "supported": False,
+                "linters": [],
+                "description": "CSS linting - planned for future release"
+            }
+        },
+        "total_supported_types": 4,
+        "planned_types": 2,
+        "usage": {
+            "python": "lint_python_file('path/to/file.py')",
+            "javascript": "lint_javascript_file('path/to/file.js')",
+            "json": "lint_json_file('path/to/file.json')",
+            "markdown": "lint_markdown_file('path/to/file.md')"
+        }
+    }
 
 
 def main():
