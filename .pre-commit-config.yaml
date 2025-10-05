@@ -26,4 +26,4 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-        exclude: ^tests/
+        exclude: ^src/notepadpp_mcp/tests/

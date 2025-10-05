@@ -127,7 +127,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-build_venv/
 
 # Spyder project settings
 .spyderproject
@@ -156,43 +155,53 @@ cython_debug/
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
-#  project, it is recommended to ignore the entire idea folder.
-.idea/
+#  project, it is recommended to include the following files:
+#  .idea/
+#  *.iml
+#  *.ipr
+#  *.iws
 
 # VS Code
 .vscode/
 
-# Windows specific
+# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/
 
-# macOS specific
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
+# Linux
 *~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# Log files
-*.log
-
-# DXT package files
+# Project specific
+test_venv/
+*.mcpb
 *.dxt
-
-# Test artifacts
-.coverage
-htmlcov/
-.pytest_cache/
-test-results/
+dxt_manifest.json
+mcpb_manifest.json
 
 # Development
-.env.local
-.env.development
-.env.test
-.env.production
+build_venv/

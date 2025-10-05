@@ -1,12 +1,13 @@
 version: 2
 updates:
-  # Python dependencies
-  - package-ecosystem: "pip"
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "UTC"
     open-pull-requests-limit: 10
     reviewers:
       - "sandraschi"
@@ -16,14 +17,53 @@ updates:
       prefix: "deps"
       include: "scope"
 
-  # GitHub Actions
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "sandraschi"
+    assignees:
+      - "sandraschi"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "isort"
+          - "mypy"
+          - "pre-commit"
+          - "build"
+          - "twine"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        patterns:
+          - "fastmcp"
+          - "psutil"
+          - "pywin32"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 5
+      timezone: "UTC"
+    open-pull-requests-limit: 10
     reviewers:
       - "sandraschi"
     assignees:

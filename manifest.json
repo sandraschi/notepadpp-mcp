@@ -1,0 +1,50 @@
+{
+  "manifest_version": "0.2",
+  "name": "notepadpp-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Notepad++ automation and control",
+  "author": {
+    "name": "Notepad++ MCP Team",
+    "email": "support@notepadpp-mcp.dev"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "python",
+    "entry_point": "src/notepadpp_mcp/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["-m", "notepadpp_mcp.server"],
+      "env": {
+        "PYTHONPATH": "src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "user_config": {
+    "notepadpp_path": {
+      "type": "file",
+      "title": "Notepad++ Executable",
+      "description": "Path to Notepad++ executable (auto-detected if not specified)",
+      "required": false,
+      "default": "C:\\Program Files\\Notepad++\\notepad++.exe"
+    },
+    "auto_start": {
+      "type": "boolean",
+      "title": "Auto-start Notepad++",
+      "description": "Automatically start Notepad++ if not running",
+      "required": false,
+      "default": true
+    },
+    "timeout": {
+      "type": "string",
+      "title": "Operation Timeout",
+      "description": "Timeout for operations in seconds",
+      "required": false,
+      "default": "30"
+    }
+  },
+  "compatibility": {
+    "platforms": ["win32"],
+    "python_version": ">=3.10"
+  }
+}

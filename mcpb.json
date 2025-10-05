@@ -1,0 +1,33 @@
+{
+  "name": "notepadpp-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Notepad++ automation and control",
+  "author": "Notepad++ MCP Team",
+  "license": "MIT",
+  "outputDir": "dist",
+  "mcp": {
+    "version": "2.12.0",
+    "server": {
+      "command": "python",
+      "args": ["-m", "notepadpp_mcp.server"],
+      "transport": "stdio"
+    },
+    "capabilities": {
+      "tools": true,
+      "resources": false,
+      "prompts": false
+    }
+  },
+  "dependencies": {
+    "python": ">=3.10.0"
+  },
+  "build": {
+    "command": "python -m build",
+    "outputDir": "dist"
+  },
+  "scripts": {
+    "test": "python -m pytest",
+    "lint": "python -m black --check src/ && python -m isort --check-only src/",
+    "type-check": "python -m mypy src/"
+  }
+}

@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        npm install -g @anthropic-ai/mcpb
+    
+    - name: Build Python package
+      run: python -m build
+    
+    - name: Build MCPB package
+      run: mcpb pack
+    
+    - name: Check packages
+      run: |
+        twine check dist/*.whl dist/*.tar.gz
+        mcpb validate
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ## Changes in ${{ github.ref_name }}
+          
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          
+          ## Downloads
+          
+          ### Python Package
+          - **Wheel**: `notepadpp-mcp-${{ github.ref_name }}.whl`
+          - **Source**: `notepadpp-mcp-${{ github.ref_name }}.tar.gz`
+          
+          ### MCPB Package
+          - **MCPB**: `notepadpp-mcp-${{ github.ref_name }}.mcpb`
+          
+          ## Installation
+          
+          ### Python Package
+          ```bash
+          pip install notepadpp-mcp-${{ github.ref_name }}.whl
+          ```
+          
+          ### MCPB Package
+          Use the `.mcpb` file with MCP-compatible clients.
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+    
+    - name: Upload Python Package Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.whl
+        asset_name: notepadpp-mcp-${{ github.ref_name }}.whl
+        asset_content_type: application/zip
+    
+    - name: Upload Source Package Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.tar.gz
+        asset_name: notepadpp-mcp-${{ github.ref_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload MCPB Package Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.mcpb
+        asset_name: notepadpp-mcp-${{ github.ref_name }}.mcpb
+        asset_content_type: application/octet-stream
+    
+    - name: Publish to PyPI
+      if: github.event_name == 'push' && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'rc')
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: twine upload dist/*.whl dist/*.tar.gz

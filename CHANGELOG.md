@@ -8,107 +8,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Comprehensive validation decorators for input parameters
-- Enhanced error handling with structured logging
-- GitHub Actions CI/CD pipeline with multi-version Python testing
-- Dependabot configuration for automated dependency updates
-- Issue and PR templates for better contribution workflow
-- Glama.ai platform integration documentation
+- GitHub Actions CI/CD workflows
+- Automated testing pipeline with coverage reporting
+- Automated release workflow
+- MCPB (MCP Bundle) support
+- Comprehensive development tooling
 
 ### Changed
-- Replaced all `print()` statements with structured logging
-- Enhanced error handling across all MCP tools
-- Improved test suite with proper mocking and validation
-- Updated documentation with production readiness information
+- Migrated from DXT to MCPB
+- Updated Python version requirement to >=3.9
+- Enhanced build configuration
+- Improved development scripts
 
 ### Fixed
-- Test suite failures and type errors
-- Windows API mock setup in tests
-- Input validation for file paths and text content
-- Exception handling patterns throughout codebase
+- Build configuration inconsistencies
+- Missing CI/CD automation
+- Development workflow improvements
 
-## [1.1.0] - 2025-01-15
-
-### Added
-- **5 comprehensive linting tools** for Python, JavaScript, JSON, and Markdown
-- **Multi-linter support** with ruff, flake8, ESLint, and fallback options
-- **16 additional tests** covering all linting functionality
-- **Enhanced DXT configuration** with detailed linting tool documentation
-- **Total: 20 tools** for complete code quality analysis
-
-### Technical Details
-- Added `lint_python_file()` - Comprehensive Python code analysis
-- Added `lint_javascript_file()` - JavaScript validation with ESLint support
-- Added `lint_json_file()` - JSON syntax validation and structure analysis
-- Added `lint_markdown_file()` - Markdown style and syntax validation
-- Added `get_linting_tools()` - Overview of available linting capabilities
-
-## [1.0.0] - 2025-01-10
+## [0.1.0] - 2025-01-15
 
 ### Added
-- **15 comprehensive tools** for Notepad++ automation
-- **Real Windows API integration** with pywin32
-- **Advanced tab and session management**
-- **18 comprehensive tests** with full coverage
-- **DXT packaging** for easy installation
-- **Production-ready** error handling and logging
+- Initial release
+- Notepad++ MCP server implementation
+- Basic file operations (open, save, new, insert text)
+- Search functionality
+- Tab management
+- Session management
+- Linting tools integration
+- Development helper script
 
-### Core Features
-- File operations: `open_file()`, `new_file()`, `save_file()`, `get_current_file_info()`
-- Text operations: `insert_text()`, `find_text()`
-- Status monitoring: `get_status()`, `get_system_status()`, `get_help()`
-- Tab management: `list_tabs()`, `switch_to_tab()`, `close_tab()`
-- Session management: `save_session()`, `load_session()`, `list_sessions()`
-
-### Technical Implementation
-- FastMCP 2.12 framework compliance
-- Windows API integration via pywin32
-- Asynchronous operations with proper error handling
-- Comprehensive test suite with mocking
-- Cross-platform path handling
-- Structured logging implementation
-
-## [0.1.0] - 2025-01-01
-
-### Added
-- Initial MCP server implementation
-- Basic Notepad++ integration
-- Core file operations
-- Proof of concept functionality
-
----
-
-## Version Numbering
-
-This project follows [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** version for incompatible API changes
-- **MINOR** version for backwards-compatible functionality additions
-- **PATCH** version for backwards-compatible bug fixes
-
-## Types of Changes
-
-- **Added** for new features
-- **Changed** for changes in existing functionality
-- **Deprecated** for soon-to-be removed features
-- **Removed** for now removed features
-- **Fixed** for any bug fixes
-- **Security** for vulnerability fixes
-
-## Contributing
-
-When contributing to this project, please:
-1. Update the CHANGELOG.md with your changes
-2. Follow the existing format
-3. Add entries under [Unreleased] for upcoming releases
-4. Move entries to a version section when releasing
-
----
-
-**Legend:**
-- 🎯 Breaking change
-- ✨ New feature
-- 🐛 Bug fix
-- 📚 Documentation
-- 🔧 Maintenance
-- 🧪 Testing
+### Features
+- Windows-specific Notepad++ automation
+- FastMCP 2.12 compliance
+- Comprehensive tool set for file manipulation
+- Type checking and code quality tools
+- Pre-commit hooks configuration

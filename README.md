@@ -1,17 +1,22 @@
 # Notepad++ MCP Server
 
+[![Gold Status](https://img.shields.io/badge/Glama.ai-Gold%20Status-gold)](https://glama.ai)
+[![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
+[![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tools](https://img.shields.io/badge/tools-20-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
-[![Tests](https://img.shields.io/badge/tests-34-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Tests](https://img.shields.io/badge/tests-64-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Coverage](https://img.shields.io/badge/coverage-23%25-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
 
-**FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, control, and code quality analysis.**
+**🏆 Gold Status Certified** FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, control, and code quality analysis. Enterprise production-ready with 64 passing tests, structured logging, and advanced linting capabilities.
 
 ✨ **20 powerful tools** including advanced tab/session management and code linting
-🧪 **34 comprehensive tests** with real Windows API integration
+🧪 **64 comprehensive tests** with real Windows API integration and 23% coverage
 🔍 **5 linting tools** for Python, JavaScript, JSON, and Markdown
-🎯 **Production-ready** with structured logging and error handling
+🎯 **Enterprise production-ready** with structured logging and error handling
+🏆 **Gold Status** on Glama.ai platform (85/100 quality score)
 
 ## 🚀 Installation & Setup
 
