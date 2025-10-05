@@ -137,6 +137,9 @@ notepadpp-mcp/
 - **[Complete API Documentation](src/notepadpp_mcp/docs/README.md)** - Comprehensive guide
 - **[Product Requirements Document](src/notepadpp_mcp/docs/PRD.md)** - Vision and roadmap
 - **[Configuration Examples](src/notepadpp_mcp/docs/examples/)** - Integration templates
+- **[CI/CD & Glama.ai Guide](docs/CI_CD_GLAMA_OPTIMIZATION_GUIDE.md)** - Complete CI/CD and platform optimization documentation
+- **[Glama.ai Integration Summary](docs/GLAMA_AI_OPTIMIZATION_SUMMARY.md)** - Platform optimization achievements
+- **[Glama.ai GitHub App Setup](docs/GLAMA_GITHUB_APP_SETUP.md)** - Installation and configuration guide
 
 ## 🛠️ **Tools Overview** (20 Total)
 
