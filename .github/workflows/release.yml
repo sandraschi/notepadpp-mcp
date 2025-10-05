@@ -44,12 +44,12 @@ jobs:
       run: python -m build
     
     - name: Build MCPB package
-      run: mcpb pack
+      run: mcpb pack . dist/notepadpp-mcp.mcpb
     
     - name: Check packages
       run: |
         twine check dist/*.whl dist/*.tar.gz
-        mcpb validate
+        mcpb validate manifest.json
     
     - name: Create Release
       id: create_release
@@ -111,7 +111,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.mcpb
+        asset_path: dist/notepadpp-mcp.mcpb
         asset_name: notepadpp-mcp-${{ github.ref_name }}.mcpb
         asset_content_type: application/octet-stream
     

@@ -105,10 +105,10 @@ jobs:
       run: npm install -g @anthropic-ai/mcpb
     
     - name: Validate MCPB configuration
-      run: mcpb validate
+      run: mcpb validate manifest.json
     
     - name: Build MCPB package
-      run: mcpb pack
+      run: mcpb pack . dist/notepadpp-mcp.mcpb
     
     - name: Upload MCPB artifacts
       uses: actions/upload-artifact@v3
