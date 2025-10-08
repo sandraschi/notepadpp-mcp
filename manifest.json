@@ -1,21 +1,34 @@
 {
   "manifest_version": "0.2",
   "name": "notepadpp-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for Notepad++ automation and control",
+  "version": "1.2.0",
+  "description": "Comprehensive Notepad++ automation with 26 powerful tools",
+  "long_description": "Enterprise production-ready MCP server for Notepad++ automation, plugin management, and code quality analysis. Features 26 tools including file operations, text manipulation, tab/session management, multi-language linting, display fixes, and plugin ecosystem integration with 1,400+ official Notepad++ plugins.",
   "author": {
-    "name": "Notepad++ MCP Team",
-    "email": "support@notepadpp-mcp.dev"
+    "name": "Sandra Schi",
+    "email": "sandra@sandraschi.dev",
+    "url": "https://github.com/sandraschi"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/notepadpp-mcp"
+  },
+  "homepage": "https://github.com/sandraschi/notepadpp-mcp",
+  "documentation": "https://github.com/sandraschi/notepadpp-mcp/blob/main/README.md",
+  "support": "https://github.com/sandraschi/notepadpp-mcp/issues",
   "license": "MIT",
+  "keywords": ["notepad++", "mcp", "automation", "text-editor", "windows", "plugin-management", "code-quality", "linting", "fastmcp"],
   "server": {
     "type": "python",
-    "entry_point": "src/notepadpp_mcp/server.py",
+    "entry_point": "src/notepadpp_mcp/tools/server.py",
     "mcp_config": {
       "command": "python",
-      "args": ["-m", "notepadpp_mcp.server"],
+      "args": ["-m", "notepadpp_mcp.tools.server"],
       "env": {
-        "PYTHONPATH": "src",
+        "PYTHONPATH": "${PWD}",
+        "NOTEPADPP_PATH": "${user_config.notepadpp_path}",
+        "NOTEPADPP_AUTO_START": "${user_config.auto_start}",
+        "NOTEPADPP_TIMEOUT": "${user_config.timeout}",
         "PYTHONUNBUFFERED": "1"
       }
     }
@@ -24,7 +37,7 @@
     "notepadpp_path": {
       "type": "file",
       "title": "Notepad++ Executable",
-      "description": "Path to Notepad++ executable (auto-detected if not specified)",
+      "description": "Path to Notepad++ executable (leave empty for auto-detection)",
       "required": false,
       "default": "C:\\Program Files\\Notepad++\\notepad++.exe"
     },
@@ -37,12 +50,124 @@
     },
     "timeout": {
       "type": "string",
-      "title": "Operation Timeout",
-      "description": "Timeout for operations in seconds",
+      "title": "Operation Timeout (seconds)",
+      "description": "Timeout for Notepad++ operations in seconds",
       "required": false,
       "default": "30"
     }
   },
+  "tools": [
+    {
+      "name": "get_status",
+      "description": "Get Notepad++ status and information"
+    },
+    {
+      "name": "open_file",
+      "description": "Open a file in Notepad++"
+    },
+    {
+      "name": "new_file",
+      "description": "Create a new file in Notepad++"
+    },
+    {
+      "name": "save_file",
+      "description": "Save the current file"
+    },
+    {
+      "name": "get_current_file_info",
+      "description": "Get information about the current file"
+    },
+    {
+      "name": "insert_text",
+      "description": "Insert text at cursor position"
+    },
+    {
+      "name": "find_text",
+      "description": "Search for text in the current document"
+    },
+    {
+      "name": "get_help",
+      "description": "Get hierarchical help information"
+    },
+    {
+      "name": "get_system_status",
+      "description": "Get comprehensive system and application status"
+    },
+    {
+      "name": "health_check",
+      "description": "Perform comprehensive health check"
+    },
+    {
+      "name": "list_tabs",
+      "description": "List all open tabs"
+    },
+    {
+      "name": "switch_to_tab",
+      "description": "Switch to a specific tab by index"
+    },
+    {
+      "name": "close_tab",
+      "description": "Close a tab by index or current tab"
+    },
+    {
+      "name": "save_session",
+      "description": "Save current workspace to named session"
+    },
+    {
+      "name": "load_session",
+      "description": "Load a previously saved session"
+    },
+    {
+      "name": "list_sessions",
+      "description": "List all saved sessions"
+    },
+    {
+      "name": "lint_python_file",
+      "description": "Lint a Python file with ruff/flake8"
+    },
+    {
+      "name": "lint_javascript_file",
+      "description": "Lint a JavaScript file with ESLint"
+    },
+    {
+      "name": "lint_json_file",
+      "description": "Validate and lint a JSON file"
+    },
+    {
+      "name": "lint_markdown_file",
+      "description": "Lint a Markdown file for style issues"
+    },
+    {
+      "name": "get_linting_tools",
+      "description": "Get information about available linting tools"
+    },
+    {
+      "name": "fix_invisible_text",
+      "description": "Fix invisible text issue (white on white)"
+    },
+    {
+      "name": "fix_display_issue",
+      "description": "Fix general Notepad++ display problems"
+    },
+    {
+      "name": "discover_plugins",
+      "description": "Discover available plugins from official Plugin List"
+    },
+    {
+      "name": "install_plugin",
+      "description": "Install a plugin using Plugin Admin"
+    },
+    {
+      "name": "list_installed_plugins",
+      "description": "List currently installed plugins"
+    },
+    {
+      "name": "execute_plugin_command",
+      "description": "Execute commands from installed plugins"
+    }
+  ],
+  "tools_generated": true,
+  "prompts_generated": false,
   "compatibility": {
     "platforms": ["win32"],
     "python_version": ">=3.10"

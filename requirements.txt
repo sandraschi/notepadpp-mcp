@@ -5,3 +5,4 @@
 fastmcp>=2.12.0
 psutil>=5.9.0
 pywin32==311; platform_system=='Windows'
+requests>=2.31.0

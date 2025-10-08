@@ -6,13 +6,14 @@
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tools](https://img.shields.io/badge/tools-20-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Tools](https://img.shields.io/badge/tools-26-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
 [![Tests](https://img.shields.io/badge/tests-64-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
 [![Coverage](https://img.shields.io/badge/coverage-23%25-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
 
-**🏆 Gold Status Certified** FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, control, and code quality analysis. Enterprise production-ready with 64 passing tests, structured logging, and advanced linting capabilities.
+**🏆 Gold Status Certified** FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, plugin management, and code quality analysis. Enterprise production-ready with 64 passing tests, structured logging, and official plugin ecosystem integration.
 
-✨ **20 powerful tools** including advanced tab/session management and code linting
+✨ **26 powerful tools** including plugin management, display fixes, and code linting
+🔌 **Plugin ecosystem** integration with 1,400+ official Notepad++ plugins
 🧪 **64 comprehensive tests** with real Windows API integration and 23% coverage
 🔍 **5 linting tools** for Python, JavaScript, JSON, and Markdown
 🎯 **Enterprise production-ready** with structured logging and error handling
@@ -141,18 +142,20 @@ notepadpp-mcp/
 - **[Glama.ai Integration Summary](docs/GLAMA_AI_OPTIMIZATION_SUMMARY.md)** - Platform optimization achievements
 - **[Glama.ai GitHub App Setup](docs/GLAMA_GITHUB_APP_SETUP.md)** - Installation and configuration guide
 
-## 🛠️ **Tools Overview** (20 Total)
+## 🛠️ **Tools Overview** (26 Total)
 
 | Category | Tools | Description |
 |----------|-------|-------------|
 | **File Operations** | 4 | Create, open, save, and inspect files |
 | **Text Operations** | 2 | Insert and search text content |
-| **Status & Info** | 3 | Monitor system and document state |
+| **Status & Info** | 4 | Monitor system and document state |
 | **Tab Management** | 3 | Organize and navigate multiple files |
 | **Session Management** | 3 | Save and restore workspace states |
 | **Code Quality & Linting** | 5 | Analyze code for multiple file types |
+| **Display Fixes** | 2 | Fix invisible text and theme issues ✨ **NEW** |
+| **Plugin Ecosystem** | 4 | Discover, install, and manage plugins ✨ **NEW** |
 
-**Total: 20 production-ready tools** with comprehensive Windows API integration and multi-linter support.
+**Total: 26 production-ready tools** with comprehensive Windows API integration, plugin ecosystem support, and multi-linter capabilities.
 
 ## ⚡ Features
 
@@ -181,21 +184,32 @@ notepadpp-mcp/
 - `load_session` - Load saved sessions
 - `list_sessions` - List all saved sessions
 
-### 🔍 **Code Quality & Linting** (5 tools) ✨ **NEW**
+### 🔍 **Code Quality & Linting** (5 tools)
 - `lint_python_file` - Comprehensive Python code analysis with ruff/flake8
 - `lint_javascript_file` - JavaScript validation with ESLint or basic checking
 - `lint_json_file` - JSON syntax validation and structure analysis
 - `lint_markdown_file` - Markdown style and syntax validation
 - `get_linting_tools` - Overview of available linting capabilities
 
+### 🎨 **Display Fixes** (2 tools) ✨ **NEW**
+- `fix_invisible_text` - Fix invisible text issue (white on white)
+- `fix_display_issue` - Fix general Notepad++ display problems
+
+### 🔌 **Plugin Ecosystem** (4 tools) ✨ **NEW**
+- `discover_plugins` - Discover available plugins from official Notepad++ Plugin List
+- `install_plugin` - Install plugins via Plugin Admin automation
+- `list_installed_plugins` - List currently installed plugins
+- `execute_plugin_command` - Execute commands from installed plugins
+
 ### 🔧 **Core Capabilities**
 - 🎯 **Windows Integration**: Native Windows API with pywin32
 - ⚡ **FastMCP 2.12**: Latest MCP framework compliance
 - 📝 **Structured Logging**: Professional error handling
-- 🧪 **Comprehensive Testing**: 34 tests covering all tools
+- 🧪 **Comprehensive Testing**: 64 tests covering all tools
 - 📚 **Self-Documenting**: Built-in help system
 - 🔍 **Multi-linter Support**: ruff, flake8, ESLint with fallback options
 - 🎨 **Code Quality**: Syntax validation for Python, JS, JSON, Markdown
+- 🔌 **Plugin Ecosystem**: Integration with 1,400+ official Notepad++ plugins
 
 ## 🛠️ Development
 
@@ -219,11 +233,12 @@ python dev.py test|format|build|validate-dxt
 ```
 
 ### 🧪 **Testing**
-- **34 comprehensive tests** covering all tools including linting functionality
+- **64 comprehensive tests** covering all tools including linting and plugin functionality
 - **Real Windows API testing** with actual Notepad++ integration
 - **Demonstration script** (`demonstration_test.py`) tests live functionality
 - **CI/CD ready** with automated testing pipeline
 - **Multi-linter testing** with ruff, flake8, and ESLint integration
+- **Plugin ecosystem testing** with GitHub API mocking
 
 ## 🏗️ Architecture
 
@@ -241,9 +256,12 @@ python dev.py test|format|build|validate-dxt
 ### 📁 **File Structure**
 ```
 src/notepadpp_mcp/
-├── tools/server.py     # Main MCP server (1533 lines)
-├── tests/              # Comprehensive test suite (34 tests)
+├── tools/server.py     # Main MCP server (2424 lines)
+├── tests/              # Comprehensive test suite (64 tests)
 ├── docs/               # Documentation and examples
+│   ├── README.md       # API documentation
+│   ├── PRD.md          # Product requirements
+│   └── PLUGIN_ECOSYSTEM.md  # Plugin integration guide
 └── dxt/                # DXT packaging configuration
 ```
 
@@ -363,7 +381,17 @@ python dev.py build
 
 ## 📜 Changelog
 
-### **v1.1.0** - Linting Tools Release ✨ **NEW**
+### **v1.2.0** - Plugin Ecosystem Release ✨ **NEW**
+- ✅ **6 new tools** (4 plugin tools + 2 display fix tools)
+- ✅ **Plugin ecosystem integration** with official Notepad++ Plugin List (1,400+ plugins)
+- ✅ **Display fix tools** for invisible text and theme issues
+- ✅ **Plugin discovery** from GitHub repository with category filtering
+- ✅ **Automated plugin installation** via Plugin Admin
+- ✅ **Plugin command execution** for workflow automation
+- ✅ **PLUGIN_ECOSYSTEM.md** comprehensive documentation (300+ lines)
+- ✅ **Total: 26 tools** for complete Notepad++ automation
+
+### **v1.1.0** - Linting Tools Release
 - ✅ **5 comprehensive linting tools** for Python, JavaScript, JSON, and Markdown
 - ✅ **Multi-linter support** with ruff, flake8, ESLint, and fallback options
 - ✅ **16 additional tests** covering all linting functionality
@@ -380,7 +408,9 @@ python dev.py build
 
 ### **Planned Features**
 - **Multi-instance support** for multiple Notepad++ windows
-- **Plugin integration** for extended functionality
+- **Advanced plugin workflows** with multiple plugin coordination
+- **Plugin analytics** and usage monitoring
+- **Custom plugin support** for user-developed plugins
 - **HTML/CSS linting** tools for web development
 - **Configuration files** for custom settings
 - **Batch operations** for multiple file processing

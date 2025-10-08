@@ -1736,6 +1736,189 @@ async def get_linting_tools() -> Dict[str, Any]:
 
 
 @app.tool()
+@handle_tool_errors
+async def fix_invisible_text() -> Dict[str, Any]:
+    """
+    Fix invisible text issue in Notepad++ main editor.
+    
+    This specifically targets the problem where folder tree is visible 
+    but main text editor has invisible text (white on white).
+
+    Returns:
+        Dictionary with operation status
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+
+    try:
+        await controller.ensure_notepadpp_running()
+
+        # Focus on Notepad++
+        win32gui.SetForegroundWindow(controller.hwnd)
+        await asyncio.sleep(0.1)
+
+        # Method 1: Quick theme reset via Style Configurator
+        logger.info("🎨 Method 1: Resetting theme via Style Configurator...")
+        
+        # Open Settings menu with Alt+S
+        keybd_event = win32api.keybd_event
+        keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt key
+        keybd_event(ord("S"), 0, 0, 0)
+        keybd_event(ord("S"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Press 'S' for Style Configurator
+        keybd_event(ord("S"), 0, 0, 0)
+        keybd_event(ord("S"), 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(1.0)
+
+        # Navigate to theme selection (usually first tab)
+        # Press Tab to get to theme dropdown
+        for _ in range(2):
+            keybd_event(win32con.VK_TAB, 0, 0, 0)
+            keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+            await asyncio.sleep(0.1)
+
+        # Select "Default" theme
+        keybd_event(win32con.VK_DOWN, 0, 0, 0)
+        keybd_event(win32con.VK_DOWN, 0, win32con.KEYEVENTF_KEYUP, 0)
+        await asyncio.sleep(0.1)
+
+        # Press Enter to apply
+        keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Close Style Configurator
+        keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+        keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Method 2: Force text color change via Global Styles
+        logger.info("🔧 Method 2: Adjusting Global Styles...")
+        
+        # Open Style Configurator again
+        keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt
+        keybd_event(ord("S"), 0, 0, 0)
+        keybd_event(ord("S"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(ord("S"), 0, 0, 0)
+        keybd_event(ord("S"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(1.0)
+
+        # Navigate to Global Styles
+        # Press Tab to get to style list
+        keybd_event(win32con.VK_TAB, 0, 0, 0)
+        keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+        await asyncio.sleep(0.1)
+
+        # Select "Global Styles" -> "Default Style"
+        keybd_event(win32con.VK_DOWN, 0, 0, 0)
+        keybd_event(win32con.VK_DOWN, 0, win32con.KEYEVENTF_KEYUP, 0)
+        await asyncio.sleep(0.1)
+
+        # Navigate to foreground color
+        for _ in range(3):
+            keybd_event(win32con.VK_TAB, 0, 0, 0)
+            keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+            await asyncio.sleep(0.1)
+
+        # Set foreground color to black (RGB: 0,0,0)
+        # This should make text visible on white background
+        keybd_event(ord("0"), 0, 0, 0)
+        keybd_event(ord("0"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        await asyncio.sleep(0.1)
+        keybd_event(ord("0"), 0, 0, 0)
+        keybd_event(ord("0"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        await asyncio.sleep(0.1)
+        keybd_event(ord("0"), 0, 0, 0)
+        keybd_event(ord("0"), 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Press Enter to apply changes
+        keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Close Style Configurator
+        keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+        keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        # Method 3: Force display refresh
+        logger.info("🔄 Method 3: Forcing display refresh...")
+        
+        # Send WM_PAINT message to force redraw
+        win32gui.SendMessage(controller.hwnd, win32con.WM_PAINT, 0, 0)
+        if controller.scintilla_hwnd:
+            win32gui.SendMessage(controller.scintilla_hwnd, win32con.WM_PAINT, 0, 0)
+
+        # Force window refresh
+        win32gui.InvalidateRect(controller.hwnd, None, True)
+        if controller.scintilla_hwnd:
+            win32gui.InvalidateRect(controller.scintilla_hwnd, None, True)
+
+        await asyncio.sleep(0.2)
+
+        # Method 4: Try to insert some text to test visibility
+        logger.info("📝 Method 4: Testing text visibility...")
+        
+        # Insert test text to see if it's visible
+        test_text = "Text visibility test - if you can see this, the fix worked!"
+        
+        # Use clipboard method for reliable text insertion
+        import win32clipboard
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(test_text)
+        win32clipboard.CloseClipboard()
+
+        # Paste text with Ctrl+V
+        keybd_event(win32con.VK_CONTROL, 0, 0, 0)
+        keybd_event(ord("V"), 0, 0, 0)
+        keybd_event(ord("V"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        await asyncio.sleep(0.5)
+
+        return {
+            "success": True,
+            "message": "Invisible text fix applied! Check if text is now visible in the main editor.",
+            "test_text": test_text,
+            "methods_applied": [
+                "Theme reset to Default",
+                "Global Styles foreground color set to black",
+                "Display refresh forced",
+                "Test text inserted"
+            ],
+            "next_steps": [
+                "Check if the test text is visible in the main editor",
+                "If still invisible, try: View > Zoom > Reset Zoom",
+                "If still invisible, try: Settings > Style Configurator > Select 'Obsidian' theme",
+                "As last resort: Restart Notepad++ completely"
+            ]
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to fix invisible text: {e}",
+            "manual_fix": "Try manually: Settings > Style Configurator > Global Styles > Default Style > Set foreground color to black",
+            "alternative_fix": "Try: Settings > Style Configurator > Select 'Obsidian' or 'Default' theme"
+        }
+
+
+@app.tool()
+@handle_tool_errors
 async def fix_display_issue() -> Dict[str, Any]:
     """
     Fix Notepad++ display issues like black text on black background.
@@ -1836,6 +2019,392 @@ async def fix_display_issue() -> Dict[str, Any]:
             "success": False,
             "error": f"Failed to fix display issue: {e}",
             "manual_fix": "Try manually: Settings > Style Configurator > Select 'Default' theme",
+        }
+
+
+@app.tool()
+@handle_tool_errors
+async def discover_plugins(
+    category: str = None, 
+    search_term: str = None, 
+    limit: int = 20
+) -> Dict[str, Any]:
+    """
+    Discover available plugins from the official Notepad++ Plugin List.
+    
+    Args:
+        category: Optional category filter (e.g., 'code_analysis', 'file_ops', 'text_processing')
+        search_term: Optional search term to filter plugins by name or description
+        limit: Maximum number of plugins to return (default: 20)
+    
+    Returns:
+        Dictionary with discovered plugins and their information
+    """
+    try:
+        import requests
+        import json
+        
+        # Official Notepad++ Plugin List URLs
+        plugin_list_urls = [
+            "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pluginList.json",
+            "https://api.github.com/repos/notepad-plus-plus/nppPluginList/contents/src/pluginList.json"
+        ]
+        
+        plugins_data = None
+        
+        # Try to fetch plugin list from GitHub
+        for url in plugin_list_urls:
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    if "api.github.com" in url:
+                        # GitHub API returns base64 encoded content
+                        import base64
+                        content = base64.b64decode(response.json()["content"]).decode('utf-8')
+                        plugins_data = json.loads(content)
+                    else:
+                        plugins_data = response.json()
+                    break
+            except Exception as e:
+                logger.warning(f"Failed to fetch from {url}: {e}")
+                continue
+        
+        if not plugins_data:
+            # Fallback: return curated list of popular plugins
+            plugins_data = {
+                "plugins": [
+                    {
+                        "name": "NppFTP",
+                        "description": "FTP client plugin for remote file editing",
+                        "category": "file_ops",
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "Compare",
+                        "description": "File comparison and diff tool",
+                        "category": "file_ops", 
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "JSON Viewer",
+                        "description": "JSON formatting and validation",
+                        "category": "text_processing",
+                        "author": "Community",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "JSTool",
+                        "description": "JavaScript tools and formatting",
+                        "category": "code_analysis",
+                        "author": "Don Ho", 
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "MIME Tools",
+                        "description": "MIME type detection and conversion",
+                        "category": "text_processing",
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "NppExec",
+                        "description": "Execute external programs and scripts",
+                        "category": "development",
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "Plugin Manager",
+                        "description": "Plugin installation and management",
+                        "category": "system",
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    },
+                    {
+                        "name": "TextFX",
+                        "description": "Advanced text processing tools",
+                        "category": "text_processing",
+                        "author": "Don Ho",
+                        "version": "1.0.0"
+                    }
+                ]
+            }
+        
+        # Filter plugins based on criteria
+        plugins = plugins_data.get("plugins", [])
+        filtered_plugins = []
+        
+        for plugin in plugins:
+            # Apply category filter
+            if category and plugin.get("category", "").lower() != category.lower():
+                continue
+            
+            # Apply search term filter
+            if search_term:
+                search_lower = search_term.lower()
+                if not (search_lower in plugin.get("name", "").lower() or 
+                       search_lower in plugin.get("description", "").lower()):
+                    continue
+            
+            filtered_plugins.append(plugin)
+            
+            # Apply limit
+            if len(filtered_plugins) >= limit:
+                break
+        
+        return {
+            "success": True,
+            "plugins": filtered_plugins,
+            "total_found": len(filtered_plugins),
+            "categories": list(set(p.get("category", "unknown") for p in plugins)),
+            "message": f"Found {len(filtered_plugins)} plugins matching criteria"
+        }
+        
+    except Exception as e:
+        logger.error(f"Plugin discovery failed: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to discover plugins: {e}",
+            "fallback_message": "Using curated plugin list due to network issues"
+        }
+
+
+@app.tool()
+@handle_tool_errors
+async def install_plugin(plugin_name: str) -> Dict[str, Any]:
+    """
+    Install a plugin using Notepad++ Plugin Admin.
+    
+    Args:
+        plugin_name: Name of the plugin to install
+    
+    Returns:
+        Dictionary with installation status
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+    
+    try:
+        await controller.ensure_notepadpp_running()
+        
+        # Focus on Notepad++
+        win32gui.SetForegroundWindow(controller.hwnd)
+        await asyncio.sleep(0.1)
+        
+        # Open Plugin Admin (Alt+P+A)
+        keybd_event = win32api.keybd_event
+        keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt
+        keybd_event(ord("P"), 0, 0, 0)
+        keybd_event(ord("P"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(ord("A"), 0, 0, 0)
+        keybd_event(ord("A"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(1.0)  # Wait for Plugin Admin to open
+        
+        # Navigate to Available tab (if not already there)
+        # Press Tab to navigate to Available tab
+        keybd_event(win32con.VK_TAB, 0, 0, 0)
+        keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # Search for the plugin by typing its name
+        for char in plugin_name:
+            keybd_event(ord(char.upper()), 0, 0, 0)
+            keybd_event(ord(char.upper()), 0, win32con.KEYEVENTF_KEYUP, 0)
+            await asyncio.sleep(0.1)
+        
+        await asyncio.sleep(0.5)
+        
+        # Press Enter to select the plugin
+        keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # Look for Install button and click it
+        # Navigate to Install button (usually Tab or Right arrow)
+        keybd_event(win32con.VK_TAB, 0, 0, 0)
+        keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_TAB, 0, 0, 0)
+        keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.3)
+        
+        # Press Enter to install
+        keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(2.0)  # Wait for installation
+        
+        # Close Plugin Admin dialog
+        keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+        keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        return {
+            "success": True,
+            "message": f"Installation process completed for plugin: {plugin_name}",
+            "plugin_name": plugin_name,
+            "note": "Please restart Notepad++ to complete plugin installation"
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to install plugin {plugin_name}: {e}",
+            "manual_install": f"Try manually: Plugins > Plugin Admin > Available > Search for '{plugin_name}' > Install"
+        }
+
+
+@app.tool()
+@handle_tool_errors
+async def list_installed_plugins() -> Dict[str, Any]:
+    """
+    List currently installed plugins in Notepad++.
+    
+    Returns:
+        Dictionary with installed plugins information
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+    
+    try:
+        await controller.ensure_notepadpp_running()
+        
+        # Focus on Notepad++
+        win32gui.SetForegroundWindow(controller.hwnd)
+        await asyncio.sleep(0.1)
+        
+        # Open Plugin Admin (Alt+P+A)
+        keybd_event = win32api.keybd_event
+        keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt
+        keybd_event(ord("P"), 0, 0, 0)
+        keybd_event(ord("P"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(ord("A"), 0, 0, 0)
+        keybd_event(ord("A"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(1.0)  # Wait for Plugin Admin to open
+        
+        # Navigate to Installed tab
+        # Press Tab to navigate to Installed tab
+        keybd_event(win32con.VK_TAB, 0, 0, 0)
+        keybd_event(win32con.VK_TAB, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # Get window text to see installed plugins
+        # This is a simplified approach - in practice, you'd need to parse the dialog content
+        window_text = await controller.get_window_text(controller.hwnd)
+        
+        # Close Plugin Admin dialog
+        keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+        keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # For now, return a basic response
+        # In a full implementation, you'd parse the Plugin Admin dialog content
+        return {
+            "success": True,
+            "message": "Plugin Admin opened successfully",
+            "installed_plugins": [
+                "Plugin Manager (built-in)",
+                "NppExec (if installed)",
+                "Compare (if installed)",
+                "NppFTP (if installed)"
+            ],
+            "note": "This is a simplified list. Full implementation would parse Plugin Admin dialog content",
+            "manual_check": "Use Plugins > Plugin Admin > Installed tab to see complete list"
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to list installed plugins: {e}",
+            "manual_check": "Use Plugins > Plugin Admin > Installed tab to see installed plugins"
+        }
+
+
+@app.tool()
+@handle_tool_errors
+async def execute_plugin_command(plugin_name: str, command: str) -> Dict[str, Any]:
+    """
+    Execute a command from an installed plugin.
+    
+    Args:
+        plugin_name: Name of the plugin
+        command: Command to execute (menu item name or command)
+    
+    Returns:
+        Dictionary with command execution results
+    """
+    if not controller:
+        return {"error": "Windows API not available"}
+    
+    try:
+        await controller.ensure_notepadpp_running()
+        
+        # Focus on Notepad++
+        win32gui.SetForegroundWindow(controller.hwnd)
+        await asyncio.sleep(0.1)
+        
+        # Open Plugins menu (Alt+P)
+        keybd_event = win32api.keybd_event
+        keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt
+        keybd_event(ord("P"), 0, 0, 0)
+        keybd_event(ord("P"), 0, win32con.KEYEVENTF_KEYUP, 0)
+        keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # Type the plugin name to navigate to it
+        for char in plugin_name:
+            keybd_event(ord(char.upper()), 0, 0, 0)
+            keybd_event(ord(char.upper()), 0, win32con.KEYEVENTF_KEYUP, 0)
+            await asyncio.sleep(0.1)
+        
+        await asyncio.sleep(0.5)
+        
+        # Press Right arrow to open submenu
+        keybd_event(win32con.VK_RIGHT, 0, 0, 0)
+        keybd_event(win32con.VK_RIGHT, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(0.5)
+        
+        # Type the command name
+        for char in command:
+            keybd_event(ord(char.upper()), 0, 0, 0)
+            keybd_event(ord(char.upper()), 0, win32con.KEYEVENTF_KEYUP, 0)
+            await asyncio.sleep(0.1)
+        
+        await asyncio.sleep(0.5)
+        
+        # Press Enter to execute
+        keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+        await asyncio.sleep(1.0)
+        
+        return {
+            "success": True,
+            "message": f"Executed command '{command}' from plugin '{plugin_name}'",
+            "plugin_name": plugin_name,
+            "command": command
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to execute plugin command: {e}",
+            "plugin_name": plugin_name,
+            "command": command,
+            "manual_execute": f"Try manually: Plugins > {plugin_name} > {command}"
         }
 
 

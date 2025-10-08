@@ -3,8 +3,9 @@
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tools](https://img.shields.io/badge/tools-26-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
 
-MCP Server for automating and controlling Notepad++ through the Model Context Protocol.
+MCP Server for automating and controlling Notepad++ through the Model Context Protocol. **26 powerful tools** including plugin management, display fixes, and code quality analysis.
 
 ## 🚀 Features
 
@@ -26,6 +27,8 @@ notepadpp-mcp/
 │   │   └── __init__.py
 │   ├── docs/           # Documentation and examples
 │   │   ├── README.md   # This comprehensive guide
+│   │   ├── PRD.md      # Product Requirements Document
+│   │   ├── PLUGIN_ECOSYSTEM.md  # Plugin integration guide
 │   │   └── examples/   # Usage examples and configs
 │   ├── tests/          # Test suite
 │   │   ├── conftest.py
@@ -100,6 +103,16 @@ Add to your Claude Desktop config file (`~/.config/claude/claude_desktop_config.
 - **`insert_text(text: str)`** - Insert text at cursor position
 - **`find_text(search: str, case_sensitive: bool = False)`** - Search for text
 
+### Display Fixes
+- **`fix_invisible_text()`** - Fix invisible text (white-on-white) in main editor
+- **`fix_display_issue()`** - Fix general display issues like black-on-black text
+
+### Plugin Management (NEW!)
+- **`discover_plugins(category: str = None, search_term: str = None, limit: int = 20)`** - Discover available plugins from official Plugin List
+- **`install_plugin(plugin_name: str)`** - Install a plugin using Plugin Admin
+- **`list_installed_plugins()`** - List currently installed plugins
+- **`execute_plugin_command(plugin_name: str, command: str)`** - Execute commands from installed plugins
+
 ## 📚 Usage Examples
 
 ### Basic File Operations
@@ -129,6 +142,35 @@ await insert_text("Hello, World!")
 
 # Search for text
 results = await find_text("search term", case_sensitive=True)
+```
+
+### Display Fixes
+
+```python
+# Fix invisible text (white-on-white)
+await fix_invisible_text()
+
+# Fix general display issues
+await fix_display_issue()
+```
+
+### Plugin Management (NEW!)
+
+```python
+# Discover available plugins
+plugins = await discover_plugins(category="file_ops", limit=10)
+
+# Search for specific plugins
+json_plugins = await discover_plugins(search_term="JSON")
+
+# Install a plugin
+await install_plugin("NppFTP")
+
+# List installed plugins
+installed = await list_installed_plugins()
+
+# Execute plugin commands
+await execute_plugin_command("Compare", "Compare with clipboard")
 ```
 
 ## 🏗️ Architecture
@@ -251,13 +293,81 @@ MIT License - see [LICENSE](../../../LICENSE) file for details.
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/sandraschi/notepadpp-mcp/issues)
 - 📚 **Documentation**: This README and inline code docs
+- 🔌 **Plugin Integration**: [Plugin Ecosystem Guide](PLUGIN_ECOSYSTEM.md)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/sandraschi/notepadpp-mcp/discussions)
+
+## 🔌 Notepad++ Plugin Ecosystem
+
+### Official Plugin List
+
+The [Notepad++ Plugin List](https://github.com/notepad-plus-plus/nppPluginList) is the official collection of Notepad++ plugins maintained by the Notepad++ team. This repository provides:
+
+- **📦 Plugin Repository**: Official collection of 1,400+ starred plugins
+- **🔒 Security**: Binary-encapsulated JSON list signed with certificates to prevent tampering
+- **🔄 Plugin Admin Integration**: Powers the built-in Plugin Admin in Notepad++ for easy installation/update/deletion
+- **🏗️ Build System**: Automated validation and packaging pipeline
+- **📋 Multiple Architectures**: Support for 32-bit, 64-bit, and ARM64 plugins
+
+### Plugin List Resources
+
+- **32-Bit Plugin List**: [32-Bit Plugin List](https://github.com/notepad-plus-plus/nppPluginList)
+- **64-Bit Plugin List**: [64-Bit Plugin List](https://github.com/notepad-plus-plus/nppPluginList)
+- **64-Bit ARM Plugin List**: [64-Bit ARM Plugin List](https://github.com/notepad-plus-plus/nppPluginList)
+- **Documentation**: [Plugin Admin Guide](https://npp-user-manual.org/docs/plugins/#plugins-admin)
+- **Community Support**: [Plugin Support Forum](https://community.notepad-plus-plus.org/topic/16566/support-for-plugins-admin-npppluginlist)
+
+### Integration with Notepad++ MCP Server
+
+Our MCP server can leverage the Notepad++ plugin ecosystem through:
+
+#### Plugin Management Tools
+- **Plugin Discovery**: Query available plugins from the official list
+- **Plugin Installation**: Install plugins via Plugin Admin integration
+- **Plugin Commands**: Execute plugin-specific commands and macros
+- **Plugin Status**: Check plugin status and configuration
+
+#### Supported Plugin Categories
+- **Code Analysis**: Linting, formatting, and syntax checking plugins
+- **File Operations**: Advanced file management and comparison tools
+- **Text Processing**: Regex, encoding, and transformation utilities
+- **Development Tools**: Git integration, project management, and debugging
+- **Language Support**: Syntax highlighting and language-specific features
+
+#### Example Plugin Integrations
+```python
+# Install a plugin from the official list
+await install_plugin("NppFTP")  # FTP client plugin
+
+# Execute plugin commands
+await execute_plugin_command("Compare", "Compare with clipboard")
+
+# Get plugin information
+plugin_info = await get_plugin_info("JSON Viewer")
+```
+
+### Plugin Development Guidelines
+
+If you're developing plugins that work with our MCP server:
+
+1. **Follow Official Standards**: Ensure your plugin meets [Notepad++ Plugin Development Guidelines](https://github.com/notepad-plus-plus/nppPluginList)
+2. **MCP Compatibility**: Design plugin APIs that can be easily integrated with MCP tools
+3. **Error Handling**: Implement robust error handling for MCP integration
+4. **Documentation**: Provide clear documentation for MCP tool integration
+
+### Future Plugin Integration Features
+
+- **🔍 Plugin Discovery**: Browse and search the official plugin list
+- **📥 Automated Installation**: Install plugins directly through MCP commands
+- **⚙️ Plugin Configuration**: Configure plugin settings via MCP tools
+- **🔄 Plugin Updates**: Check for and install plugin updates
+- **📊 Plugin Analytics**: Monitor plugin usage and performance
 
 ## 🔗 Related Projects
 
 - [FastMCP](https://github.com/jlowin/fastmcp) - Framework for building MCP servers
 - [Model Context Protocol](https://modelcontextprotocol.io/) - Open standard for AI model integration
 - [Notepad++](https://notepad-plus-plus.org/) - The free source code editor
+- [Notepad++ Plugin List](https://github.com/notepad-plus-plus/nppPluginList) - Official plugin repository
 
 ---
 

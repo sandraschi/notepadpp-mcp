@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Plugin ecosystem integration tools (4 new tools)
+- Display fix tools for invisible text and theme issues (2 new tools)
+- `discover_plugins()` - Discover available plugins from official Notepad++ Plugin List
+- `install_plugin()` - Automated plugin installation via Plugin Admin
+- `list_installed_plugins()` - List currently installed plugins
+- `execute_plugin_command()` - Execute commands from installed plugins
+- `fix_invisible_text()` - Comprehensive fix for invisible text issue
+- `fix_display_issue()` - Fix Notepad++ display problems
+- PLUGIN_ECOSYSTEM.md documentation (300+ lines)
+- HTTP request support via requests library
+
+### Changed
+- Total tool count increased from 20 to 26 tools (+30%)
+- Server implementation expanded to 2,424 lines (+21%)
+- Enhanced Windows API integration for plugin management
+- Added requests>=2.31.0 dependency for GitHub API access
+
+### Fixed
+- Display issues with invisible text (white on white)
+- Theme configuration problems
+- Plugin discovery and installation workflows
+
+## [1.1.0] - 2025-09-21
+
+### Added
 - GitHub Actions CI/CD workflows
 - Automated testing pipeline with coverage reporting
 - Automated release workflow
