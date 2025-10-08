@@ -135,12 +135,46 @@ notepadpp-mcp/
 
 ## 📚 Documentation
 
+### **Core Documentation**
 - **[Complete API Documentation](src/notepadpp_mcp/docs/README.md)** - Comprehensive guide
 - **[Product Requirements Document](src/notepadpp_mcp/docs/PRD.md)** - Vision and roadmap
+- **[Plugin Ecosystem Guide](src/notepadpp_mcp/docs/PLUGIN_ECOSYSTEM.md)** - 1,400+ plugin integration
 - **[Configuration Examples](src/notepadpp_mcp/docs/examples/)** - Integration templates
-- **[CI/CD & Glama.ai Guide](docs/CI_CD_GLAMA_OPTIMIZATION_GUIDE.md)** - Complete CI/CD and platform optimization documentation
-- **[Glama.ai Integration Summary](docs/GLAMA_AI_OPTIMIZATION_SUMMARY.md)** - Platform optimization achievements
-- **[Glama.ai GitHub App Setup](docs/GLAMA_GITHUB_APP_SETUP.md)** - Installation and configuration guide
+
+### **Notepad++ Reference** 📝
+- **[Notepad++ Complete Guide](docs/notepadpp/NOTEPADPP_COMPLETE_GUIDE.md)** - History, features, architecture (15+ pages)
+- **[Plugin Ecosystem Guide](docs/notepadpp/PLUGIN_ECOSYSTEM_COMPREHENSIVE.md)** - Complete plugin reference (12+ pages)
+- **[Community & Support](docs/notepadpp/COMMUNITY_AND_SUPPORT.md)** - All community channels (10+ pages)
+- **[Color Fix Guide](docs/notepadpp/NOTEPADPP_COLOR_FIX_2025_10_08.md)** - Display troubleshooting
+
+### **Repository Protection & AI Workflow** 🛡️
+- **[Repository Protection Hub](docs/repository-protection/README.md)** - Complete protection strategy
+- **[Branch Protection Setup](docs/repository-protection/BRANCH_PROTECTION_SETTINGS.md)** - 5-minute setup guide
+- **[Branch Strategy & AI Workflow](docs/repository-protection/BRANCH_STRATEGY_AND_AI_WORKFLOW.md)** - Safe AI collaboration
+- **[Backup & Recovery Guide](docs/repository-protection/BACKUP_AND_RECOVERY_GUIDE.md)** - Multi-layer protection
+
+### **Platform Integration & Quality** 🏆
+- **[Glama.ai Platform Hub](docs/glama-platform/README.md)** - Gold Status certification & platform integration
+- **[Gold Status Achievement](docs/glama-platform/GOLD_STATUS_ACHIEVEMENT.md)** - Original 85/100 certification
+- **[Gold Status Update (Latest)](docs/glama-platform/GOLD_STATUS_UPDATE_2025_10_08.md)** - Enhanced 90/100 status
+- **[CI/CD & Optimization Guide](docs/glama-platform/CI_CD_GLAMA_OPTIMIZATION_GUIDE.md)** - Quality optimization
+
+### **Development & Best Practices** 💻
+- **[Development Hub](docs/development/README.md)** - Development guides & lessons learned
+- **[AI Development Rules](docs/development/AI_DEVELOPMENT_RULES.md)** - AI collaboration guidelines
+- **[Python Snippets Guide](docs/development/PYTHON_SNIPPETS_USAGE_GUIDE.md)** - Reusable code patterns
+- **[Debugging Lessons](docs/development/DEBUGGING_LESSONS_LEARNED.md)** - Real-world solutions
+
+### **MCP Technical Documentation** 🔧
+- **[MCP Technical Hub](docs/mcp-technical/README.md)** - MCP server development & deployment
+- **[Claude Desktop Debugging](docs/mcp-technical/CLAUDE_DESKTOP_DEBUGGING.md)** - Debug guide
+- **[MCP Production Checklist](docs/mcp-technical/MCP_PRODUCTION_CHECKLIST.md)** - Production readiness
+- **[FastMCP Troubleshooting](docs/mcp-technical/TROUBLESHOOTING_FASTMCP_2.12.md)** - Framework issues
+
+### **MCPB Packaging & Distribution** 📦
+- **[MCPB Packaging Hub](docs/mcpb-packaging/README.md)** - Professional packaging guide
+- **[MCPB Building Guide](docs/mcpb-packaging/MCPB_BUILDING_GUIDE.md)** - Complete 1,900+ line guide
+- **[MCPB Implementation](docs/mcpb-packaging/MCPB_IMPLEMENTATION_SUMMARY.md)** - Our package (0.19 MB)
 
 ## 🛠️ **Tools Overview** (26 Total)
 
