@@ -380,6 +380,17 @@ Complete guide to professional MCP server packaging and distribution.
 - ✅ User configuration working
 - ✅ Production ready
 
+#### **3. PyPI Publishing Guide** ✨ **NEW!**
+📄 [PYPI_PUBLISHING_GUIDE.md](mcpb-packaging/PYPI_PUBLISHING_GUIDE.md)
+
+**Complete PyPI publishing walkthrough**:
+- Account creation & 2FA setup
+- API token generation
+- Package building & testing
+- Upload to Test PyPI & Production
+- Version management & updates
+- Automation with GitHub Actions
+
 ---
 
 ## 📘 **API & Development Documentation**

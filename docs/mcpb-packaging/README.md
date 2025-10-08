@@ -396,7 +396,7 @@ notepadpp-mcp.mcpb (0.19 MB)
 
 *MCPB Packaging Documentation*  
 *Location: `docs/mcpb-packaging/`*  
-*Files: 2 (1,900+ lines total!)*  
+*Files: 3 (2,500+ lines total!)*  
 *Focus: Professional distribution*  
 *Status: Production ready*
 
