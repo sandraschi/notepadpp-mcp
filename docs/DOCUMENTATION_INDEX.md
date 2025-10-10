@@ -61,7 +61,9 @@ docs/
 │   ├── DEVELOPMENT_PAIN_POINTS.md → Challenges & solutions
 │   ├── PYTHON_SNIPPETS_USAGE_GUIDE.md → Reusable patterns
 │   ├── SYSTEMATIC_PROJECT_UPDATES.md → Update procedures
-│   └── PYTHON_DEPENDENCY_HELL_FIX.md ⚠️ → Python 3.13 catastrophe fix
+│   ├── PYTHON_DEPENDENCY_HELL_FIX.md ⚠️ → Python 3.13 catastrophe fix
+│   ├── MCP_SYNC_DEBUGGING_GUIDE.md ⭐ → File sync debugging (1,896 files!)
+│   └── SYNC_HEALTH_INTEGRATION.md ✨ → Health monitoring integration
 │
 ├── mcp-technical/              🔧 MCP server technical docs (NEW!)
 │   ├── README.md              → MCP technical documentation hub
@@ -309,6 +311,31 @@ Structured approach to maintaining the project.
 - Quick fix (version constraints)
 - Copy-paste solutions
 - "Dependency hell was not invented on a whim!"
+
+#### **8. MCP Sync Debugging Guide** ⭐ **NEW!**
+📄 [MCP_SYNC_DEBUGGING_GUIDE.md](development/MCP_SYNC_DEBUGGING_GUIDE.md)
+
+**Comprehensive debugging guide for file sync issues**:
+- Silent failure diagnosis (advanced-memory-mcp case study)
+- Structured logging implementation
+- Health check tools
+- Progress monitoring
+- Stall detection
+- Automatic recovery
+- Testing strategies
+- **Based on real-world debugging of 1,896-file sync failure**
+
+#### **9. Sync Health Integration Guide** ✨ **NEW!**
+📄 [SYNC_HEALTH_INTEGRATION.md](development/SYNC_HEALTH_INTEGRATION.md)
+
+**Practical integration guide**:
+- Quick start (5 minutes)
+- Complete code examples
+- Testing strategies
+- Production monitoring
+- Prometheus integration
+- Real-world examples
+- Best practices & anti-patterns
 
 ---
 
@@ -564,7 +591,7 @@ If you find errors or missing information:
 | API Documentation | 4 | 80+ | ✅ Complete |
 | Platform Integration | 3 | 60+ | ✅ Complete |
 | Scripts | 2 | 10+ | ✅ Complete |
-| **Total** | **16** | **400+** | ✅ Complete |
+| **Total** | **18** | **420+** | ✅ Complete |
 
 ---
 
@@ -596,7 +623,9 @@ Based on what you need:
 
 *Documentation Index*  
 *Created: October 8, 2025*  
-*Total Pages: 400+*  
+*Last Updated: October 10, 2025*  
+*Total Pages: 420+*  
+*Total Documents: 18*  
 *Status: Complete*  
 *Coverage: 100%*
 
