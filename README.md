@@ -6,7 +6,7 @@
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-64-passing-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
-[![Coverage](https://img.shields.io/badge/coverage-14%25-red.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Coverage](https://img.shields.io/badge/coverage-21%25-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
 [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/sandraschi/notepadpp-mcp/releases)
 
 **🏆 Gold Status Certified** FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, plugin management, and code quality analysis. Enterprise production-ready with 64 passing tests, structured logging, and official plugin ecosystem integration.
