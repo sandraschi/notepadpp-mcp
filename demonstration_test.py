@@ -19,10 +19,7 @@ This test will FAIL if Notepad++ is not properly installed/accessible.
 import asyncio
 import logging
 import os
-import subprocess
 import sys
-import time
-from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -190,7 +187,7 @@ async def demonstrate_real_tools():
         # Ensure Notepad++ is running
         logger.info("\n🔧 2. Ensuring Notepad++ is running...")
         try:
-            result = await controller.ensure_notepadpp_running()
+            await controller.ensure_notepadpp_running()
             logger.info("✅ Notepad++ is running and accessible")
             logger.info(f"   Main window: {controller.hwnd}")
             logger.info(f"   Scintilla window: {controller.scintilla_hwnd}")

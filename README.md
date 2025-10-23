@@ -1,14 +1,13 @@
 # Notepad++ MCP Server
 
-[![Gold Status](https://img.shields.io/badge/Glama.ai-Gold%20Status-gold)](https://glama.ai)
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tools](https://img.shields.io/badge/tools-26-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
-[![Tests](https://img.shields.io/badge/tests-64-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
-[![Coverage](https://img.shields.io/badge/coverage-23%25-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Tests](https://img.shields.io/badge/tests-64-passing-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Coverage](https://img.shields.io/badge/coverage-14%25-red.svg)](https://github.com/sandraschi/notepadpp-mcp)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/sandraschi/notepadpp-mcp/releases)
 
 **🏆 Gold Status Certified** FastMCP 2.12 compatible MCP server for comprehensive Notepad++ automation, plugin management, and code quality analysis. Enterprise production-ready with 64 passing tests, structured logging, and official plugin ecosystem integration.
 

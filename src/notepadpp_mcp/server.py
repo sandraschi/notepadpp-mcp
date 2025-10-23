@@ -10,11 +10,9 @@ import logging
 import os
 import subprocess
 import sys
-import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
-import psutil
 from fastmcp import FastMCP
 
 # Configure structured logging
@@ -234,7 +232,7 @@ async def open_file(file_path: str) -> Dict[str, Any]:
             return {"success": False, "error": f"File not found: {abs_path}"}
 
         # Use subprocess to open file (Notepad++ command line)
-        process = subprocess.Popen(
+        subprocess.Popen(
             [controller.notepadpp_exe, abs_path],
             shell=False,
             stdout=subprocess.PIPE,
