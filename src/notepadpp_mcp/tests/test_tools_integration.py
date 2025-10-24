@@ -18,7 +18,7 @@ class TestCoreFileOperations:
     async def test_open_file_success(self, mock_win32):
         """Test successful file opening."""
         # Import the actual function implementation
-        from notepadpp_mcp.tools.server import open_file_func
+        from notepadpp_mcp.tools.server import open_file
 
         # Create a temporary test file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
@@ -32,10 +32,10 @@ class TestCoreFileOperations:
                 )
                 mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
 
-                result = await open_file_func(test_file)
+                result = await open_file.fn(test_file)
 
                 assert result["success"] is True
-                assert "opened successfully" in result["message"].lower()
+                assert "opened file" in result["message"].lower()
 
         finally:
             # Clean up test file
@@ -51,7 +51,7 @@ class TestCoreFileOperations:
             mock_controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
 
-            result = await open_file("nonexistent_file.txt")
+            result = await open_file.fn("nonexistent_file.txt")
 
             assert result["success"] is False
             assert "not found" in result["error"].lower()
@@ -65,7 +65,7 @@ class TestCoreFileOperations:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await new_file()
+            result = await new_file.fn()
 
             assert result["success"] is True
             assert "new file" in result["message"].lower()
@@ -79,7 +79,7 @@ class TestCoreFileOperations:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await save_file()
+            result = await save_file.fn()
 
             assert result["success"] is True
             assert "saved" in result["message"].lower()
@@ -95,7 +95,7 @@ class TestCoreFileOperations:
                 return_value="Untitled - Notepad++"
             )
 
-            result = await get_current_file_info()
+            result = await get_current_file_info.fn()
 
             assert result["success"] is True
             assert "file_info" in result
@@ -113,7 +113,7 @@ class TestTextOperations:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await insert_text("Hello, World!")
+            result = await insert_text.fn("Hello, World!")
 
             assert result["success"] is True
             assert "inserted" in result["message"].lower()
@@ -127,7 +127,7 @@ class TestTextOperations:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await find_text("test")
+            result = await find_text.fn("test")
 
             assert result["success"] is True
             assert "search" in result["message"].lower()
@@ -145,7 +145,7 @@ class TestTabManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await list_tabs()
+            result = await list_tabs.fn()
 
             assert result["success"] is True
             assert "tabs" in result
@@ -159,7 +159,7 @@ class TestTabManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await switch_to_tab(0)
+            result = await switch_to_tab.fn(0)
 
             assert result["success"] is True
             assert "switched" in result["message"].lower()
@@ -173,7 +173,7 @@ class TestTabManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await close_tab(0)
+            result = await close_tab.fn(0)
 
             assert result["success"] is True
             assert "closed" in result["message"].lower()
@@ -191,7 +191,7 @@ class TestSessionManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await save_session("test_session")
+            result = await save_session.fn("test_session")
 
             assert result["success"] is True
             assert "saved" in result["message"].lower()
@@ -205,7 +205,7 @@ class TestSessionManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await load_session("test_session")
+            result = await load_session.fn("test_session")
 
             assert result["success"] is True
             assert "loaded" in result["message"].lower()
@@ -219,7 +219,7 @@ class TestSessionManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await list_sessions()
+            result = await list_sessions.fn()
 
             assert result["success"] is True
             assert "sessions" in result
@@ -239,7 +239,7 @@ class TestLintingTools:
             test_file = f.name
 
         try:
-            result = await lint_python_file(test_file)
+            result = await lint_python_file.fn(test_file)
 
             assert result["success"] is True
             assert "linting" in result["message"].lower()
@@ -253,7 +253,7 @@ class TestLintingTools:
         """Test Python linting with non-existent file."""
         from notepadpp_mcp.tools.server import lint_python_file
 
-        result = await lint_python_file("nonexistent.py")
+        result = await lint_python_file.fn("nonexistent.py")
 
         assert result["success"] is False
         assert "not found" in result["error"].lower()
@@ -269,7 +269,7 @@ class TestLintingTools:
             test_file = f.name
 
         try:
-            result = await lint_javascript_file(test_file)
+            result = await lint_javascript_file.fn(test_file)
 
             assert result["success"] is True
             assert "linting" in result["message"].lower()
@@ -289,7 +289,7 @@ class TestLintingTools:
             test_file = f.name
 
         try:
-            result = await lint_json_file(test_file)
+            result = await lint_json_file.fn(test_file)
 
             assert result["success"] is True
             assert "linting" in result["message"].lower()
@@ -309,7 +309,7 @@ class TestLintingTools:
             test_file = f.name
 
         try:
-            result = await lint_markdown_file(test_file)
+            result = await lint_markdown_file.fn(test_file)
 
             assert result["success"] is True
             assert "linting" in result["message"].lower()
@@ -323,7 +323,7 @@ class TestLintingTools:
         """Test getting linting tools information."""
         from notepadpp_mcp.tools.server import get_linting_tools
 
-        result = await get_linting_tools()
+        result = await get_linting_tools.fn()
 
         assert result["success"] is True
         assert "tools" in result
@@ -345,7 +345,7 @@ class TestDisplayFixes:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await fix_invisible_text()
+            result = await fix_invisible_text.fn()
 
             assert result["success"] is True
             assert "fixed" in result["message"].lower()
@@ -359,7 +359,7 @@ class TestDisplayFixes:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await fix_display_issue()
+            result = await fix_display_issue.fn()
 
             assert result["success"] is True
             assert "fixed" in result["message"].lower()
@@ -376,7 +376,7 @@ class TestPluginManagement:
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
 
-            result = await discover_plugins()
+            result = await discover_plugins.fn()
 
             assert result["success"] is True
             assert "plugins" in result
@@ -390,7 +390,7 @@ class TestPluginManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await install_plugin("test_plugin")
+            result = await install_plugin.fn("test_plugin")
 
             assert result["success"] is True
             assert "installed" in result["message"].lower()
@@ -404,7 +404,7 @@ class TestPluginManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await list_installed_plugins()
+            result = await list_installed_plugins.fn()
 
             assert result["success"] is True
             assert "plugins" in result
@@ -418,7 +418,7 @@ class TestPluginManagement:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.send_message = AsyncMock(return_value=True)
 
-            result = await execute_plugin_command("test_command")
+            result = await execute_plugin_command.fn("test_command")
 
             assert result["success"] is True
             assert "executed" in result["message"].lower()
@@ -437,7 +437,7 @@ class TestStatusAndInfo:
             mock_controller.hwnd = 12345
             mock_controller.scintilla_hwnd = 54321
 
-            result = await get_status()
+            result = await get_status.fn()
 
             assert result["success"] is True
             assert "status" in result
@@ -451,7 +451,7 @@ class TestStatusAndInfo:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             mock_controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
 
-            result = await get_system_status()
+            result = await get_system_status.fn()
 
             assert result["success"] is True
             assert "system" in result
@@ -461,7 +461,7 @@ class TestStatusAndInfo:
         """Test getting help information."""
         from notepadpp_mcp.tools.server import get_help
 
-        result = await get_help()
+        result = await get_help.fn()
 
         assert result["success"] is True
         assert "help" in result
@@ -479,7 +479,7 @@ class TestErrorHandling:
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=False)
 
-            result = await open_file("test.txt")
+            result = await open_file.fn("test.txt")
 
             assert result["success"] is False
             assert "notepad++" in result["error"].lower()
@@ -494,7 +494,7 @@ class TestErrorHandling:
                 side_effect=Exception("Test error")
             )
 
-            result = await get_status()
+            result = await get_status.fn()
 
             assert result["success"] is False
             assert "error" in result
@@ -509,7 +509,7 @@ class TestWindowsAPIIntegration:
         from notepadpp_mcp.tools.server import get_status
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", False):
-            result = await get_status()
+            result = await get_status.fn()
 
             assert result["success"] is False
             assert "windows" in result["error"].lower()
@@ -522,7 +522,7 @@ class TestWindowsAPIIntegration:
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.notepadpp_exe = None
 
-            result = await get_system_status()
+            result = await get_system_status.fn()
 
             assert result["success"] is False
             assert "notepad++" in result["error"].lower()
