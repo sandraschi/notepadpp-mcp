@@ -11,9 +11,8 @@ import pytest
 
 from notepadpp_mcp.link_parser import (
     LinkParser,
-    LinkParseError,
     LinkParseResult,
-    LinkType,
+    Link,
 )
 
 

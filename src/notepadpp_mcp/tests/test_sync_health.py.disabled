@@ -12,9 +12,8 @@ import pytest
 
 from notepadpp_mcp.sync_health import (
     SyncHealthMonitor,
-    SyncHealthStatus,
-    SyncHealthError,
-    HealthCheckResult,
+    SyncState,
+    SyncMetrics,
 )
 
 
@@ -23,16 +22,16 @@ class TestSyncHealthMonitor:
 
     def test_init(self):
         """Test SyncHealthMonitor initialization."""
-        monitor = SyncHealthMonitor()
-        assert monitor is not None
-        assert hasattr(monitor, "check_health")
-        assert hasattr(monitor, "start_monitoring")
-        assert hasattr(monitor, "stop_monitoring")
+        monitor = SyncHealthMonitor(project_path="/test/path")
+        assert str(monitor.project_path).replace("\\", "/") == "/test/path"
+        assert monitor.stall_timeout == 60
+        assert monitor.check_interval == 10
+        assert monitor.max_recovery_attempts == 3
 
     @pytest.mark.asyncio
     async def test_check_health_success(self):
         """Test successful health check."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_check_notepadpp_status", return_value=True):
             with patch.object(monitor, "_check_file_sync", return_value=True):
@@ -46,7 +45,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_health_notepadpp_down(self):
         """Test health check when Notepad++ is down."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_check_notepadpp_status", return_value=False):
             result = await monitor.check_health()
@@ -58,7 +57,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_health_file_sync_issue(self):
         """Test health check with file sync issues."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_check_notepadpp_status", return_value=True):
             with patch.object(monitor, "_check_file_sync", return_value=False):
@@ -71,7 +70,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_health_memory_issue(self):
         """Test health check with memory issues."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_check_notepadpp_status", return_value=True):
             with patch.object(monitor, "_check_file_sync", return_value=True):
@@ -85,7 +84,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_health_multiple_issues(self):
         """Test health check with multiple issues."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_check_notepadpp_status", return_value=False):
             with patch.object(monitor, "_check_file_sync", return_value=False):
@@ -99,7 +98,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_notepadpp_status_running(self):
         """Test checking Notepad++ status when running."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.process_iter") as mock_process_iter:
             mock_process = Mock()
@@ -112,7 +111,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_notepadpp_status_not_running(self):
         """Test checking Notepad++ status when not running."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.process_iter") as mock_process_iter:
             mock_process_iter.return_value = []
@@ -123,7 +122,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_file_sync_success(self):
         """Test file sync check success."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("os.path.exists", return_value=True):
             with patch("os.path.getmtime", return_value=time.time()):
@@ -133,7 +132,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_file_sync_failure(self):
         """Test file sync check failure."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("os.path.exists", return_value=False):
             result = await monitor._check_file_sync()
@@ -142,7 +141,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_memory_usage_normal(self):
         """Test memory usage check with normal usage."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.virtual_memory") as mock_memory:
             mock_memory.return_value.percent = 50.0  # 50% memory usage
@@ -153,7 +152,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_check_memory_usage_high(self):
         """Test memory usage check with high usage."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.virtual_memory") as mock_memory:
             mock_memory.return_value.percent = 95.0  # 95% memory usage
@@ -164,7 +163,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_start_monitoring(self):
         """Test starting monitoring."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(monitor, "_monitoring_loop", new_callable=AsyncMock):
             await monitor.start_monitoring()
@@ -173,7 +172,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_stop_monitoring(self):
         """Test stopping monitoring."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
         monitor.is_monitoring = True
 
         await monitor.stop_monitoring()
@@ -182,7 +181,7 @@ class TestSyncHealthMonitor:
     @pytest.mark.asyncio
     async def test_monitoring_loop(self):
         """Test monitoring loop."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
         monitor.check_interval = 0.1  # Short interval for testing
 
         with patch.object(
@@ -282,7 +281,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_check_health_exception(self):
         """Test health check with exception."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch.object(
             monitor, "_check_notepadpp_status", side_effect=Exception("Test error")
@@ -296,7 +295,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_check_notepadpp_status_exception(self):
         """Test Notepad++ status check with exception."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.process_iter", side_effect=Exception("Process error")):
             result = await monitor._check_notepadpp_status()
@@ -305,7 +304,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_check_file_sync_exception(self):
         """Test file sync check with exception."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("os.path.exists", side_effect=OSError("File error")):
             result = await monitor._check_file_sync()
@@ -314,7 +313,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_check_memory_usage_exception(self):
         """Test memory usage check with exception."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
 
         with patch("psutil.virtual_memory", side_effect=Exception("Memory error")):
             result = await monitor._check_memory_usage()
@@ -323,7 +322,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_monitoring_loop_exception(self):
         """Test monitoring loop with exception."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
         monitor.check_interval = 0.1
 
         with patch.object(
@@ -345,7 +344,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_start_monitoring_already_running(self):
         """Test starting monitoring when already running."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
         monitor.is_monitoring = True
 
         with patch.object(monitor, "_monitoring_loop", new_callable=AsyncMock):
@@ -356,7 +355,7 @@ class TestSyncHealthMonitorEdgeCases:
     @pytest.mark.asyncio
     async def test_stop_monitoring_not_running(self):
         """Test stopping monitoring when not running."""
-        monitor = SyncHealthMonitor()
+        monitor = SyncHealthMonitor(project_path="/test/path")
         monitor.is_monitoring = False
 
         await monitor.stop_monitoring()
