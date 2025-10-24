@@ -25,20 +25,20 @@ class TestSyncHealthMonitor:
         """Test SyncHealthMonitor initialization."""
         monitor = SyncHealthMonitor()
         assert monitor is not None
-        assert hasattr(monitor, 'check_health')
-        assert hasattr(monitor, 'start_monitoring')
-        assert hasattr(monitor, 'stop_monitoring')
+        assert hasattr(monitor, "check_health")
+        assert hasattr(monitor, "start_monitoring")
+        assert hasattr(monitor, "stop_monitoring")
 
     @pytest.mark.asyncio
     async def test_check_health_success(self):
         """Test successful health check."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', return_value=True):
-            with patch.object(monitor, '_check_file_sync', return_value=True):
-                with patch.object(monitor, '_check_memory_usage', return_value=True):
+
+        with patch.object(monitor, "_check_notepadpp_status", return_value=True):
+            with patch.object(monitor, "_check_file_sync", return_value=True):
+                with patch.object(monitor, "_check_memory_usage", return_value=True):
                     result = await monitor.check_health()
-                    
+
                     assert isinstance(result, HealthCheckResult)
                     assert result.is_healthy is True
                     assert result.status == SyncHealthStatus.HEALTHY
@@ -47,10 +47,10 @@ class TestSyncHealthMonitor:
     async def test_check_health_notepadpp_down(self):
         """Test health check when Notepad++ is down."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', return_value=False):
+
+        with patch.object(monitor, "_check_notepadpp_status", return_value=False):
             result = await monitor.check_health()
-            
+
             assert isinstance(result, HealthCheckResult)
             assert result.is_healthy is False
             assert result.status == SyncHealthStatus.NOTEPADPP_DOWN
@@ -59,11 +59,11 @@ class TestSyncHealthMonitor:
     async def test_check_health_file_sync_issue(self):
         """Test health check with file sync issues."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', return_value=True):
-            with patch.object(monitor, '_check_file_sync', return_value=False):
+
+        with patch.object(monitor, "_check_notepadpp_status", return_value=True):
+            with patch.object(monitor, "_check_file_sync", return_value=False):
                 result = await monitor.check_health()
-                
+
                 assert isinstance(result, HealthCheckResult)
                 assert result.is_healthy is False
                 assert result.status == SyncHealthStatus.FILE_SYNC_ISSUE
@@ -72,12 +72,12 @@ class TestSyncHealthMonitor:
     async def test_check_health_memory_issue(self):
         """Test health check with memory issues."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', return_value=True):
-            with patch.object(monitor, '_check_file_sync', return_value=True):
-                with patch.object(monitor, '_check_memory_usage', return_value=False):
+
+        with patch.object(monitor, "_check_notepadpp_status", return_value=True):
+            with patch.object(monitor, "_check_file_sync", return_value=True):
+                with patch.object(monitor, "_check_memory_usage", return_value=False):
                     result = await monitor.check_health()
-                    
+
                     assert isinstance(result, HealthCheckResult)
                     assert result.is_healthy is False
                     assert result.status == SyncHealthStatus.MEMORY_ISSUE
@@ -86,12 +86,12 @@ class TestSyncHealthMonitor:
     async def test_check_health_multiple_issues(self):
         """Test health check with multiple issues."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', return_value=False):
-            with patch.object(monitor, '_check_file_sync', return_value=False):
-                with patch.object(monitor, '_check_memory_usage', return_value=False):
+
+        with patch.object(monitor, "_check_notepadpp_status", return_value=False):
+            with patch.object(monitor, "_check_file_sync", return_value=False):
+                with patch.object(monitor, "_check_memory_usage", return_value=False):
                     result = await monitor.check_health()
-                    
+
                     assert isinstance(result, HealthCheckResult)
                     assert result.is_healthy is False
                     assert result.status == SyncHealthStatus.CRITICAL
@@ -100,12 +100,12 @@ class TestSyncHealthMonitor:
     async def test_check_notepadpp_status_running(self):
         """Test checking Notepad++ status when running."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.process_iter') as mock_process_iter:
+
+        with patch("psutil.process_iter") as mock_process_iter:
             mock_process = Mock()
             mock_process.name.return_value = "notepad++.exe"
             mock_process_iter.return_value = [mock_process]
-            
+
             result = await monitor._check_notepadpp_status()
             assert result is True
 
@@ -113,10 +113,10 @@ class TestSyncHealthMonitor:
     async def test_check_notepadpp_status_not_running(self):
         """Test checking Notepad++ status when not running."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.process_iter') as mock_process_iter:
+
+        with patch("psutil.process_iter") as mock_process_iter:
             mock_process_iter.return_value = []
-            
+
             result = await monitor._check_notepadpp_status()
             assert result is False
 
@@ -124,9 +124,9 @@ class TestSyncHealthMonitor:
     async def test_check_file_sync_success(self):
         """Test file sync check success."""
         monitor = SyncHealthMonitor()
-        
-        with patch('os.path.exists', return_value=True):
-            with patch('os.path.getmtime', return_value=time.time()):
+
+        with patch("os.path.exists", return_value=True):
+            with patch("os.path.getmtime", return_value=time.time()):
                 result = await monitor._check_file_sync()
                 assert result is True
 
@@ -134,8 +134,8 @@ class TestSyncHealthMonitor:
     async def test_check_file_sync_failure(self):
         """Test file sync check failure."""
         monitor = SyncHealthMonitor()
-        
-        with patch('os.path.exists', return_value=False):
+
+        with patch("os.path.exists", return_value=False):
             result = await monitor._check_file_sync()
             assert result is False
 
@@ -143,10 +143,10 @@ class TestSyncHealthMonitor:
     async def test_check_memory_usage_normal(self):
         """Test memory usage check with normal usage."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.virtual_memory') as mock_memory:
+
+        with patch("psutil.virtual_memory") as mock_memory:
             mock_memory.return_value.percent = 50.0  # 50% memory usage
-            
+
             result = await monitor._check_memory_usage()
             assert result is True
 
@@ -154,10 +154,10 @@ class TestSyncHealthMonitor:
     async def test_check_memory_usage_high(self):
         """Test memory usage check with high usage."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.virtual_memory') as mock_memory:
+
+        with patch("psutil.virtual_memory") as mock_memory:
             mock_memory.return_value.percent = 95.0  # 95% memory usage
-            
+
             result = await monitor._check_memory_usage()
             assert result is False
 
@@ -165,8 +165,8 @@ class TestSyncHealthMonitor:
     async def test_start_monitoring(self):
         """Test starting monitoring."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_monitoring_loop', new_callable=AsyncMock):
+
+        with patch.object(monitor, "_monitoring_loop", new_callable=AsyncMock):
             await monitor.start_monitoring()
             assert monitor.is_monitoring is True
 
@@ -175,7 +175,7 @@ class TestSyncHealthMonitor:
         """Test stopping monitoring."""
         monitor = SyncHealthMonitor()
         monitor.is_monitoring = True
-        
+
         await monitor.stop_monitoring()
         assert monitor.is_monitoring is False
 
@@ -184,21 +184,23 @@ class TestSyncHealthMonitor:
         """Test monitoring loop."""
         monitor = SyncHealthMonitor()
         monitor.check_interval = 0.1  # Short interval for testing
-        
-        with patch.object(monitor, 'check_health', new_callable=AsyncMock) as mock_check:
+
+        with patch.object(
+            monitor, "check_health", new_callable=AsyncMock
+        ) as mock_check:
             mock_check.return_value = HealthCheckResult(True, SyncHealthStatus.HEALTHY)
-            
+
             # Start monitoring and stop quickly
             monitor.is_monitoring = True
             task = asyncio.create_task(monitor._monitoring_loop())
-            
+
             # Let it run briefly
             await asyncio.sleep(0.2)
             monitor.is_monitoring = False
-            
+
             # Wait for task to complete
             await task
-            
+
             # Should have called check_health at least once
             assert mock_check.call_count >= 1
 
@@ -216,9 +218,9 @@ class TestHealthCheckResult:
     def test_health_check_result_with_details(self):
         """Test HealthCheckResult with details."""
         result = HealthCheckResult(
-            False, 
+            False,
             SyncHealthStatus.NOTEPADPP_DOWN,
-            details={"error": "Notepad++ not found"}
+            details={"error": "Notepad++ not found"},
         )
         assert result.is_healthy is False
         assert result.status == SyncHealthStatus.NOTEPADPP_DOWN
@@ -270,7 +272,7 @@ class TestSyncHealthError:
         """Test SyncHealthError with status."""
         error = SyncHealthError("Test error", status=SyncHealthStatus.CRITICAL)
         assert str(error) == "Test error"
-        assert hasattr(error, 'status')
+        assert hasattr(error, "status")
         assert error.status == SyncHealthStatus.CRITICAL
 
 
@@ -281,10 +283,12 @@ class TestSyncHealthMonitorEdgeCases:
     async def test_check_health_exception(self):
         """Test health check with exception."""
         monitor = SyncHealthMonitor()
-        
-        with patch.object(monitor, '_check_notepadpp_status', side_effect=Exception("Test error")):
+
+        with patch.object(
+            monitor, "_check_notepadpp_status", side_effect=Exception("Test error")
+        ):
             result = await monitor.check_health()
-            
+
             assert isinstance(result, HealthCheckResult)
             assert result.is_healthy is False
             assert result.status == SyncHealthStatus.CRITICAL
@@ -293,8 +297,8 @@ class TestSyncHealthMonitorEdgeCases:
     async def test_check_notepadpp_status_exception(self):
         """Test Notepad++ status check with exception."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.process_iter', side_effect=Exception("Process error")):
+
+        with patch("psutil.process_iter", side_effect=Exception("Process error")):
             result = await monitor._check_notepadpp_status()
             assert result is False
 
@@ -302,8 +306,8 @@ class TestSyncHealthMonitorEdgeCases:
     async def test_check_file_sync_exception(self):
         """Test file sync check with exception."""
         monitor = SyncHealthMonitor()
-        
-        with patch('os.path.exists', side_effect=OSError("File error")):
+
+        with patch("os.path.exists", side_effect=OSError("File error")):
             result = await monitor._check_file_sync()
             assert result is False
 
@@ -311,8 +315,8 @@ class TestSyncHealthMonitorEdgeCases:
     async def test_check_memory_usage_exception(self):
         """Test memory usage check with exception."""
         monitor = SyncHealthMonitor()
-        
-        with patch('psutil.virtual_memory', side_effect=Exception("Memory error")):
+
+        with patch("psutil.virtual_memory", side_effect=Exception("Memory error")):
             result = await monitor._check_memory_usage()
             assert result is False
 
@@ -321,18 +325,20 @@ class TestSyncHealthMonitorEdgeCases:
         """Test monitoring loop with exception."""
         monitor = SyncHealthMonitor()
         monitor.check_interval = 0.1
-        
-        with patch.object(monitor, 'check_health', side_effect=Exception("Health check error")):
+
+        with patch.object(
+            monitor, "check_health", side_effect=Exception("Health check error")
+        ):
             monitor.is_monitoring = True
             task = asyncio.create_task(monitor._monitoring_loop())
-            
+
             # Let it run briefly
             await asyncio.sleep(0.2)
             monitor.is_monitoring = False
-            
+
             # Wait for task to complete
             await task
-            
+
             # Should handle exception gracefully
             assert monitor.is_monitoring is False
 
@@ -341,8 +347,8 @@ class TestSyncHealthMonitorEdgeCases:
         """Test starting monitoring when already running."""
         monitor = SyncHealthMonitor()
         monitor.is_monitoring = True
-        
-        with patch.object(monitor, '_monitoring_loop', new_callable=AsyncMock):
+
+        with patch.object(monitor, "_monitoring_loop", new_callable=AsyncMock):
             await monitor.start_monitoring()
             # Should not start another monitoring loop
             assert monitor.is_monitoring is True
@@ -352,7 +358,7 @@ class TestSyncHealthMonitorEdgeCases:
         """Test stopping monitoring when not running."""
         monitor = SyncHealthMonitor()
         monitor.is_monitoring = False
-        
+
         await monitor.stop_monitoring()
         assert monitor.is_monitoring is False
 

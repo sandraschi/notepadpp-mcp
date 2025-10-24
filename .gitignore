@@ -56,3 +56,6 @@ build/
 *.tmp
 *.log
 temp/
+
+# Private documentation (internal dev notes, not for public)
+docs-private/

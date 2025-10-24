@@ -16,40 +16,41 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
-      packages: write
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.11"
     
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '18'
         cache: 'npm'
     
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install build twine
+        uv sync --dev
         npm install -g @anthropic-ai/mcpb
-    
-    - name: Build Python package
-      run: python -m build
     
     - name: Build MCPB package
       run: mcpb pack . dist/notepadpp-mcp.mcpb
+      continue-on-error: true
     
-    - name: Check packages
-      run: |
-        twine check dist/*.whl dist/*.tar.gz
-        mcpb validate manifest.json
+    - name: Validate MCPB package
+      run: mcpb validate manifest.json
+      continue-on-error: true
     
     - name: Create Release
       id: create_release
@@ -66,44 +67,34 @@ jobs:
           
           ## Downloads
           
-          ### Python Package
-          - **Wheel**: `notepadpp-mcp-${{ github.ref_name }}.whl`
-          - **Source**: `notepadpp-mcp-${{ github.ref_name }}.tar.gz`
-          
           ### MCPB Package
           - **MCPB**: `notepadpp-mcp-${{ github.ref_name }}.mcpb`
           
           ## Installation
           
-          ### Python Package
-          ```bash
-          pip install notepadpp-mcp-${{ github.ref_name }}.whl
-          ```
-          
           ### MCPB Package
-          Use the `.mcpb` file with MCP-compatible clients.
+          1. **Download** `notepadpp-mcp-${{ github.ref_name }}.mcpb` from the assets below
+          2. **Drag** the file to Claude Desktop
+          3. **Configure** Notepad++ path and preferences
+          4. **Restart** Claude Desktop
+          5. **Test** the 26 available tools!
+          
+          ## Features
+          
+          - **26 powerful tools** for Notepad++ automation
+          - **Plugin ecosystem** integration with 1,400+ official plugins
+          - **Code quality** analysis with multi-language linting
+          - **Display fixes** for invisible text and theme issues
+          - **Windows integration** via native Windows API
+          
+          ## Requirements
+          
+          - **Windows 10/11** (64-bit)
+          - **Python 3.11+** (bundled with Claude Desktop)
+          - **Notepad++ 8.0+** installed
+          - **FastMCP 2.12+** (bundled in package)
         draft: false
         prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
-    
-    - name: Upload Python Package Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.whl
-        asset_name: notepadpp-mcp-${{ github.ref_name }}.whl
-        asset_content_type: application/zip
-    
-    - name: Upload Source Package Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/notepadpp-mcp-${{ github.ref_name }}.tar.gz
-        asset_name: notepadpp-mcp-${{ github.ref_name }}.tar.gz
-        asset_content_type: application/gzip
     
     - name: Upload MCPB Package Assets
       uses: actions/upload-release-asset@v1

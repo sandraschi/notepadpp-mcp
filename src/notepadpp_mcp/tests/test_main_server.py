@@ -1,10 +1,7 @@
 """Tests for the main notepadpp-mcp server functionality."""
 
-import asyncio
 import os
-import sys
-from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -311,7 +308,6 @@ class TestConfiguration:
     def test_auto_start_default(self):
         """Test auto-start default configuration."""
         # Test the default value by simulating the environment
-        import os
 
         # Ensure the environment variable is not set
         with patch.dict(os.environ, {}, clear=False):

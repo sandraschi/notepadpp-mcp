@@ -11,7 +11,6 @@ from notepadpp_mcp.tools.server import (
     get_status,
     insert_text,
     new_file,
-    open_file,
     save_file,
 )
 

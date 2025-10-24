@@ -1,6 +1,5 @@
 """Tests for notepadpp-mcp server functionality."""
 
-import asyncio
 import os
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -90,13 +89,13 @@ class TestMCPTools:
         """Test open_file tool success case."""
         from notepadpp_mcp.tools.server import open_file
 
-        test_file = __file__  # Use this test file as it exists
+        # test_file = __file__  # Use this test file as it exists
 
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.ensure_notepadpp_running = AsyncMock()
             mock_controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
 
-            with patch("subprocess.Popen") as mock_popen:
+            with patch("subprocess.Popen"):
                 tool = open_file
 
                 # Verify the tool object has expected attributes
@@ -560,7 +559,6 @@ class TestLintingTools:
     @pytest.mark.asyncio
     async def test_linting_integration_with_notepadpp(self, mock_win32):
         """Test linting tools integration with Notepad++ controller."""
-        from unittest.mock import MagicMock, patch
 
         from notepadpp_mcp.tools.server import lint_python_file
 
