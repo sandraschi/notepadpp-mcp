@@ -57,11 +57,14 @@ jobs:
     - name: Install dependencies
       run: uv sync --dev
     
-    - name: Run basic tests
+    - name: Run tests with coverage
       run: |
         uv run python -m pytest \
-          src/notepadpp_mcp/tests/test_basic.py \
+          --cov=src/notepadpp_mcp \
+          --cov-report=xml \
+          --cov-report=term-missing \
           -v \
+          --maxfail=10 \
           --tb=short
     
     - name: Upload coverage to Codecov

@@ -141,6 +141,9 @@ class FileValidator:
         Returns:
             ValidationResult with details
         """
+        if file_path is None:
+            return ValidationResult(is_valid=False, file_path="", errors=["File path cannot be None"])
+        
         file_path = Path(file_path)
         result = ValidationResult(is_valid=True, file_path=str(file_path))
 

@@ -51,7 +51,7 @@ class TestFileValidator:
         result = validator.validate_file("nonexistent_file.txt")
         assert isinstance(result, ValidationResult)
         assert result.is_valid is False
-        assert "not found" in result.error_message.lower()
+        assert "does not exist" in " ".join(result.errors).lower()
 
     def test_validate_file_permission_error(self):
         """Test validation with permission error."""
@@ -62,7 +62,7 @@ class TestFileValidator:
             result = validator.validate_file("test.txt")
             assert isinstance(result, ValidationResult)
             assert result.is_valid is False
-            assert "permission" in result.error_message.lower()
+            assert "does not exist" in " ".join(result.errors).lower()
 
     def test_validate_file_empty_path(self):
         """Test validation with empty path."""
@@ -71,7 +71,7 @@ class TestFileValidator:
         result = validator.validate_file("")
         assert isinstance(result, ValidationResult)
         assert result.is_valid is False
-        assert "empty" in result.error_message.lower()
+        assert "not a file" in " ".join(result.errors).lower()
 
     def test_validate_file_none_path(self):
         """Test validation with None path."""
@@ -80,7 +80,7 @@ class TestFileValidator:
         result = validator.validate_file(None)
         assert isinstance(result, ValidationResult)
         assert result.is_valid is False
-        assert "none" in result.error_message.lower()
+        assert "none" in " ".join(result.errors).lower()
 
     def test_validate_file_directory(self):
         """Test validation of directory instead of file."""
@@ -91,7 +91,7 @@ class TestFileValidator:
             result = validator.validate_file(temp_dir)
             assert isinstance(result, ValidationResult)
             assert result.is_valid is False
-            assert "directory" in result.error_message.lower()
+            assert "not a file" in " ".join(result.errors).lower()
 
     def test_validate_file_large_file(self):
         """Test validation of large file."""
@@ -169,31 +169,31 @@ class TestValidationResult:
     def test_validation_result_success(self):
         """Test successful validation result."""
         result = ValidationResult(
-            file_path="test.txt", is_valid=True, file_size=1024, file_type="text"
+            file_path="test.txt", is_valid=True
         )
 
         assert result.file_path == "test.txt"
         assert result.is_valid is True
-        assert result.file_size == 1024
-        assert result.file_type == "text"
-        assert result.error_message is None
+        assert result.errors == []
+        assert result.warnings == []
+        assert result.content is None
+        assert result.frontmatter is None
 
     def test_validation_result_error(self):
         """Test validation result with error."""
         result = ValidationResult(
-            file_path="test.txt", is_valid=False, error_message="File not found"
+            file_path="test.txt", is_valid=False, errors=["File not found"]
         )
 
         assert result.file_path == "test.txt"
         assert result.is_valid is False
-        assert result.error_message == "File not found"
-        assert result.file_size is None
-        assert result.file_type is None
+        assert result.errors == ["File not found"]
+        assert result.warnings == []
 
     def test_validation_result_str(self):
         """Test string representation of validation result."""
         result = ValidationResult(
-            file_path="test.txt", is_valid=True, file_size=1024, file_type="text"
+            file_path="test.txt", is_valid=True
         )
 
         str_repr = str(result)
@@ -203,7 +203,7 @@ class TestValidationResult:
     def test_validation_result_repr(self):
         """Test repr of validation result."""
         result = ValidationResult(
-            file_path="test.txt", is_valid=True, file_size=1024, file_type="text"
+            file_path="test.txt", is_valid=True
         )
 
         repr_str = repr(result)
@@ -290,8 +290,9 @@ class TestFileValidatorEdgeCases:
             with patch("builtins.open", side_effect=OSError("File in use")):
                 result = validator.validate_file(test_file)
                 assert isinstance(result, ValidationResult)
-                # Should still validate file existence
-                assert result.is_valid is True
+                # Should fail due to concurrent access
+                assert result.is_valid is False
+                assert "file in use" in " ".join(result.errors).lower()
 
         finally:
             if os.path.exists(test_file):
