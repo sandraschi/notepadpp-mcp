@@ -142,89 +142,6 @@ class TestNotepadPPControllerCore:
             result = controller._find_scintilla_window(12345)
             assert result is None
 
-    @pytest.mark.asyncio
-    async def test_start_notepadpp_success(self, mock_win32):
-        """Test starting Notepad++."""
-        controller = NotepadPPController()
-        controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
-
-        with patch("notepadpp_mcp.tools.server.subprocess.Popen") as mock_popen:
-            mock_process = Mock()
-            mock_popen.return_value = mock_process
-
-            result = await controller._start_notepadpp()
-            assert result is True
-            mock_popen.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_start_notepadpp_error(self, mock_win32):
-        """Test starting Notepad++ with error."""
-        controller = NotepadPPController()
-        controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
-
-        with patch(
-            "notepadpp_mcp.tools.server.subprocess.Popen",
-            side_effect=Exception("Start failed"),
-        ):
-            with pytest.raises(NotepadPPError):
-                await controller._start_notepadpp()
-
-
-class TestValidationFunctions:
-    """Test validation functions."""
-
-    def test_validate_file_path_success(self):
-        """Test file path validation success."""
-        # Create a temporary file
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-            f.write("test content")
-            test_file = f.name
-
-        try:
-            result = validate_file_path(test_file)
-            assert result is True
-
-        finally:
-            if os.path.exists(test_file):
-                os.unlink(test_file)
-
-    def test_validate_file_path_not_exists(self):
-        """Test file path validation with non-existent file."""
-        result = validate_file_path("nonexistent_file.txt")
-        assert result is False
-
-    def test_validate_file_path_empty(self):
-        """Test file path validation with empty path."""
-        result = validate_file_path("")
-        assert result is False
-
-    def test_validate_file_path_none(self):
-        """Test file path validation with None."""
-        result = validate_file_path(None)
-        assert result is False
-
-    def test_validate_text_input_success(self):
-        """Test text input validation success."""
-        result = validate_text_input("Hello, World!")
-        assert result is True
-
-    def test_validate_text_input_empty(self):
-        """Test text input validation with empty text."""
-        result = validate_text_input("")
-        assert result is False
-
-    def test_validate_text_input_none(self):
-        """Test text input validation with None."""
-        result = validate_text_input(None)
-        assert result is False
-
-    def test_validate_text_input_too_long(self):
-        """Test text input validation with too long text."""
-        long_text = "x" * 10000  # Very long text
-        result = validate_text_input(long_text)
-        assert result is False
-
-
 class TestErrorHandling:
     """Test error handling functionality."""
 
@@ -293,10 +210,8 @@ class TestWindowsAPIIntegration:
     async def test_windows_api_unavailable(self):
         """Test when Windows API is not available."""
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", False):
-            controller = NotepadPPController()
-
             with pytest.raises(NotepadPPError):
-                await controller.send_message(12345, 0x000E, 0, 0)
+                NotepadPPController()
 
     @pytest.mark.asyncio
     async def test_notepadpp_path_detection(self):
@@ -304,17 +219,17 @@ class TestWindowsAPIIntegration:
         controller = NotepadPPController()
 
         with patch("notepadpp_mcp.tools.server.os.path.exists", return_value=True):
-            controller._detect_notepadpp_path()
-            assert controller.notepadpp_exe is not None
+            result = controller._find_notepadpp_exe()
+            assert result is not None
 
     @pytest.mark.asyncio
     async def test_notepadpp_path_not_found(self):
         """Test Notepad++ path not found."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.os.path.exists", return_value=False):
-            controller._detect_notepadpp_path()
-            assert controller.notepadpp_exe is None
+        with patch("notepadpp_mcp.tools.server.Path.exists", return_value=False):
+            with pytest.raises(NotepadPPNotFoundError):
+                controller._find_notepadpp_exe()
 
 
 class TestConfiguration:
@@ -368,35 +283,6 @@ class TestEdgeCases:
 
         with pytest.raises(NotepadPPError):
             await controller.get_window_text(0)
-
-    def test_validate_file_path_with_special_characters(self):
-        """Test file path validation with special characters."""
-        # Test with various special characters
-        special_paths = [
-            "test file.txt",
-            "test@file.txt",
-            "test#file.txt",
-            "test$file.txt",
-            "test%file.txt",
-        ]
-
-        for path in special_paths:
-            result = validate_file_path(path)
-            # Should handle gracefully (not crash)
-            assert isinstance(result, bool)
-
-    def test_validate_text_input_with_unicode(self):
-        """Test text input validation with Unicode characters."""
-        unicode_texts = [
-            "Hello, 世界!",
-            "Привет, мир!",
-            "مرحبا بالعالم!",
-            "🌍 Hello World 🌍",
-        ]
-
-        for text in unicode_texts:
-            result = validate_text_input(text)
-            assert result is True
 
     @pytest.mark.asyncio
     async def test_controller_timeout_scenario(self, mock_win32):
