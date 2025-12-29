@@ -3,7 +3,7 @@
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.12+-green.svg)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.1-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-64-passing-brightgreen.svg)](https://github.com/sandraschi/notepadpp-mcp)
 [![Coverage](https://img.shields.io/badge/coverage-21%25-orange.svg)](https://github.com/sandraschi/notepadpp-mcp)
@@ -76,7 +76,8 @@ Add to your Claude Desktop configuration:
 - **pywin32** for Windows API integration
 
 ### 🛠️ **Dependencies**
-- **FastMCP 2.12+** - MCP framework
+- **FastMCP 2.14.1+** - MCP framework
+- **structlog 23.0.0+** - Structured JSON logging
 - **pywin32** - Windows API bindings
 - **psutil** - System monitoring
 - **pathlib** - Path operations
@@ -236,9 +237,9 @@ notepadpp-mcp/
 
 ### 🔧 **Core Capabilities**
 - 🎯 **Windows Integration**: Native Windows API with pywin32
-- ⚡ **FastMCP 2.12**: Latest MCP framework compliance
-- 📝 **Structured Logging**: Professional error handling
-- 🧪 **Comprehensive Testing**: 64 tests covering all tools
+- ⚡ **FastMCP 2.14.1**: Latest MCP framework compliance with server lifespan
+- 📝 **Structured Logging**: JSON logging to stderr (structlog) - stdout reserved for MCP protocol
+- 🧪 **Comprehensive Testing**: 64 tests covering all tools with pytest
 - 📚 **Self-Documenting**: Built-in help system
 - 🔍 **Multi-linter Support**: ruff, flake8, ESLint with fallback options
 - 🎨 **Code Quality**: Syntax validation for Python, JS, JSON, Markdown
@@ -253,10 +254,23 @@ cd notepadpp-mcp
 pip install -e .[dev]
 
 # Run comprehensive tests
-python -m pytest src/notepadpp_mcp/tests/
+pytest src/notepadpp_mcp/tests/
+
+# Run with coverage
+pytest src/notepadpp_mcp/tests/ --cov=src/notepadpp_mcp --cov-report=html
 
 # Format code
-black src/
+ruff format src/ tests/
+
+# Lint code
+ruff check src/ tests/
+
+# Via Makefile
+make test
+make test-coverage
+make lint
+make format
+make check  # Run all checks
 
 # Test real Notepad++ integration
 python demonstration_test.py

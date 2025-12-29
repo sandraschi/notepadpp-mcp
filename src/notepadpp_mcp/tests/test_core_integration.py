@@ -4,9 +4,7 @@ This module tests the core functionality to achieve 80%+ test coverage
 by testing the underlying functions and classes directly.
 """
 
-import os
-import tempfile
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -15,8 +13,6 @@ from notepadpp_mcp.tools.server import (
     NotepadPPError,
     NotepadPPNotFoundError,
     handle_tool_errors,
-    validate_file_path,
-    validate_text_input,
 )
 
 

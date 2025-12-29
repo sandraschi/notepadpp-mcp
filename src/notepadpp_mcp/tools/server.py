@@ -1,37 +1,46 @@
 """
 Notepad++ MCP Server
 
-FastMCP 2.12 compliant MCP server for Notepad++ automation and control.
+FastMCP 2.14.1 compliant MCP server for Notepad++ automation and control.
 Provides comprehensive file operations, text manipulation, and UI control.
+
+Status: Beta - Actively developed, API may change
 """
 
 import asyncio
-import logging
 import os
 import subprocess
 import sys
 import time
+from contextlib import asynccontextmanager
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 import psutil
+import structlog
 from fastmcp import FastMCP
 
-# Configure structured logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# Configure structured logging (JSON to stderr only)
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.JSONRenderer()
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
-# Create console handler for stderr (safe for FastMCP stdio protocol)
-console_handler = logging.StreamHandler(sys.stderr)
-console_handler.setLevel(logging.INFO)
-
-# Create formatter
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(formatter)
-
-# Add handler to logger
-logger.addHandler(console_handler)
+logger = structlog.get_logger(__name__)
 
 # Windows-specific imports
 try:
@@ -43,8 +52,56 @@ try:
 except ImportError:
     WINDOWS_AVAILABLE = False
 
-# Create FastMCP application
-app = FastMCP("Notepad++ MCP Server")
+# Server lifespan for startup/shutdown lifecycle
+@asynccontextmanager
+async def server_lifespan(app: FastMCP):
+    """Server lifespan context manager for FastMCP 2.14.1+."""
+    # Startup
+    logger.info("Starting Notepad++ MCP Server", version="1.2.0", fastmcp_version="2.14.1")
+    try:
+        yield
+    finally:
+        # Shutdown
+        logger.info("Shutting down Notepad++ MCP Server")
+
+# Create FastMCP application with comprehensive instructions
+app = FastMCP(
+    "Notepad++ MCP Server",
+    instructions="""You are Notepad++ MCP Server, a comprehensive automation server for Notepad++ text editor on Windows.
+
+CORE CAPABILITIES:
+- File Operations: Open, create, save files in Notepad++
+- Text Operations: Insert text, search content with case sensitivity
+- Tab Management: List, switch, and close tabs
+- Session Management: Save and restore workspace states
+- Code Quality: Lint Python, JavaScript, JSON, and Markdown files
+- Display Fixes: Fix invisible text and display issues
+- Plugin Ecosystem: Discover, install, and manage 1,400+ official plugins
+
+USAGE PATTERNS:
+1. File Operations: Use open_file() to open files, save_file() to save
+2. Text Editing: Use insert_text() to add content, find_text() to search
+3. Tab Management: Use list_tabs() to see open files, switch_to_tab() to navigate
+4. Session Management: Use save_session() to preserve workspace, load_session() to restore
+5. Code Quality: Use lint_python_file(), lint_javascript_file() for code analysis
+6. Plugin Management: Use discover_plugins() to find plugins, install_plugin() to add them
+
+RESPONSE FORMAT:
+- All tools return dictionaries with 'success' boolean
+- Error responses include 'error' field with descriptive message
+- Success responses include relevant data fields
+
+ERROR HANDLING:
+- Windows API errors are caught and returned as error dictionaries
+- File not found errors include helpful suggestions
+- Plugin errors include manual execution instructions
+
+INTEGRATION:
+- Requires Windows 10/11 with Notepad++ 8.0+ installed
+- Uses Windows API (pywin32) for automation
+- Compatible with Claude Desktop, Cursor IDE, and other MCP clients""",
+    lifespan=server_lifespan
+)
 
 # Configuration
 NOTEPADPP_TIMEOUT = int(os.getenv("NOTEPADPP_TIMEOUT", "30"))
@@ -147,7 +204,7 @@ def handle_tool_errors(func: Callable) -> Callable:
                 }
 
             if not controller:
-                logger.error("Notepad++ controller not initialized")
+                logger.error("Notepad++ controller not initialized", tool=func.__name__)
                 return {"success": False, "error": "Notepad++ controller not available"}
 
             result = await func(*args, **kwargs)
@@ -155,7 +212,9 @@ def handle_tool_errors(func: Callable) -> Callable:
             # Validate result format
             if not isinstance(result, dict):
                 logger.error(
-                    f"Tool {func.__name__} returned non-dict result: {type(result)}"
+                    "Tool returned non-dict result",
+                    tool=func.__name__,
+                    result_type=type(result).__name__
                 )
                 return {
                     "success": False,
@@ -2411,16 +2470,19 @@ async def execute_plugin_command(plugin_name: str, command: str) -> Dict[str, An
         }
 
 
-def main() -> None:
+async def main() -> None:
     """Main entry point for the MCP server."""
-    import sys
-
     if not WINDOWS_AVAILABLE:
         logger.error("This MCP server requires Windows and pywin32")
         sys.exit(1)
 
-    app.run()
+    await app.run_stdio_async()
+
+
+def run() -> None:
+    """Synchronous entry point for compatibility."""
+    asyncio.run(main())
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

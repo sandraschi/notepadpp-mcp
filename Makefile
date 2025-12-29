@@ -1,7 +1,7 @@
 # Notepad++ MCP Server - Development Makefile
 # Compatible with Windows (using PowerShell) and Unix-like systems
 
-.PHONY: help install install-dev test lint format type-check build clean test-install validate-mcpb build-mcpb all
+.PHONY: help install install-dev test test-unit test-integration test-coverage lint format type-check build clean test-install validate-mcpb build-mcpb check all
 
 # Default target
 help:
@@ -26,17 +26,28 @@ install-dev:
 
 # Run tests with coverage
 test:
-	python -m pytest -v --cov=src/notepadpp_mcp --cov-report=term-missing --cov-report=html --cov-report=xml
+	pytest tests/ src/notepadpp_mcp/tests/ -v
+
+# Run unit tests only
+test-unit:
+	pytest tests/ src/notepadpp_mcp/tests/ -v -m "not integration and not slow"
+
+# Run integration tests only
+test-integration:
+	pytest tests/ src/notepadpp_mcp/tests/ -v -m integration
+
+# Run tests with coverage
+test-coverage:
+	pytest tests/ src/notepadpp_mcp/tests/ --cov=src/notepadpp_mcp --cov-report=term-missing --cov-report=html --cov-report=xml
 
 # Run linting checks
 lint:
-	python -m black --check src/ tests/
-	python -m isort --check-only src/ tests/
+	ruff check src/ tests/
+	ruff format --check src/ tests/
 
 # Format code
 format:
-	python -m black src/ tests/
-	python -m isort src/ tests/
+	ruff format src/ tests/
 
 # Run type checking
 type-check:
@@ -70,8 +81,11 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
+# Run all checks (lint, format check, type check)
+check: lint type-check
+
 # Run all checks and builds
-all: lint type-check test build validate-mcpb build-mcpb
+all: lint type-check test-coverage build validate-mcpb build-mcpb
 
 # Windows-specific targets (using PowerShell)
 ifeq ($(OS),Windows_NT)
