@@ -1,0 +1,286 @@
+name: Notepad++ MCP Megatest
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Test level to run (smoke/standard/advanced/integration/full)'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+          - smoke
+          - standard
+          - advanced
+          - integration
+          - full
+
+env:
+  MEGATEST_MODE: ci
+  MEGATEST_LOCATION: local
+  MEGATEST_CLEANUP: immediate
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  smoke-test:
+    name: Level 1 - Smoke Test
+    runs-on: windows-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run Level 1 Smoke Tests
+      run: |
+        pytest tests/megatest/level1_smoke/ -v --tb=short --durations=10
+      env:
+        MEGATEST_MODE: ci
+        MEGATEST_LOCATION: local
+        MEGATEST_CLEANUP: immediate
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: smoke-test-results
+        path: |
+          test-results/
+          htmlcov/
+        retention-days: 7
+
+  standard-test:
+    name: Level 2 - Standard Test
+    runs-on: windows-latest
+    timeout-minutes: 15
+    needs: smoke-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run Level 2 Standard Tests
+      run: |
+        pytest tests/megatest/level2_standard/ -v --tb=short --durations=10
+      env:
+        MEGATEST_MODE: ci
+        MEGATEST_LOCATION: local
+        MEGATEST_CLEANUP: immediate
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: standard-test-results
+        path: |
+          test-results/
+          htmlcov/
+        retention-days: 7
+
+  advanced-test:
+    name: Level 3 - Advanced Test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: standard-test
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run Level 3 Advanced Tests
+      run: |
+        pytest tests/megatest/level3_advanced/ -v --tb=short --durations=10
+      env:
+        MEGATEST_MODE: ci
+        MEGATEST_LOCATION: local
+        MEGATEST_CLEANUP: immediate
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: advanced-test-results
+        path: |
+          test-results/
+          htmlcov/
+        retention-days: 7
+
+  integration-test:
+    name: Level 4 - Integration Test
+    runs-on: windows-latest
+    timeout-minutes: 60
+    needs: advanced-test
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_level == 'integration'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run Level 4 Integration Tests
+      run: |
+        pytest tests/megatest/level4_integration/ -v --tb=short --durations=10
+      env:
+        MEGATEST_MODE: ci
+        MEGATEST_LOCATION: local
+        MEGATEST_CLEANUP: immediate
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+        name: integration-test-results
+        path: |
+          test-results/
+          htmlcov/
+        retention-days: 7
+
+  full-test:
+    name: Level 5 - Full Blast Test
+    runs-on: windows-latest
+    timeout-minutes: 120
+    needs: integration-test
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_level == 'full'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Install Notepad++ for Full Testing
+      run: |
+        # Download and install Notepad++ for full validation
+        Invoke-WebRequest -Uri "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.4/npp.8.5.4.Installer.x64.exe" -OutFile "npp_installer.exe"
+        Start-Process -FilePath "npp_installer.exe" -ArgumentList "/S" -Wait
+
+    - name: Run Level 5 Full Blast Tests
+      run: |
+        pytest tests/megatest/level5_full/ -v --tb=short --durations=10
+      env:
+        MEGATEST_MODE: ci
+        MEGATEST_LOCATION: local
+        MEGATEST_CLEANUP: immediate
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+        name: full-test-results
+        path: |
+          test-results/
+          htmlcov/
+          screenshots/
+        retention-days: 7
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: windows-latest
+    needs: [smoke-test, standard-test, advanced-test]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Generate coverage report
+      run: |
+        pytest tests/megatest/ --cov=src/notepadpp_mcp --cov-report=html --cov-report=term-missing
+      env:
+        MEGATEST_MODE: ci
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: htmlcov/
+        retention-days: 30
+
+  security-scan:
+    name: Security Scan
+    runs-on: windows-latest
+    needs: smoke-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install security tools
+      run: |
+        pip install bandit
+
+    - name: Run security scan
+      run: |
+        bandit -r src/notepadpp_mcp/ -f json -o security_report.json || true
+
+    - name: Upload security report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: security_report.json
+        retention-days: 30

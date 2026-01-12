@@ -1,0 +1,122 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint with Ruff
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Run ruff linting
+      run: uv run ruff check .
+      continue-on-error: true
+    
+    - name: Run ruff format check
+      run: uv run ruff format --check .
+      continue-on-error: true
+
+  test:
+    name: Test with pytest
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Run tests with coverage
+      run: |
+        uv run python -m pytest \
+          --cov=src/notepadpp_mcp \
+          --cov-report=xml \
+          --cov-report=term-missing \
+          -v \
+          --maxfail=10 \
+          --tb=short
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+      continue-on-error: true
+
+  build:
+    name: Build MCPB Package
+    runs-on: windows-latest
+    needs: [lint, test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Install MCPB CLI
+      run: npm install -g @anthropic-ai/mcpb
+    
+    - name: Validate MCPB configuration
+      run: mcpb validate manifest.json
+      continue-on-error: true
+    
+    - name: Build MCPB package
+      run: mcpb pack . dist/notepadpp-mcp.mcpb
+      continue-on-error: true
+    
+    - name: Upload MCPB artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mcpb-package
+        path: dist/*.mcpb
+        retention-days: 30

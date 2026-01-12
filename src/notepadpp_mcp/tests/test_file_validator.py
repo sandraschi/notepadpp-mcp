@@ -168,9 +168,7 @@ class TestValidationResult:
 
     def test_validation_result_success(self):
         """Test successful validation result."""
-        result = ValidationResult(
-            file_path="test.txt", is_valid=True
-        )
+        result = ValidationResult(file_path="test.txt", is_valid=True)
 
         assert result.file_path == "test.txt"
         assert result.is_valid is True
@@ -192,9 +190,7 @@ class TestValidationResult:
 
     def test_validation_result_str(self):
         """Test string representation of validation result."""
-        result = ValidationResult(
-            file_path="test.txt", is_valid=True
-        )
+        result = ValidationResult(file_path="test.txt", is_valid=True)
 
         str_repr = str(result)
         assert "test.txt" in str_repr
@@ -202,9 +198,7 @@ class TestValidationResult:
 
     def test_validation_result_repr(self):
         """Test repr of validation result."""
-        result = ValidationResult(
-            file_path="test.txt", is_valid=True
-        )
+        result = ValidationResult(file_path="test.txt", is_valid=True)
 
         repr_str = repr(result)
         assert "ValidationResult" in repr_str

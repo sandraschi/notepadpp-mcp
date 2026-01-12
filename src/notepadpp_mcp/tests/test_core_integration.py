@@ -138,6 +138,7 @@ class TestNotepadPPControllerCore:
             result = controller._find_scintilla_window(12345)
             assert result is None
 
+
 class TestErrorHandling:
     """Test error handling functionality."""
 

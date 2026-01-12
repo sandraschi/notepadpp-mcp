@@ -1,0 +1,554 @@
+{
+  "examples": [
+    {
+      "title": "Create New Python Script",
+      "description": "Initialize a new Python file for development",
+      "user_input": "Create a new Python script",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "new"
+      },
+      "expected_output": "New file created successfully. Ready for Python code."
+    },
+    {
+      "title": "Open Existing File",
+      "description": "Open an existing file by path",
+      "user_input": "Open my config.json file",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "open",
+        "file_path": "config.json"
+      },
+      "expected_output": "File opened: config.json"
+    },
+    {
+      "title": "Save Current File",
+      "description": "Save changes to the current file",
+      "user_input": "Save this file",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "save"
+      },
+      "expected_output": "File saved successfully"
+    },
+    {
+      "title": "Get File Information",
+      "description": "Retrieve metadata about the current file",
+      "user_input": "What's the current file info?",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "info"
+      },
+      "expected_output": "File: script.py, Size: 2.3KB, Modified: 2025-01-12 10:30"
+    },
+    {
+      "title": "Insert Text Content",
+      "description": "Add text to the current file at cursor position",
+      "user_input": "Add 'Hello World' to the file",
+      "tool_call": "text_ops",
+      "parameters": {
+        "operation": "insert",
+        "text": "Hello World"
+      },
+      "expected_output": "Text inserted successfully"
+    },
+    {
+      "title": "Search for Text",
+      "description": "Find specific text in the current file",
+      "user_input": "Find the word 'error' in the file",
+      "tool_call": "text_ops",
+      "parameters": {
+        "operation": "find",
+        "text": "error"
+      },
+      "expected_output": "Found 'error' at line 25, 45, 67"
+    },
+    {
+      "title": "Case-Sensitive Search",
+      "description": "Search with case sensitivity enabled",
+      "user_input": "Find 'Error' with exact case",
+      "tool_call": "text_ops",
+      "parameters": {
+        "operation": "find",
+        "text": "Error",
+        "case_sensitive": true
+      },
+      "expected_output": "Found 'Error' at line 12 (case-sensitive match)"
+    },
+    {
+      "title": "Get System Status",
+      "description": "Check overall system and Notepad++ status",
+      "user_input": "How is Notepad++ doing?",
+      "tool_call": "status_ops",
+      "parameters": {
+        "operation": "system_status"
+      },
+      "expected_output": "Notepad++ running, 3 files open, all systems normal"
+    },
+    {
+      "title": "Get Help Information",
+      "description": "Access comprehensive help documentation",
+      "user_input": "Show me available tools",
+      "tool_call": "status_ops",
+      "parameters": {
+        "operation": "help"
+      },
+      "expected_output": "Available tools: file_ops, text_ops, tab_ops, session_ops, linting_ops, display_ops, plugin_ops"
+    },
+    {
+      "title": "Perform Health Check",
+      "description": "Validate server functionality and connections",
+      "user_input": "Run a health check",
+      "tool_call": "status_ops",
+      "parameters": {
+        "operation": "health_check"
+      },
+      "expected_output": "All systems operational, Notepad++ connection verified"
+    },
+    {
+      "title": "List Open Tabs",
+      "description": "Show all currently open tabs",
+      "user_input": "What files do I have open?",
+      "tool_call": "tab_ops",
+      "parameters": {
+        "operation": "list"
+      },
+      "expected_output": "Open tabs: 1. script.py, 2. README.md, 3. config.json"
+    },
+    {
+      "title": "Switch to Specific Tab",
+      "description": "Change active tab by index",
+      "user_input": "Switch to tab 2",
+      "tool_call": "tab_ops",
+      "parameters": {
+        "operation": "switch",
+        "tab_index": 1
+      },
+      "expected_output": "Switched to tab 2: README.md"
+    },
+    {
+      "title": "Close Current Tab",
+      "description": "Close the currently active tab",
+      "user_input": "Close this tab",
+      "tool_call": "tab_ops",
+      "parameters": {
+        "operation": "close"
+      },
+      "expected_output": "Closed current tab, switched to adjacent tab"
+    },
+    {
+      "title": "Close Specific Tab",
+      "description": "Close a tab by its index",
+      "user_input": "Close tab 3",
+      "tool_call": "tab_ops",
+      "parameters": {
+        "operation": "close",
+        "tab_index": 2
+      },
+      "expected_output": "Closed tab 3: config.json"
+    },
+    {
+      "title": "Save Current Session",
+      "description": "Preserve current workspace state",
+      "user_input": "Save my workspace as 'project_work'",
+      "tool_call": "session_ops",
+      "parameters": {
+        "operation": "save",
+        "name": "project_work"
+      },
+      "expected_output": "Session 'project_work' saved with 3 open files"
+    },
+    {
+      "title": "Load Saved Session",
+      "description": "Restore previously saved workspace",
+      "user_input": "Load my project work session",
+      "tool_call": "session_ops",
+      "parameters": {
+        "operation": "load",
+        "name": "project_work"
+      },
+      "expected_output": "Session 'project_work' loaded, all files restored"
+    },
+    {
+      "title": "List Available Sessions",
+      "description": "Show all saved workspace sessions",
+      "user_input": "What sessions do I have saved?",
+      "tool_call": "session_ops",
+      "parameters": {
+        "operation": "list"
+      },
+      "expected_output": "Available sessions: project_work (3 files), morning_coding (5 files)"
+    },
+    {
+      "title": "Python Code Linting",
+      "description": "Analyze Python code for quality issues",
+      "user_input": "Check this Python file for issues",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "python",
+        "file_path": "script.py"
+      },
+      "expected_output": "Python linting complete: 2 warnings, 0 errors found"
+    },
+    {
+      "title": "JavaScript Validation",
+      "description": "Validate JavaScript code syntax and style",
+      "user_input": "Lint my JavaScript file",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "javascript",
+        "file_path": "app.js"
+      },
+      "expected_output": "JavaScript validation: syntax OK, 3 style warnings"
+    },
+    {
+      "title": "JSON Structure Validation",
+      "description": "Verify JSON file structure and syntax",
+      "user_input": "Validate this JSON configuration",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "json",
+        "file_path": "config.json"
+      },
+      "expected_output": "JSON valid: proper structure, no syntax errors"
+    },
+    {
+      "title": "Markdown Formatting Check",
+      "description": "Review markdown file formatting and structure",
+      "user_input": "Check markdown formatting",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "markdown",
+        "file_path": "README.md"
+      },
+      "expected_output": "Markdown check: headers OK, links valid, formatting correct"
+    },
+    {
+      "title": "Available Linting Tools",
+      "description": "List all available linting capabilities",
+      "user_input": "What linting tools are available?",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "tools"
+      },
+      "expected_output": "Available: Python (ruff), JavaScript (ESLint), JSON, Markdown"
+    },
+    {
+      "title": "Fix Invisible Text Issue",
+      "description": "Resolve white-on-white text visibility problems",
+      "user_input": "The text is invisible in Notepad++",
+      "tool_call": "display_ops",
+      "parameters": {
+        "operation": "fix_invisible_text"
+      },
+      "expected_output": "Display colors reset, text should now be visible"
+    },
+    {
+      "title": "Fix General Display Issues",
+      "description": "Reset Notepad++ display settings to defaults",
+      "user_input": "Fix the display corruption",
+      "tool_call": "display_ops",
+      "parameters": {
+        "operation": "fix_display_issue"
+      },
+      "expected_output": "Display settings reset to defaults"
+    },
+    {
+      "title": "Discover Code Analysis Plugins",
+      "description": "Find plugins for code analysis and quality",
+      "user_input": "Find plugins for code analysis",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "discover",
+        "category": "code_analysis"
+      },
+      "expected_output": "Found 15 code analysis plugins including PyNPP, JSLint, XML Tools"
+    },
+    {
+      "title": "Install Specific Plugin",
+      "description": "Download and install a named plugin",
+      "user_input": "Install the XML Tools plugin",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "install",
+        "plugin_name": "XML Tools"
+      },
+      "expected_output": "XML Tools plugin installed successfully"
+    },
+    {
+      "title": "List Installed Plugins",
+      "description": "Show all currently installed plugins",
+      "user_input": "What plugins do I have installed?",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "list"
+      },
+      "expected_output": "Installed plugins: XML Tools v3.1, Compare v2.0, NppExec v0.8"
+    },
+    {
+      "title": "Execute Plugin Command",
+      "description": "Run a command from an installed plugin",
+      "user_input": "Run XML validation on this file",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "execute",
+        "plugin_name": "XML Tools",
+        "command": "validate"
+      },
+      "expected_output": "XML validation complete: file is well-formed"
+    },
+    {
+      "title": "Complete Development Workflow",
+      "description": "Full workflow from file creation to quality assurance",
+      "user_input": "Create a complete Python development workflow",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "new"
+      },
+      "expected_output": "New file created, ready for Python development workflow"
+    },
+    {
+      "title": "Multi-File Project Setup",
+      "description": "Set up a complete web development project",
+      "user_input": "Create a web project with HTML, CSS, and JavaScript",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "new"
+      },
+      "expected_output": "Web project structure initialized"
+    },
+    {
+      "title": "Code Quality Assurance Pipeline",
+      "description": "Run comprehensive code analysis across multiple files",
+      "user_input": "Check code quality for entire project",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "python"
+      },
+      "expected_output": "Project-wide code quality analysis completed"
+    },
+    {
+      "title": "Workspace State Management",
+      "description": "Save and restore complex development sessions",
+      "user_input": "Preserve my current development state",
+      "tool_call": "session_ops",
+      "parameters": {
+        "operation": "save",
+        "name": "development_state"
+      },
+      "expected_output": "Development workspace state saved"
+    },
+    {
+      "title": "Plugin-Enhanced Workflow",
+      "description": "Use plugins to enhance development workflow",
+      "user_input": "Enhance my workflow with plugins",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "discover"
+      },
+      "expected_output": "Plugin recommendations for workflow enhancement"
+    },
+    {
+      "title": "Error Recovery Example",
+      "description": "Handle file not found error gracefully",
+      "user_input": "Open nonexistent.txt",
+      "tool_call": "file_ops",
+      "parameters": {
+        "operation": "open",
+        "file_path": "nonexistent.txt"
+      },
+      "expected_output": "File not found. Try checking the file path or creating a new file."
+    },
+    {
+      "title": "Complex Text Insertion",
+      "description": "Insert multi-line code block",
+      "user_input": "Add a complete function definition",
+      "tool_call": "text_ops",
+      "parameters": {
+        "operation": "insert",
+        "text": "def process_data(data):\n    '''Process input data'''\n    if not data:\n        return None\n    return sorted(data)"
+      },
+      "expected_output": "Multi-line function inserted successfully"
+    },
+    {
+      "title": "Advanced Tab Management",
+      "description": "Complex multi-tab workflow navigation",
+      "user_input": "Organize my open files by switching tabs efficiently",
+      "tool_call": "tab_ops",
+      "parameters": {
+        "operation": "switch",
+        "tab_index": 0
+      },
+      "expected_output": "Efficiently switched to first tab for organized workflow"
+    },
+    {
+      "title": "Session-Based Project Management",
+      "description": "Use sessions for project context switching",
+      "user_input": "Switch between different project contexts",
+      "tool_call": "session_ops",
+      "parameters": {
+        "operation": "load",
+        "name": "project_a"
+      },
+      "expected_output": "Switched to project_a context with all files restored"
+    },
+    {
+      "title": "Comprehensive Code Review",
+      "description": "Multi-language code quality analysis",
+      "user_input": "Review code quality across all project files",
+      "tool_call": "linting_ops",
+      "parameters": {
+        "operation": "python"
+      },
+      "expected_output": "Comprehensive code review completed for all languages"
+    },
+    {
+      "title": "Display Problem Diagnosis",
+      "description": "Systematic approach to display issues",
+      "user_input": "Diagnose and fix Notepad++ display problems",
+      "tool_call": "display_ops",
+      "parameters": {
+        "operation": "fix_display_issue"
+      },
+      "expected_output": "Display issues diagnosed and resolved"
+    },
+    {
+      "title": "Plugin Ecosystem Exploration",
+      "description": "Explore available plugin capabilities",
+      "user_input": "Explore what plugins can enhance my workflow",
+      "tool_call": "plugin_ops",
+      "parameters": {
+        "operation": "discover",
+        "search_term": "productivity"
+      },
+      "expected_output": "Productivity-enhancing plugins discovered and categorized"
+    }
+  ],
+  "configuration_examples": [
+    {
+      "title": "Custom Notepad++ Path Configuration",
+      "description": "Configure server for non-standard Notepad++ installation",
+      "user_input": "Set Notepad++ path to D:\\Program Files\\Notepad++\\notepad++.exe",
+      "config_key": "notepadpp_path",
+      "config_value": "D:\\Program Files\\Notepad++\\notepad++.exe"
+    },
+    {
+      "title": "Auto-Start Configuration",
+      "description": "Enable automatic Notepad++ launching",
+      "user_input": "Enable auto-start for Notepad++",
+      "config_key": "auto_start",
+      "config_value": true
+    },
+    {
+      "title": "Timeout Configuration",
+      "description": "Adjust operation timeout for slow systems",
+      "user_input": "Set operation timeout to 120 seconds",
+      "config_key": "timeout",
+      "config_value": "120"
+    },
+    {
+      "title": "Performance Optimization",
+      "description": "Configure for high-performance operations",
+      "user_input": "Optimize for performance",
+      "config_key": "timeout",
+      "config_value": "15"
+    }
+  ],
+  "error_handling_examples": [
+    {
+      "title": "File Not Found Recovery",
+      "error": "File not found error",
+      "recovery": "Use absolute paths, verify file exists, check permissions",
+      "user_action": "Try: 'Open C:\\Users\\username\\Documents\\file.txt'"
+    },
+    {
+      "title": "Permission Denied Recovery",
+      "error": "Permission denied when accessing file",
+      "recovery": "Run as administrator, check file ownership, close conflicting programs",
+      "user_action": "Try running Claude Desktop as administrator"
+    },
+    {
+      "title": "Notepad++ Not Running Recovery",
+      "error": "Notepad++ process not found",
+      "recovery": "Launch Notepad++ manually, enable auto-start, check installation",
+      "user_action": "Launch Notepad++ and retry the operation"
+    },
+    {
+      "title": "Plugin Installation Failure",
+      "error": "Plugin installation failed",
+      "recovery": "Check internet connection, run as admin, verify plugin compatibility",
+      "user_action": "Try: 'Install plugin again with administrator privileges'"
+    },
+    {
+      "title": "Timeout Error Recovery",
+      "error": "Operation timed out",
+      "recovery": "Increase timeout, check system performance, close unnecessary apps",
+      "user_action": "Configure longer timeout in settings"
+    },
+    {
+      "title": "Windows API Error Recovery",
+      "error": "Windows API access failed",
+      "recovery": "Verify pywin32 installation, restart system, check Windows version",
+      "user_action": "Reinstall pywin32 package and restart Claude Desktop"
+    }
+  ],
+  "workflow_examples": [
+    {
+      "title": "New Project Setup",
+      "description": "Complete workflow for starting a new development project",
+      "steps": [
+        "Create main project file",
+        "Set up project structure",
+        "Initialize version control",
+        "Configure development environment"
+      ]
+    },
+    {
+      "title": "Code Review Process",
+      "description": "Systematic approach to code quality assurance",
+      "steps": [
+        "Run linting on all files",
+        "Review error reports",
+        "Apply automated fixes",
+        "Manual code improvements"
+      ]
+    },
+    {
+      "title": "Debugging Workflow",
+      "description": "Structured approach to problem resolution",
+      "steps": [
+        "Reproduce the issue",
+        "Check system status",
+        "Review error logs",
+        "Apply fixes systematically"
+      ]
+    },
+    {
+      "title": "Performance Optimization",
+      "description": "Workflow for improving system performance",
+      "steps": [
+        "Monitor current performance",
+        "Identify bottlenecks",
+        "Apply optimizations",
+        "Validate improvements"
+      ]
+    }
+  ],
+  "integration_examples": [
+    {
+      "title": "Claude Desktop Integration",
+      "description": "How operations integrate with Claude Desktop interface",
+      "pattern": "Natural language → Tool call → Structured response → Follow-up suggestions"
+    },
+    {
+      "title": "Multi-Tool Coordination",
+      "description": "How different tools work together for complex tasks",
+      "pattern": "File ops → Text ops → Linting → Session save"
+    },
+    {
+      "title": "Progressive Enhancement",
+      "description": "How to start simple and add complexity",
+      "pattern": "Basic operations → Advanced features → Custom configurations"
+    }
+  ]
+}
