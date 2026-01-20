@@ -46,7 +46,8 @@ class FileOperationsTool:
             PORTMANTEAU PATTERN RATIONALE:
             Instead of creating 4 separate tools (open, new, save, info), this tool consolidates file
             operations into a single interface. Prevents tool explosion (4 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            full functionality and improving discoverability. Follows FastMCP 2.14.3+ SOTA standards with
+            conversational returns and sampling capabilities.
 
             Supported Operations:
             - Open existing files in Notepad++
@@ -79,11 +80,12 @@ class FileOperationsTool:
                     Must be a valid file path accessible to Notepad++.
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
+                Dictionary following FastMCP 2.14.3+ conversational response patterns:
                 ```json
                 {
                   "success": true,
                   "operation": "open",
+                  "message": "Successfully opened 'example.txt' in Notepad++ - the file is now ready for editing",
                   "summary": "File opened successfully",
                   "result": {
                     "file_path": "/path/to/file.txt",
@@ -100,6 +102,7 @@ class FileOperationsTool:
                 **Success Response Structure:**
                 - success (bool): Operation success status
                 - operation (str): File operation that was performed
+                - message (str): Conversational response for natural AI interaction
                 - summary (str): Human-readable result summary
                 - result (dict): File-specific data (path, size, encoding, etc.)
                 - next_steps (list[str]): Suggested next actions
