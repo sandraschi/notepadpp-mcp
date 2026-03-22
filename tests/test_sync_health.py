@@ -5,11 +5,12 @@ These tests catch the type of silent failures that occurred with
 advanced-memory-mcp where the watchdog failed to start.
 """
 
-import pytest
 import tempfile
 import time
 from pathlib import Path
 from unittest.mock import Mock
+
+import pytest
 
 
 class MockSyncManager:
@@ -63,14 +64,10 @@ def temp_project():
 
         # Create test files
         for i in range(50):
-            (project_path / "notes" / f"note_{i}.md").write_text(
-                f"# Note {i}\n\nContent {i}"
-            )
+            (project_path / "notes" / f"note_{i}.md").write_text(f"# Note {i}\n\nContent {i}")
 
         for i in range(30):
-            (project_path / "archive" / f"old_{i}.md").write_text(
-                f"# Old {i}\n\nArchived {i}"
-            )
+            (project_path / "archive" / f"old_{i}.md").write_text(f"# Old {i}\n\nArchived {i}")
 
         yield project_path
 

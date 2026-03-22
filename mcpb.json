@@ -1,37 +1,44 @@
 {
   "name": "notepadpp-mcp",
-  "version": "1.2.0",
-  "description": "FastMCP 2.14.1 compliant Notepad++ automation server with 26 tools",
-  "author": "Sandra Schi",
-  "license": "MIT",
-  "outputDir": "dist",
-  "mcp": {
-    "version": "2.14.1",
-    "server": {
-      "command": "python",
-      "args": ["-m", "notepadpp_mcp.tools.server"],
-      "transport": "stdio"
-    },
-    "capabilities": {
-      "tools": true,
-      "resources": false,
-      "prompts": false
-    }
-  },
-  "dependencies": {
-    "python": ">=3.10.0",
-    "fastmcp": ">=2.14.1,<2.15.0",
-    "mcp": ">=1.0.0,<2.0.0",
-    "pywin32": "311; platform_system=='Windows'"
-  },
+  "version": "0.2.0",
+  "type": "server",
+  "runtime": "python",
+  "entry_point": "src/notepadpp_mcp/server.py",
+  "dependencies": [
+    "fastmcp>=3.1.0,<4",
+    "httpx>=0.27.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.27.0",
+    "psutil>=5.9.0",
+    "pydantic>=2.0.0",
+    "mcp>=1.0.0,<2.0.0",
+    "requests>=2.31.0",
+    "structlog>=23.0.0",
+    "pywin32>=311 ; sys_platform == 'win32'"
+  ],
   "build": {
-    "command": "python -m build",
-    "outputDir": "dist"
+    "include": [
+      "src/**/*",
+      "README.md",
+      "LICENSE"
+    ],
+    "exclude": [
+      "tests/",
+      ".git/",
+      "__pycache__/",
+      "*.pyc",
+      ".venv/",
+      "dist/",
+      "build/",
+      "target/",
+      "docs/",
+      "scripts/",
+      "web_sota/"
+    ]
   },
   "scripts": {
-    "test": "python -m pytest",
-    "lint": "ruff check src/ tests/",
-    "format": "ruff format src/ tests/",
-    "type-check": "python -m mypy src/"
+    "build": "mcpb build",
+    "pack": "mcpb pack . dist/notepadpp-mcp.mcpb",
+    "test": "python -m pytest"
   }
 }

@@ -2,12 +2,15 @@
 Display Operations Portmanteau Tool
 
 Consolidates display operations (invisible text fixes, display issue fixes) into a unified interface.
+Theme / dark mode: edits %APPDATA%\\Notepad++\\config.xml (GUIConfig DarkMode); restart Notepad++ to apply.
 """
 
 import asyncio
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from fastmcp import FastMCP
+
+from ..npp_theme import patch_config_xml, read_theme_state, theme_status_payload
 
 # Windows-specific imports
 try:
@@ -36,97 +39,47 @@ class DisplayOperationsTool:
 
         @self.app.tool()
         async def display_ops(
-            operation: Literal["fix_invisible_text", "fix_display_issue"],
-        ) -> Dict[str, Any]:
-            """Fix Notepad++ display and UI issues with automated corrections.
+            operation: Literal[
+                "fix_invisible_text",
+                "fix_display_issue",
+                "theme_status",
+                "set_dark_mode",
+                "set_editor_theme",
+            ],
+            dark_mode: bool | None = None,
+            theme_xml: str | None = None,
+        ) -> dict[str, Any]:
+            """DISPLAY_OPS — Mitigate invisible text, display glitches, or adjust Notepad++ theme / dark mode.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 2 separate tools (fix_invisible_text, fix_display_issue), this tool consolidates
-            display correction operations into a single interface. Prevents tool explosion (2 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: Single entry for visibility vs general display fixes (TOOL_DESIGN_STANDARDS.md §1).
 
-            Supported Operations:
-            - Fix invisible or corrupted text display
-            - Resolve general display and UI rendering issues
-
-            Operations Detail:
-            **Text Visibility:**
-            - "fix_invisible_text": Restore visibility of text that appears invisible due to rendering issues
-
-            **Display Correction:**
-            - "fix_display_issue": General display problem resolution including refresh and redraw operations
-
-            Prerequisites:
-            - Windows OS with Notepad++ installed and running
-            - pywin32 package for Windows API access
-            - Active Notepad++ window (not minimized or hidden)
-            - User interface elements accessible via Windows API
+            Operations:
+            - fix_invisible_text: Focus/refresh heuristics for invisible text.
+            - fix_display_issue: Broader redraw/refresh path.
+            - theme_status: Read config.xml DarkMode + list theme XML files from the Notepad++ install `themes` folder.
+            - set_dark_mode: Set DarkMode enable (requires dark_mode=true|false). Writes config.xml; restart Notepad++.
+            - set_editor_theme: Set darkThemeName (when dark mode on) or lightThemeName (when off). theme_xml basename
+              e.g. Solarized.xml. For light mode, empty theme_xml clears to default stylers.
 
             Args:
-                operation (Literal, required): The display correction operation to perform. Must be one of: "fix_invisible_text", "fix_display_issue".
-                    - "fix_invisible_text": Attempt to restore invisible text visibility
-                    - "fix_display_issue": Perform general display refresh and correction
+                operation: One of the operations above.
+                dark_mode: For set_dark_mode only.
+                theme_xml: Theme file basename under the `themes` folder (e.g. Obsidian.xml), or empty for light default.
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "fix_invisible_text",
-                  "summary": "Text visibility restored - window refreshed and focused",
-                  "result": {
-                    "actions_taken": [
-                      "Window brought to foreground",
-                      "Display refreshed",
-                      "Text selection reset"
-                    ],
-                    "window_handle": "0x00123456",
-                    "attempts_made": 1
-                  },
-                  "next_steps": ["Check if text is now visible", "Try again if issue persists"],
-                  "context": {
-                    "operation_type": "display_correction"
-                  }
-                }
-                ```
+                dict with success, operation, summary, result.
 
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Display operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Display correction data (actions taken, window info, etc.)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (window_not_found, api_unavailable, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
+            Notes:
+                Notepad++ reloads these settings on startup. If Notepad++ is running, close it before editing, or it may
+                overwrite config.xml on exit.
 
             Examples:
-                # Fix invisible text issue
-                result = await display_ops("fix_invisible_text")
-                # Returns: {"success": true, "summary": "Text visibility restored", "result": {...}, ...}
-
-                # Fix general display issues
-                result = await display_ops("fix_display_issue")
-                # Returns: {"success": true, "summary": "Display refreshed", "result": {...}, ...}
+                await display_ops("theme_status")
+                await display_ops("set_dark_mode", dark_mode=True)
+                await display_ops("set_editor_theme", theme_xml="DarkModeDefault.xml")
 
             Errors:
-                **Common Errors:**
-                - "Windows API not available": pywin32 not installed or Windows API access failed
-                - "Notepad++ window not found": Notepad++ is not running or window is inaccessible
-                - "Window not accessible": Notepad++ window is minimized or hidden from Windows API
-                - "Display correction failed": Unable to perform requested display correction
-
-                **Recovery Options:**
-                - Install pywin32: `pip install pywin32`
-                - Ensure Notepad++ is running and visible (not minimized)
-                - Try bringing Notepad++ to foreground manually first
-                - Restart Notepad++ if display issues persist
-                - Check Windows permissions for UI automation access
+                Window not found, API unavailable, or correction failed.
             """
             if not self.controller:
                 return {
@@ -138,6 +91,99 @@ class DisplayOperationsTool:
                         "Ensure pywin32 is installed",
                         "Restart the MCP server",
                     ],
+                }
+
+            exe = self.controller.notepadpp_exe
+
+            if operation == "theme_status":
+                ts = theme_status_payload(exe)
+                if not ts.get("success"):
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "summary": "Could not read Notepad++ theme configuration",
+                        "error": ts.get("error", "unknown"),
+                        "result": ts,
+                    }
+                return {
+                    "success": True,
+                    "operation": operation,
+                    "summary": "Theme status and available theme files from the Notepad++ installation.",
+                    "result": ts,
+                }
+
+            if operation == "set_dark_mode":
+                if dark_mode is None:
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "error": "set_dark_mode requires dark_mode=true or dark_mode=false",
+                        "summary": "Missing dark_mode argument",
+                        "clarification_options": {
+                            "dark_mode": {"description": "Enable Notepad++ dark mode?", "type": "boolean"}
+                        },
+                    }
+                try:
+                    out = patch_config_xml(exe, dark_mode_enabled=dark_mode)
+                except (OSError, ValueError, FileNotFoundError) as e:
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "error": str(e),
+                        "summary": "Failed to update config.xml",
+                    }
+                return {
+                    "success": True,
+                    "operation": operation,
+                    "summary": f"Dark mode set to {'on' if dark_mode else 'off'} in config.xml. Restart Notepad++ to apply.",
+                    "result": out,
+                }
+
+            if operation == "set_editor_theme":
+                if theme_xml is None:
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "error": "set_editor_theme requires theme_xml (e.g. Obsidian.xml) or empty string for light default",
+                        "summary": "Missing theme_xml",
+                    }
+                try:
+                    st = read_theme_state()
+                except (OSError, ValueError, FileNotFoundError) as e:
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "error": str(e),
+                        "summary": "Could not read config.xml",
+                    }
+                tx = theme_xml.strip()
+                try:
+                    if st["dark_mode_enabled"]:
+                        if not tx:
+                            return {
+                                "success": False,
+                                "operation": operation,
+                                "error": "When dark mode is enabled, theme_xml must be a themes/*.xml name",
+                                "summary": "Empty theme",
+                            }
+                        out = patch_config_xml(exe, dark_theme_name=tx)
+                    else:
+                        out = patch_config_xml(
+                            exe,
+                            light_theme_name="" if not tx else tx,
+                        )
+                except (OSError, ValueError, FileNotFoundError) as e:
+                    return {
+                        "success": False,
+                        "operation": operation,
+                        "error": str(e),
+                        "summary": "Failed to update config.xml",
+                    }
+                return {
+                    "success": True,
+                    "operation": operation,
+                    "summary": "Editor theme name updated in config.xml. Restart Notepad++ to apply.",
+                    "result": out,
                 }
 
             try:
@@ -164,9 +210,6 @@ class DisplayOperationsTool:
 
                     await asyncio.sleep(1.0)
 
-                    # Navigate to theme selection and reset to default
-                    # (Simplified version - full implementation would need more keyboard simulation)
-
                     return {
                         "success": True,
                         "operation": operation,
@@ -178,6 +221,7 @@ class DisplayOperationsTool:
                         "next_steps": [
                             "Check if text is now visible in Notepad++",
                             "Restart Notepad++ if issue persists",
+                            "Or use display_ops('theme_status') / set_editor_theme for config-based themes",
                         ],
                         "context": {
                             "issue_type": "invisible_text",
@@ -186,13 +230,12 @@ class DisplayOperationsTool:
                         },
                     }
 
-                elif operation == "fix_display_issue":
+                if operation == "fix_display_issue":
                     # Focus on Notepad++
                     win32gui.SetForegroundWindow(self.controller.hwnd)
                     await asyncio.sleep(0.1)
 
                     # Attempt to refresh the display
-                    # Send F5 (refresh) or Ctrl+L (redraw)
                     keybd_event = win32api.keybd_event
                     keybd_event(win32con.VK_CONTROL, 0, 0, 0)
                     keybd_event(ord("L"), 0, 0, 0)
@@ -224,22 +267,27 @@ class DisplayOperationsTool:
                         },
                     }
 
-                else:
-                    return {
-                        "success": False,
-                        "error": f"Unknown operation: {operation}",
-                        "operation": operation,
-                        "summary": f"Display operation failed - unknown operation '{operation}'",
-                        "recovery_options": [
-                            "Use 'fix_invisible_text' or 'fix_display_issue' operations"
-                        ],
-                        "clarification_options": {
-                            "operation": {
-                                "description": "What display operation would you like to perform?",
-                                "options": ["fix_invisible_text", "fix_display_issue"],
-                            }
-                        },
-                    }
+                return {
+                    "success": False,
+                    "error": f"Unknown operation: {operation}",
+                    "operation": operation,
+                    "summary": f"Display operation failed - unknown operation '{operation}'",
+                    "recovery_options": [
+                        "Use fix_invisible_text, fix_display_issue, theme_status, set_dark_mode, or set_editor_theme"
+                    ],
+                    "clarification_options": {
+                        "operation": {
+                            "description": "What display operation would you like to perform?",
+                            "options": [
+                                "fix_invisible_text",
+                                "fix_display_issue",
+                                "theme_status",
+                                "set_dark_mode",
+                                "set_editor_theme",
+                            ],
+                        }
+                    },
+                }
 
             except Exception as e:
                 return {

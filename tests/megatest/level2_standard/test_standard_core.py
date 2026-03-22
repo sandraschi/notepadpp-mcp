@@ -7,8 +7,9 @@ Time: 5-15 minutes
 Coverage: Core tools (35-45%)
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 @pytest.mark.megatest_standard
@@ -102,9 +103,7 @@ async def test_plugin_operations_basic(isolated_test_env, mock_notepadpp_control
 
 
 @pytest.mark.megatest_standard
-async def test_file_operations_with_mocks(
-    isolated_test_env, mock_windows_api, mock_subprocess
-):
+async def test_file_operations_with_mocks(isolated_test_env, mock_windows_api, mock_subprocess):
     """Test: File operations handle mocked Windows API."""
     from notepadpp_mcp.tools.file_operations import FileOperationsTool
 
@@ -264,7 +263,7 @@ async def test_error_handling_invalid_operations(isolated_test_env):
 @pytest.mark.megatest_standard
 async def test_multiple_tools_initialization(isolated_test_env):
     """Test: Multiple tools can be initialized together."""
-    from notepadpp_mcp.tools import file_operations, text_operations, status_operations
+    from notepadpp_mcp.tools import file_operations, status_operations, text_operations
 
     # All imports should work
     assert file_operations.FileOperationsTool

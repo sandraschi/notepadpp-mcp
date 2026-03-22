@@ -80,7 +80,7 @@ class TestNotepadPPControllerCore:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.server.win32gui.GetWindowText",
+            "notepadpp_mcp.tools.controller.win32gui.GetWindowText",
             return_value="Test Window",
         ):
             result = await controller.get_window_text(12345)
@@ -92,7 +92,7 @@ class TestNotepadPPControllerCore:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.server.win32gui.GetWindowText",
+            "notepadpp_mcp.tools.controller.win32gui.GetWindowText",
             side_effect=Exception("GetWindowText failed"),
         ):
             with pytest.raises(NotepadPPError):
@@ -103,9 +103,7 @@ class TestNotepadPPControllerCore:
         """Test finding Notepad++ window."""
         controller = NotepadPPController()
 
-        with patch(
-            "notepadpp_mcp.tools.server.win32gui.FindWindow", return_value=12345
-        ):
+        with patch("notepadpp_mcp.tools.server.win32gui.FindWindow", return_value=12345):
             result = controller._find_notepadpp_window()
             assert result == 12345
 
@@ -123,9 +121,7 @@ class TestNotepadPPControllerCore:
         """Test finding Scintilla window."""
         controller = NotepadPPController()
 
-        with patch(
-            "notepadpp_mcp.tools.server.win32gui.FindWindowEx", return_value=54321
-        ):
+        with patch("notepadpp_mcp.tools.server.win32gui.FindWindowEx", return_value=54321):
             result = controller._find_scintilla_window(12345)
             assert result == 54321
 
@@ -253,7 +249,7 @@ class TestConfiguration:
 
     def test_logging_configuration(self):
         """Test logging configuration."""
-        from notepadpp_mcp.tools.server import logger, console_handler, formatter
+        from notepadpp_mcp.tools.server import console_handler, formatter, logger
 
         assert logger is not None
         assert console_handler is not None

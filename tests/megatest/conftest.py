@@ -5,14 +5,14 @@ CRITICAL: These fixtures ensure ALL tests run in ISOLATED environments.
 They prevent ANY touching of production data or systems.
 """
 
-import pytest
-import tempfile
+import hashlib
+import os
 import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import os
-import hashlib
 
+import pytest
 
 # ============================================================================
 # SAFETY: Detect your production paths
@@ -45,9 +45,7 @@ def is_production_path(path: Path) -> bool:
     path = path.resolve()
     for prod_path in get_production_paths():
         try:
-            if prod_path.exists() and (
-                path == prod_path or path.is_relative_to(prod_path)
-            ):
+            if prod_path.exists() and (path == prod_path or path.is_relative_to(prod_path)):
                 return True
         except (OSError, ValueError):
             # Handle cases where path resolution fails
@@ -138,9 +136,7 @@ def mock_windows_api():
 @pytest.fixture(scope="session")
 def mock_notepadpp_controller(mock_windows_api):
     """Mock Notepad++ controller for testing without real Notepad++."""
-    with patch(
-        "notepadpp_mcp.tools.controller.NotepadPPController"
-    ) as mock_controller_class:
+    with patch("notepadpp_mcp.tools.controller.NotepadPPController") as mock_controller_class:
         mock_controller = MagicMock()
         mock_controller.ensure_notepadpp_running = MagicMock(return_value=True)
         mock_controller.get_window_text = MagicMock(return_value="test.txt - Notepad++")

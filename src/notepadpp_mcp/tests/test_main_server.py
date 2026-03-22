@@ -179,19 +179,13 @@ class TestNotepadPPController:
         from notepadpp_mcp.tools.server import NotepadPPController
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch.object(
-                NotepadPPController, "_find_notepadpp_exe"
-            ) as mock_find_exe:
+            with patch.object(NotepadPPController, "_find_notepadpp_exe") as mock_find_exe:
                 mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"
 
                 controller = NotepadPPController()
 
-                with patch.object(
-                    controller, "_find_notepadpp_window", return_value=12345
-                ):
-                    with patch.object(
-                        controller, "_find_scintilla_window", return_value=54321
-                    ):
+                with patch.object(controller, "_find_notepadpp_window", return_value=12345):
+                    with patch.object(controller, "_find_scintilla_window", return_value=54321):
                         result = await controller.ensure_notepadpp_running()
 
                         assert result is True
@@ -204,16 +198,12 @@ class TestNotepadPPController:
         from notepadpp_mcp.tools.server import NotepadPPController
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch.object(
-                NotepadPPController, "_find_notepadpp_exe"
-            ) as mock_find_exe:
+            with patch.object(NotepadPPController, "_find_notepadpp_exe") as mock_find_exe:
                 mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"
 
                 controller = NotepadPPController()
 
-                with patch.object(
-                    controller, "_find_notepadpp_window", return_value=None
-                ):
+                with patch.object(controller, "_find_notepadpp_window", return_value=None):
                     with patch("notepadpp_mcp.server.NOTEPADPP_AUTO_START", False):
                         with pytest.raises(Exception):  # NotepadPPNotFoundError
                             await controller.ensure_notepadpp_running()
@@ -224,9 +214,7 @@ class TestNotepadPPController:
         from notepadpp_mcp.tools.server import NotepadPPController
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch.object(
-                NotepadPPController, "_find_notepadpp_exe"
-            ) as mock_find_exe:
+            with patch.object(NotepadPPController, "_find_notepadpp_exe") as mock_find_exe:
                 mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"
 
                 controller = NotepadPPController()
@@ -245,26 +233,17 @@ class TestNotepadPPController:
         from notepadpp_mcp.tools.server import NotepadPPController
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch.object(
-                NotepadPPController, "_find_notepadpp_exe"
-            ) as mock_find_exe:
+            with patch.object(NotepadPPController, "_find_notepadpp_exe") as mock_find_exe:
                 mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"
 
                 controller = NotepadPPController()
 
-                # Mock the Windows API calls
                 with patch(
-                    "notepadpp_mcp.tools.server.win32gui.SendMessage"
-                ) as mock_send:
-                    mock_send.side_effect = [5, None]  # length, then text retrieval
-
-                    with patch(
-                        "notepadpp_mcp.tools.server.win32gui.PyMakeBuffer"
-                    ) as mock_buffer:
-                        mock_buffer.return_value.raw = b"Hello\x00"
-
-                        result = await controller.get_window_text(12345)
-                        assert result == "Hello"
+                    "notepadpp_mcp.tools.controller.win32gui.GetWindowText",
+                    return_value="Hello",
+                ):
+                    result = await controller.get_window_text(12345)
+                    assert result == "Hello"
 
     @pytest.mark.asyncio
     async def test_get_window_text_empty(self, mock_win32):
@@ -272,16 +251,14 @@ class TestNotepadPPController:
         from notepadpp_mcp.tools.server import NotepadPPController
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch.object(
-                NotepadPPController, "_find_notepadpp_exe"
-            ) as mock_find_exe:
+            with patch.object(NotepadPPController, "_find_notepadpp_exe") as mock_find_exe:
                 mock_find_exe.return_value = r"C:\Program Files\Notepad++\notepad++.exe"
 
                 controller = NotepadPPController()
 
-                # Mock the Windows API calls
                 with patch(
-                    "notepadpp_mcp.tools.server.win32gui.SendMessage", return_value=0
+                    "notepadpp_mcp.tools.controller.win32gui.GetWindowText",
+                    return_value="",
                 ):
                     result = await controller.get_window_text(12345)
                     assert result == ""
@@ -356,9 +333,9 @@ class TestMainFunction:
         from notepadpp_mcp.server import main
 
         with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", True):
-            with patch("notepadpp_mcp.server.app.run") as mock_run:
+            with patch("notepadpp_mcp.server.asyncio.run") as mock_arun:
                 main()
-                mock_run.assert_called_once()
+                mock_arun.assert_called_once()
 
     def test_main_windows_not_available(self, mock_win32):
         """Test main function when Windows is not available."""
@@ -366,7 +343,7 @@ class TestMainFunction:
 
         with patch("notepadpp_mcp.server.WINDOWS_AVAILABLE", False):
             with patch("notepadpp_mcp.server.logger.error") as mock_error:
-                with patch("notepadpp_mcp.server.app.run") as mock_run:
+                with patch("notepadpp_mcp.server.asyncio.run") as mock_arun:
                     # sys.exit should raise SystemExit, so we expect it to be raised
                     with pytest.raises(SystemExit):
                         main()
@@ -374,4 +351,4 @@ class TestMainFunction:
                     mock_error.assert_called_once_with(
                         "This MCP server requires Windows and pywin32"
                     )
-                    mock_run.assert_not_called()
+                    mock_arun.assert_not_called()

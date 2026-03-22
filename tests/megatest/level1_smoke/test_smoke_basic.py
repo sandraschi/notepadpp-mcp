@@ -7,8 +7,9 @@ Time: 2-3 minutes
 Coverage: Critical tools only (20%)
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.megatest_smoke
@@ -110,14 +111,14 @@ async def test_import_all_tools():
     try:
         from notepadpp_mcp.tools import (
             controller,
+            display_operations,
             file_operations,
-            text_operations,
+            linting_operations,
+            plugin_operations,
+            session_operations,
             status_operations,
             tab_operations,
-            session_operations,
-            linting_operations,
-            display_operations,
-            plugin_operations,
+            text_operations,
         )
 
         # Verify imports are not None to satisfy linter
@@ -151,11 +152,11 @@ async def test_mock_windows_api(mock_windows_api):
 @pytest.mark.megatest_smoke
 async def test_path_safety_functions():
     """Test: Path safety detection works."""
-    import tempfile
+    import os
 
     # Import functions directly since relative imports don't work in test discovery
     import sys
-    import os
+    import tempfile
 
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     from conftest import is_production_path, is_safe_test_path

@@ -20,11 +20,11 @@ Usage:
         logger.warning("link_parse_failed", errors=result.errors)
 """
 
+import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Set
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class Link:
 
     type: str  # 'wikilink', 'markdown', 'url', 'image'
     target: str
-    text: Optional[str] = None
+    text: str | None = None
     start_pos: int = 0
     end_pos: int = 0
     raw: str = ""
@@ -47,9 +47,9 @@ class LinkParseResult:
 
     is_valid: bool
     content: str
-    links: List[Link] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    links: list[Link] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     parse_time_ms: float = 0
 
     def add_error(self, error: str):
@@ -163,15 +163,13 @@ class LinkParser:
             # Check if too many links
             if len(result.links) >= self.max_links:
                 result.add_warning(
-                    f"Maximum links reached ({self.max_links}), "
-                    f"some links may be missing"
+                    f"Maximum links reached ({self.max_links}), some links may be missing"
                 )
 
             # Warn if many links
             if len(result.links) > self.WARN_LINK_COUNT:
                 result.add_warning(
-                    f"Large number of links ({len(result.links)}) "
-                    f"may impact performance"
+                    f"Large number of links ({len(result.links)}) may impact performance"
                 )
 
             # Calculate parse time
@@ -185,9 +183,7 @@ class LinkParser:
 
         except Exception as e:
             result.add_error(f"Link parsing failed: {type(e).__name__}: {e}")
-            logger.error(
-                "link_parsing_exception", error=str(e), error_type=type(e).__name__
-            )
+            logger.error("link_parsing_exception", error=str(e), error_type=type(e).__name__)
 
         return result
 
@@ -195,9 +191,7 @@ class LinkParser:
         """Check if parsing has exceeded timeout."""
         elapsed = time.time() - start_time
         if elapsed > self.max_parse_time:
-            result.add_error(
-                f"Link parsing timeout ({elapsed:.2f}s > {self.max_parse_time}s)"
-            )
+            result.add_error(f"Link parsing timeout ({elapsed:.2f}s > {self.max_parse_time}s)")
             return True
         return False
 
@@ -205,9 +199,7 @@ class LinkParser:
         """Check if link limit reached."""
         return len(result.links) >= self.max_links
 
-    def _parse_wikilinks(
-        self, content: str, result: LinkParseResult, start_time: float
-    ):
+    def _parse_wikilinks(self, content: str, result: LinkParseResult, start_time: float):
         """Parse wikilinks: [[Page]] or [[Page|Display]]."""
         try:
             for match in self.WIKILINK_PATTERN.finditer(content):
@@ -271,9 +263,7 @@ class LinkParser:
         except Exception as e:
             result.add_warning(f"Image parsing error: {e}")
 
-    def _parse_markdown_links(
-        self, content: str, result: LinkParseResult, start_time: float
-    ):
+    def _parse_markdown_links(self, content: str, result: LinkParseResult, start_time: float):
         """Parse markdown links: [text](url)."""
         try:
             # Skip positions already covered by images
@@ -317,9 +307,7 @@ class LinkParser:
         """Parse raw URLs: http://example.com."""
         try:
             # Skip positions already covered by other links
-            existing_ranges = {
-                range(link.start_pos, link.end_pos) for link in result.links
-            }
+            existing_ranges = {range(link.start_pos, link.end_pos) for link in result.links}
 
             for match in self.URL_PATTERN.finditer(content):
                 # Check limits
@@ -351,20 +339,20 @@ class LinkParser:
         except Exception as e:
             result.add_warning(f"URL parsing error: {e}")
 
-    def extract_unique_targets(self, links: List[Link]) -> Set[str]:
+    def extract_unique_targets(self, links: list[Link]) -> set[str]:
         """Extract unique link targets."""
         return {link.target for link in links}
 
-    def group_by_type(self, links: List[Link]) -> Dict[str, List[Link]]:
+    def group_by_type(self, links: list[Link]) -> dict[str, list[Link]]:
         """Group links by type."""
-        groups: Dict[str, List[Link]] = {}
+        groups: dict[str, list[Link]] = {}
         for link in links:
             if link.type not in groups:
                 groups[link.type] = []
             groups[link.type].append(link)
         return groups
 
-    def get_statistics(self, result: LinkParseResult) -> Dict[str, Any]:
+    def get_statistics(self, result: LinkParseResult) -> dict[str, Any]:
         """Get parsing statistics."""
         groups = self.group_by_type(result.links)
 

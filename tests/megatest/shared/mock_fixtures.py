@@ -8,10 +8,11 @@ These fixtures provide comprehensive mocks for:
 - HTTP requests for plugin discovery
 """
 
-import pytest
-from unittest.mock import Mock, patch
-from pathlib import Path
 import tempfile
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 @pytest.fixture

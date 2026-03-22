@@ -5,7 +5,7 @@ Consolidates status operations (help, system_status, health_check) into a unifie
 """
 
 import time
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from fastmcp import FastMCP
 
@@ -39,117 +39,30 @@ class StatusOperationsTool:
             operation: Literal["help", "system_status", "health_check"],
             category: str = "",
             tool_name: str = "",
-        ) -> Dict[str, Any]:
-            """Access Notepad++ MCP server status, help system, and health diagnostics.
+        ) -> dict[str, Any]:
+            """STATUS_OPS — Help text, server status, or connectivity health checks.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 3 separate tools (help, system_status, health_check), this tool consolidates
-            status and diagnostic operations into a single interface. Prevents tool explosion (3 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: Single diagnostic entry (TOOL_DESIGN_STANDARDS.md §1).
 
-            Supported Operations:
-            - Interactive help system for all MCP tools
-            - System status and configuration information
-            - Health checks for Windows API and Notepad++ connectivity
-
-            Operations Detail:
-            **Help System:**
-            - "help": Access comprehensive help for tools and categories with detailed usage examples
-
-            **System Monitoring:**
-            - "system_status": Get current MCP server status and configuration
-            - "health_check": Perform diagnostic checks on Windows API and Notepad++ connectivity
-
-            Prerequisites:
-            - Windows OS with Notepad++ installed (for health_check)
-            - pywin32 package for Windows API access (for health_check)
-            - MCP server running (for system_status)
+            Operations:
+            - help: Optional category and tool_name for scoped help.
+            - system_status: MCP server / config snapshot.
+            - health_check: pywin32 + Notepad++ sanity checks.
 
             Args:
-                operation (Literal, required): The status operation to perform. Must be one of: "help", "system_status", "health_check".
-                    - "help": Access help system (may use category and tool_name parameters)
-                    - "system_status": Get server status (no additional parameters required)
-                    - "health_check": Run diagnostic checks (no additional parameters required)
-
-                category (str): Help category filter for help operation. Used by: help operation.
-                    Default: "". When provided, shows help for specific tool category.
-                    Valid categories: "file", "text", "tab", "session", "linting", "display", "plugin".
-
-                tool_name (str): Specific tool name for detailed help. Used by: help operation.
-                    Default: "". When provided with category, shows detailed help for specific tool.
-                    Must be a valid tool name within the specified category.
+                operation (Literal, required): "help" | "system_status" | "health_check".
+                category (str): For help filtering; default "".
+                tool_name (str): For help drill-down; default "".
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "help",
-                  "summary": "Help information retrieved",
-                  "result": {
-                    "categories": ["file", "text", "tab"],
-                    "total_tools": 8,
-                    "category_help": {
-                      "description": "File operations help",
-                      "tools": ["file_ops"]
-                    }
-                  },
-                  "next_steps": ["Specify category for detailed help"],
-                  "context": {
-                    "help_level": "category_overview"
-                  }
-                }
-                ```
-
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Status operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Operation-specific data (help content, status info, health results)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (invalid_category, tool_not_found, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
-                - clarification_options (dict): Parameter clarification if needed
+                dict with success, operation, summary, result (help payload, status, or health).
 
             Examples:
-                # Get help overview
-                result = await status_ops("help")
-                # Returns: {"success": true, "result": {"categories": [...], "total_tools": 8}, ...}
-
-                # Get help for specific category
-                result = await status_ops("help", category="file")
-                # Returns: {"success": true, "result": {"description": "...", "tools": ["file_ops"]}, ...}
-
-                # Get detailed help for specific tool
-                result = await status_ops("help", category="file", tool_name="file_ops")
-                # Returns: {"success": true, "result": {"description": "...", "usage": "..."}, ...}
-
-                # Get system status
-                result = await status_ops("system_status")
-                # Returns: {"success": true, "result": {"server_version": "1.0", "uptime": 3600}, ...}
-
-                # Run health check
-                result = await status_ops("health_check")
-                # Returns: {"success": true, "result": {"windows_api": "ok", "notepad_pp": "ok"}, ...}
+                await status_ops("help", category="file_operations")
+                await status_ops("health_check")
 
             Errors:
-                **Common Errors:**
-                - "Invalid category": Specified category does not exist
-                - "Tool not found": Specified tool_name not found in category
-                - "Windows API not available": pywin32 not installed (for health_check)
-                - "Notepad++ not running": Notepad++ process not detected (for health_check)
-
-                **Recovery Options:**
-                - Check category name spelling against valid categories list
-                - Use help operation first to see available tools
-                - Install pywin32: `pip install pywin32`
-                - Ensure Notepad++ is running before health checks
+                Unknown category/tool for help, or failed health prerequisites.
             """
             if operation == "help":
                 return await self._handle_help(category, tool_name)
@@ -177,7 +90,7 @@ class StatusOperationsTool:
                     },
                 }
 
-    async def _handle_help(self, category: str, tool_name: str) -> Dict[str, Any]:
+    async def _handle_help(self, category: str, tool_name: str) -> dict[str, Any]:
         """Handle help operation."""
         try:
             # Define tool categories and their tools (updated for portmanteau pattern)
@@ -221,7 +134,7 @@ class StatusOperationsTool:
                 "display_operations": {
                     "description": "Display and theme fixes",
                     "tools": {
-                        "display_ops": "Consolidated display operations (invisible text, display issues)",
+                        "display_ops": "Display fixes + theme_status / set_dark_mode / set_editor_theme (config.xml)",
                     },
                 },
                 "plugin_operations": {
@@ -240,9 +153,7 @@ class StatusOperationsTool:
                     "summary": "Available tool categories",
                     "result": {
                         "categories": list(help_data.keys()),
-                        "total_tools": sum(
-                            len(cat["tools"]) for cat in help_data.values()
-                        ),
+                        "total_tools": sum(len(cat["tools"]) for cat in help_data.values()),
                         "system": "Portmanteau pattern - consolidated tools",
                     },
                     "next_steps": [
@@ -297,9 +208,7 @@ class StatusOperationsTool:
                     "error": f"Unknown tool '{tool_name}' in category '{category}'",
                     "operation": "help",
                     "summary": f"Tool '{tool_name}' not found in category '{category}'",
-                    "recovery_options": [
-                        "Choose from available tools in this category"
-                    ],
+                    "recovery_options": ["Choose from available tools in this category"],
                     "clarification_options": {
                         "tool_name": {
                             "description": f"What tool in {category} would you like help with?",
@@ -369,7 +278,7 @@ class StatusOperationsTool:
                 "diagnostic_info": {"exception_type": type(e).__name__},
             }
 
-    async def _handle_system_status(self) -> Dict[str, Any]:
+    async def _handle_system_status(self) -> dict[str, Any]:
         """Handle system status operation."""
         try:
             # This would need access to file_ops and controller
@@ -401,7 +310,7 @@ class StatusOperationsTool:
                 "diagnostic_info": {"exception_type": type(e).__name__},
             }
 
-    async def _handle_health_check(self) -> Dict[str, Any]:
+    async def _handle_health_check(self) -> dict[str, Any]:
         """Handle health check operation."""
         health_status = {
             "overall_status": "unknown",

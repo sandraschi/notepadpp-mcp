@@ -9,8 +9,10 @@ Tests all the edge cases that could crash link parsing:
 - Nested/complex patterns
 """
 
-import pytest
 import time
+
+import pytest
+
 from src.notepadpp_mcp.link_parser import LinkParser, parse_links_safe
 
 
@@ -33,9 +35,7 @@ class TestBasicLinkParsing:
 
     def test_markdown_links(self):
         """Test markdown link parsing."""
-        content = (
-            "Check [Google](https://google.com) and [Example](http://example.org)."
-        )
+        content = "Check [Google](https://google.com) and [Example](http://example.org)."
 
         parser = LinkParser()
         result = parser.parse_links(content)

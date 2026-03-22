@@ -55,9 +55,7 @@ class TestMCPTools:
 
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.ensure_notepadpp_running = AsyncMock()
-            mock_controller.get_window_text = AsyncMock(
-                return_value="test.txt - Notepad++"
-            )
+            mock_controller.get_window_text = AsyncMock(return_value="test.txt - Notepad++")
             mock_controller.hwnd = 12345
             mock_controller.scintilla_hwnd = 54321
             mock_controller.notepadpp_exe = r"C:\Program Files\Notepad++\notepad++.exe"
@@ -157,9 +155,7 @@ class TestMCPTools:
 
         with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
             mock_controller.ensure_notepadpp_running = AsyncMock()
-            mock_controller.get_window_text = AsyncMock(
-                return_value="*test.txt - Notepad++"
-            )
+            mock_controller.get_window_text = AsyncMock(return_value="*test.txt - Notepad++")
 
             tool = get_current_file_info
 
@@ -336,9 +332,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_javascript_file"
         assert "javascript" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_json_file_not_found(self, mock_win32):
@@ -353,9 +347,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_json_file"
         assert "json" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_markdown_file_not_found(self, mock_win32):
@@ -370,9 +362,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_markdown_file"
         assert "markdown" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_python_file_basic_syntax_valid(self, mock_win32):
@@ -387,9 +377,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_python_file"
         assert "python" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_python_file_syntax_error(self, mock_win32):
@@ -404,9 +392,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_python_file"
         assert "python" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_javascript_file_basic_check(self, mock_win32):
@@ -421,9 +407,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_javascript_file"
         assert "javascript" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_json_file_valid(self, mock_win32):
@@ -438,9 +422,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_json_file"
         assert "json" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_json_file_invalid(self, mock_win32):
@@ -455,9 +437,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_json_file"
         assert "json" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_json_file_minified(self, mock_win32):
@@ -472,9 +452,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_json_file"
         assert "json" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_markdown_file_basic(self, mock_win32):
@@ -489,9 +467,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_markdown_file"
         assert "markdown" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_markdown_file_header_hierarchy(self, mock_win32):
@@ -506,9 +482,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_markdown_file"
         assert "markdown" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_lint_markdown_file_long_lines(self, mock_win32):
@@ -523,9 +497,7 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_markdown_file"
         assert "markdown" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description
 
     @pytest.mark.asyncio
     async def test_linting_tools_error_handling(self, mock_win32):
@@ -570,6 +542,4 @@ class TestLintingTools:
         assert hasattr(tool, "description")
         assert tool.name == "lint_python_file"
         assert "python" in tool.description.lower()
-        assert (
-            "lint" in tool.description.lower()
-        )  # Linting tools use "lint" in description
+        assert "lint" in tool.description.lower()  # Linting tools use "lint" in description

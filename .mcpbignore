@@ -1,73 +1,32 @@
-# MCPB ignore file - exclude unnecessary files from packaging
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
+# MCPB Pack Exclusion List
+tests/
+.git/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-
-# Development files
+.venv/
+dist/
+build/
+target/
+docs/
+scripts/
+.cursor/
+.windsurf/
 .pytest_cache/
 .mypy_cache/
 .coverage
+Cargo.lock
 htmlcov/
-.tox/
-.nox/
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Git
-.git/
-.gitignore
-
-# Virtual environments
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-build_venv/
-
-# Documentation build
-docs/_build/
-
-# Temporary files
-*.tmp
-*.temp
-*.log
-
-# Node modules (if any)
+web_sota/
 node_modules/
-
-# Package files
-*.whl
-*.tar.gz
-*.mcpb
-*.dxt
-
-# Test files
-test_venv/
+_llm_test_scripts/
+*.md.bak
+.github/
+build_venv/
+.ruff_cache/
+.serena/
+coverage.xml
+uv.lock
 demonstration_test.py
+docs-private/
+*.bak
+src/notepadpp_mcp.egg-info/

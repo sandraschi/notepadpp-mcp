@@ -9,9 +9,11 @@ Tests all the edge cases that could crash sync:
 - Permission issues
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
+
 from src.notepadpp_mcp.file_validator import FileValidator, validate_markdown_file
 
 
@@ -218,9 +220,7 @@ author: Someone
         result = validator.validate_file(file_path)
 
         assert result.is_valid  # Not strict
-        assert any(
-            "incomplete" in w.lower() or "closing" in w.lower() for w in result.warnings
-        )
+        assert any("incomplete" in w.lower() or "closing" in w.lower() for w in result.warnings)
 
     def test_invalid_yaml_frontmatter(self, temp_dir):
         """Test malformed YAML frontmatter."""

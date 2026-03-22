@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "notepadpp-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP Server for Notepad++ automation and control"
 authors = [
     {name = "Sandra", email = "sandra@example.com"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -26,12 +26,18 @@ classifiers = [
 ]
 keywords = ["notepad++", "mcp", "automation", "text-editor", "windows", "fastmcp"]
 dependencies = [
-    "fastmcp>=2.14.3,<3.0.0",
+    "fastapi>=0.115.0",
+    "fastmcp>=3.1.0,<4",
+    "httpx>=0.27.0",
+    "uvicorn[standard]>=0.27.0",
     "psutil>=5.9.0",
-    "pywin32>=305; sys_platform == 'win32'",
+    "pywin32==311 ; sys_platform == 'win32'",
     "requests>=2.31.0",
     "structlog>=23.0.0",
     "pydantic>=2.0.0",
+    "mcp>=1.0.0,<2.0.0",
+    "anyio>=4.0.0,<5.0.0",
+    "ruff>=0.14.2",
 ]
 
 [project.optional-dependencies]
@@ -52,7 +58,7 @@ Repository = "https://github.com/sandraschi/notepadpp-mcp"
 Issues = "https://github.com/sandraschi/notepadpp-mcp/issues"
 
 [project.scripts]
-notepadpp-mcp = "notepadpp_mcp.tools.server:run"
+notepadpp-mcp = "notepadpp_mcp.server:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -136,3 +142,21 @@ dev = [
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S"]
+ignore = ["E501"]
+
+# Pytest uses assert; Bandit S101 is noise in test suites.
+# Megatest uses path/hash helpers that trigger S108/S324; pytest.raises(Exception) triggers B017.
+[tool.ruff.lint.per-file-ignores]
+"src/notepadpp_mcp/tests/**" = ["S101", "B017"]
+"tests/**" = ["S101", "S108", "S324", "B017"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

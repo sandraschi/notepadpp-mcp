@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 try:
     import structlog
@@ -126,11 +126,11 @@ class SyncHealthMonitor:
 
         self.state = SyncState.INITIALIZING
         self.metrics = SyncMetrics()
-        self.errors: List[Dict[str, Any]] = []
+        self.errors: list[dict[str, Any]] = []
         self.recovery_attempts = 0
         self.watcher = None
 
-        self._monitor_task: Optional[asyncio.Task] = None
+        self._monitor_task: asyncio.Task | None = None
         self._is_monitoring = False
 
         self._log(
@@ -332,7 +332,7 @@ class SyncHealthMonitor:
                 error=str(e),
             )
 
-    def get_health_report(self) -> Dict[str, Any]:
+    def get_health_report(self) -> dict[str, Any]:
         """
         Get comprehensive health report.
 
@@ -369,7 +369,7 @@ class SyncHealthMonitor:
             "recommendations": self._generate_recommendations(),
         }
 
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate actionable recommendations."""
         recs = []
 
@@ -382,11 +382,7 @@ class SyncHealthMonitor:
         if self.state == SyncState.STALLED:
             recs.append("🐛 Sync appears stalled - automatic recovery attempted")
 
-        if (
-            self.watcher
-            and hasattr(self.watcher, "is_alive")
-            and not self.watcher.is_alive()
-        ):
+        if self.watcher and hasattr(self.watcher, "is_alive") and not self.watcher.is_alive():
             recs.append("💀 Watcher is dead - restart server required")
 
         if self.metrics.files_per_second < 1 and self.metrics.files_scanned > 0:
@@ -442,7 +438,10 @@ class SyncHealthMonitor:
 # Example usage in MCP server
 if __name__ == "__main__":
     # Demo
-    monitor = SyncHealthMonitor("/tmp/test_project")
+    import tempfile
+    from pathlib import Path
+
+    monitor = SyncHealthMonitor(str(Path(tempfile.gettempdir()) / "notepadpp_mcp_sync_demo"))
 
     print("Starting scan...")
     if monitor.start_scan():

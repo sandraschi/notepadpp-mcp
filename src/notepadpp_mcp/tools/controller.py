@@ -8,7 +8,6 @@ import asyncio
 import os
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 # Windows-specific imports
 try:
@@ -54,9 +53,7 @@ class NotepadPPController:
 
     def __init__(self):
         if not WINDOWS_AVAILABLE:
-            raise NotepadPPError(
-                "Windows API not available - this server requires Windows"
-            )
+            raise NotepadPPError("Windows API not available - this server requires Windows")
 
         self.notepadpp_exe = self._find_notepadpp_exe()
         self.hwnd = None
@@ -75,7 +72,7 @@ class NotepadPPController:
             "Notepad++ executable not found. Please install Notepad++ or set NOTEPADPP_PATH environment variable."
         )
 
-    def _find_notepadpp_window(self) -> Optional[int]:
+    def _find_notepadpp_window(self) -> int | None:
         """Find Notepad++ main window handle."""
 
         def enum_windows_callback(hwnd: int, windows: list[int]) -> bool:
@@ -90,7 +87,7 @@ class NotepadPPController:
         win32gui.EnumWindows(enum_windows_callback, windows)
         return windows[0] if windows else None
 
-    def _find_scintilla_window(self, main_hwnd: int) -> Optional[int]:
+    def _find_scintilla_window(self, main_hwnd: int) -> int | None:
         """Find Scintilla editor window within Notepad++."""
 
         def enum_child_windows(hwnd: int, scintilla_windows: list[int]) -> bool:
@@ -108,8 +105,8 @@ class NotepadPPController:
         self.hwnd = self._find_notepadpp_window()
 
         if not self.hwnd and NOTEPADPP_AUTO_START:
-            # Start Notepad++
-            subprocess.Popen([self.notepadpp_exe], shell=False)
+            # Start Notepad++ (configured executable path only; not shell)
+            subprocess.Popen([self.notepadpp_exe], shell=False)  # noqa: S603
 
             # Wait for it to start
             for _ in range(50):  # 5 seconds max
@@ -119,9 +116,7 @@ class NotepadPPController:
                     break
 
         if not self.hwnd:
-            raise NotepadPPNotFoundError(
-                "Notepad++ is not running and auto-start failed"
-            )
+            raise NotepadPPNotFoundError("Notepad++ is not running and auto-start failed")
 
         # Find Scintilla editor window
         self.scintilla_hwnd = self._find_scintilla_window(self.hwnd)
@@ -130,27 +125,17 @@ class NotepadPPController:
 
         return True
 
-    async def send_message(
-        self, hwnd: int, msg: int, wparam: int = 0, lparam: int = 0
-    ) -> int:
+    async def send_message(self, hwnd: int, msg: int, wparam: int = 0, lparam: int = 0) -> int:
         """Send Windows message to window."""
         try:
             result = win32gui.SendMessage(hwnd, msg, wparam, lparam)
             return int(result) if result is not None else 0
         except Exception as e:
-            raise NotepadPPError(f"Failed to send message: {e}")
+            raise NotepadPPError(f"Failed to send message: {e}") from e
 
     async def get_window_text(self, hwnd: int) -> str:
-        """Get text from window."""
+        """Get caption text for a window (title bar). Uses GetWindowText — not Scintilla buffer text."""
         try:
-            length_result = win32gui.SendMessage(hwnd, win32con.WM_GETTEXTLENGTH, 0, 0)
-            length = int(length_result) if length_result is not None else 0
-            if length == 0:
-                return ""
-
-            buffer = win32gui.PyMakeBuffer(length + 1)
-            win32gui.SendMessage(hwnd, win32con.WM_GETTEXT, length + 1, buffer)
-            text = buffer.raw.decode("utf-8", errors="ignore").rstrip("\x00")
-            return text
+            return win32gui.GetWindowText(hwnd) or ""
         except Exception as e:
-            raise NotepadPPError(f"Failed to get window text: {e}")
+            raise NotepadPPError(f"Failed to get window text: {e}") from e

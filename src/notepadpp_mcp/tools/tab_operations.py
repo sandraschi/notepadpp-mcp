@@ -5,7 +5,7 @@ Consolidates tab operations (list, switch, close) into a unified interface.
 """
 
 import asyncio
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from fastmcp import FastMCP
 
@@ -38,111 +38,29 @@ class TabOperationsTool:
         async def tab_ops(
             operation: Literal["list", "switch", "close"],
             tab_index: int = -1,
-        ) -> Dict[str, Any]:
-            """Manage document tabs in Notepad++ with consolidated operations.
+        ) -> dict[str, Any]:
+            """TAB_OPS — List, switch, or close editor tabs.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 3 separate tools (list, switch, close), this tool consolidates tab
-            management operations into a single interface. Prevents tool explosion (3 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: One tool for list/switch/close (TOOL_DESIGN_STANDARDS.md §1).
 
-            Supported Operations:
-            - List all open document tabs
-            - Switch between open tabs
-            - Close document tabs
-
-            Operations Detail:
-            **Tab Information:**
-            - "list": Enumerate all currently open document tabs with their names
-
-            **Tab Navigation:**
-            - "switch": Change active tab to specified index
-
-            **Tab Management:**
-            - "close": Close specified tab (or current tab if no index provided)
-
-            Prerequisites:
-            - Windows OS with Notepad++ installed
-            - pywin32 package for Windows API access
-            - Notepad++ running with at least one document open
+            Operations:
+            - list: Enumerate open tabs.
+            - switch: Activate tab_index (0-based).
+            - close: Close tab_index or current tab when index is -1.
 
             Args:
-                operation (Literal, required): The tab operation to perform. Must be one of: "list", "switch", "close".
-                    - "list": Show all open tabs (no additional parameters required)
-                    - "switch": Switch to different tab (requires tab_index)
-                    - "close": Close a tab (uses tab_index, defaults to current tab)
-
-                tab_index (int): Tab index for switch/close operations. Used by: switch, close operations.
-                    Default: -1 (current tab for close, first tab for switch).
-                    Valid range: 0 to (number of tabs - 1).
+                operation (Literal, required): "list" | "switch" | "close".
+                tab_index (int): For switch/close; default -1.
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "list",
-                  "summary": "Retrieved 3 open tabs",
-                  "result": {
-                    "tabs": [
-                      {"index": 0, "name": "document1.txt", "active": true},
-                      {"index": 1, "name": "document2.py", "active": false},
-                      {"index": 2, "name": "README.md", "active": false}
-                    ],
-                    "count": 3,
-                    "active_index": 0
-                  },
-                  "next_steps": ["Switch to different tab", "Close unwanted tabs"],
-                  "context": {
-                    "operation_type": "tab_enumeration"
-                  }
-                }
-                ```
-
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Tab operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Tab-specific data (tab list, active index, etc.)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (invalid_index, no_tabs_open, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
+                dict with success, operation, summary, result (tabs, count, etc.).
 
             Examples:
-                # List all open tabs
-                result = await tab_ops("list")
-                # Returns: {"success": true, "result": {"tabs": [...], "count": 3}, ...}
-
-                # Switch to tab at index 1
-                result = await tab_ops("switch", tab_index=1)
-                # Returns: {"success": true, "summary": "Switched to tab 1", ...}
-
-                # Close current tab
-                result = await tab_ops("close")
-                # Returns: {"success": true, "summary": "Closed current tab", ...}
-
-                # Close specific tab
-                result = await tab_ops("close", tab_index=2)
-                # Returns: {"success": true, "summary": "Closed tab at index 2", ...}
+                await tab_ops("list")
+                await tab_ops("switch", tab_index=1)
 
             Errors:
-                **Common Errors:**
-                - "Windows API not available": pywin32 not installed or Notepad++ not running
-                - "Invalid tab index": Specified tab_index out of valid range
-                - "No tabs open": Attempting operations when no documents are open
-                - "Cannot close last tab": Attempting to close the only remaining document
-
-                **Recovery Options:**
-                - Install pywin32: `pip install pywin32`
-                - Ensure Notepad++ is running with documents open
-                - Use "list" operation first to see available tabs and their indices
-                - Valid tab indices range from 0 to (number of tabs - 1)
+                Invalid index, no tabs, or Windows API unavailable.
             """
             if not self.controller:
                 return {
@@ -161,9 +79,7 @@ class TabOperationsTool:
 
                 if operation == "list":
                     # Get window title which usually contains filename
-                    window_text = await self.controller.get_window_text(
-                        self.controller.hwnd
-                    )
+                    window_text = await self.controller.get_window_text(self.controller.hwnd)
 
                     # Parse filename from window title
                     # Notepad++ title format: "filename - Notepad++"
@@ -221,7 +137,7 @@ class TabOperationsTool:
                     # This is a simplified implementation - full tab switching would need plugin API
                     keybd_event = win32api.keybd_event
 
-                    for i in range(tab_index):
+                    for _ in range(tab_index):
                         keybd_event(win32con.VK_CONTROL, 0, 0, 0)
                         keybd_event(win32con.VK_TAB, 0, 0, 0)
                         await asyncio.sleep(0.1)
@@ -260,9 +176,7 @@ class TabOperationsTool:
 
                     await asyncio.sleep(0.3)
 
-                    tab_description = (
-                        "current tab" if tab_index == -1 else f"tab {tab_index}"
-                    )
+                    tab_description = "current tab" if tab_index == -1 else f"tab {tab_index}"
                     return {
                         "success": True,
                         "operation": operation,
@@ -284,9 +198,7 @@ class TabOperationsTool:
                         "error": f"Unknown operation: {operation}",
                         "operation": operation,
                         "summary": f"Tab operation failed - unknown operation '{operation}'",
-                        "recovery_options": [
-                            "Use 'list', 'switch', or 'close' operations"
-                        ],
+                        "recovery_options": ["Use 'list', 'switch', or 'close' operations"],
                         "clarification_options": {
                             "operation": {
                                 "description": "What tab operation would you like to perform?",

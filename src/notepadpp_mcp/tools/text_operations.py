@@ -5,7 +5,7 @@ Consolidates text operations (insert, find) into a unified interface.
 """
 
 import asyncio
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from fastmcp import FastMCP
 
@@ -37,104 +37,31 @@ class TextOperationsTool:
         @self.app.tool()
         async def text_ops(
             operation: Literal["insert", "find"],
-            text: Optional[str] = None,
+            text: str | None = None,
             case_sensitive: bool = False,
-        ) -> Dict[str, Any]:
-            """Perform text manipulation and search operations in Notepad++ documents.
+        ) -> dict[str, Any]:
+            """TEXT_OPS — Insert text at the caret or find text in the active buffer.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 2 separate tools (insert, find), this tool consolidates text
-            operations into a single interface. Prevents tool explosion (2 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: Single tool for insert/find per TOOL_DESIGN_STANDARDS.md §1.
 
-            Supported Operations:
-            - Insert text at cursor position
-            - Search for text in current document
-            - Case-sensitive and case-insensitive search
-
-            Operations Detail:
-            **Text Insertion:**
-            - "insert": Add text at current cursor position in active document
-
-            **Text Search:**
-            - "find": Search for text occurrences in current document with configurable case sensitivity
-
-            Prerequisites:
-            - Windows OS with Notepad++ installed
-            - pywin32 package for Windows API access
-            - Active document open in Notepad++
-            - Valid cursor position for insertion operations
+            Operations:
+            - insert: Insert `text` at the current caret.
+            - find: Search for `text`; use case_sensitive for matching.
 
             Args:
-                operation (Literal, required): The text operation to perform. Must be one of: "insert", "find".
-                    - "insert": Add text at cursor position (requires text)
-                    - "find": Search for text in document (requires text)
-
-                text (str | None): Text content for operation. Required for: insert, find operations.
-                    For insert: text to be added at cursor position.
-                    For find: text pattern to search for in document.
-
-                case_sensitive (bool): Case sensitivity for find operations. Used by: find operation.
-                    Default: False. When True, search matches exact case.
+                operation (Literal, required): "insert" or "find".
+                text (str | None): Required for both operations.
+                case_sensitive (bool): Applies to find; default False.
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "insert",
-                  "summary": "Text inserted successfully",
-                  "result": {
-                    "inserted_text": "Hello World",
-                    "insertion_position": {"line": 5, "column": 10}
-                  },
-                  "next_steps": ["Continue editing", "Save document"],
-                  "context": {
-                    "operation_type": "text_insertion"
-                  }
-                }
-                ```
-
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Text operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Operation-specific data (inserted text, search results, etc.)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (no_active_document, invalid_position, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
+                dict with success, operation, summary, optional result and recovery_options.
 
             Examples:
-                # Insert text at cursor
-                result = await text_ops("insert", text="Hello World")
-                # Returns: {"success": true, "summary": "Text inserted successfully", ...}
-
-                # Search for text (case insensitive)
-                result = await text_ops("find", text="error", case_sensitive=False)
-                # Returns: {"success": true, "result": {"matches": 3, "positions": [...]}, ...}
-
-                # Search with case sensitivity
-                result = await text_ops("find", text="Error", case_sensitive=True)
-                # Returns: {"success": true, "result": {"matches": 1, "positions": [...]}, ...}
+                await text_ops("insert", text="hello")
+                await text_ops("find", text="TODO", case_sensitive=False)
 
             Errors:
-                **Common Errors:**
-                - "Windows API not available": pywin32 not installed or Notepad++ not running
-                - "No active document": No document is currently open
-                - "Invalid cursor position": Cursor position out of document bounds
-                - "Empty text parameter": Required text parameter not provided
-
-                **Recovery Options:**
-                - Install pywin32: `pip install pywin32`
-                - Ensure Notepad++ is running with an open document
-                - Check cursor position before insertion operations
-                - Provide non-empty text parameter for operations
+                Missing text, no active document, or Windows API unavailable.
             """
             if not self.controller:
                 return {
@@ -220,9 +147,7 @@ class TextOperationsTool:
                     for char in text:
                         if char.isalnum() or char in " .,;:!?":
                             keybd_event(ord(char.upper()), 0, 0, 0)
-                            keybd_event(
-                                ord(char.upper()), 0, win32con.KEYEVENTF_KEYUP, 0
-                            )
+                            keybd_event(ord(char.upper()), 0, win32con.KEYEVENTF_KEYUP, 0)
                             await asyncio.sleep(0.01)
 
                     # Press Enter to start search

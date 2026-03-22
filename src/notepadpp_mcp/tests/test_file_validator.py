@@ -179,9 +179,7 @@ class TestValidationResult:
 
     def test_validation_result_error(self):
         """Test validation result with error."""
-        result = ValidationResult(
-            file_path="test.txt", is_valid=False, errors=["File not found"]
-        )
+        result = ValidationResult(file_path="test.txt", is_valid=False, errors=["File not found"])
 
         assert result.file_path == "test.txt"
         assert result.is_valid is False
@@ -216,9 +214,7 @@ class TestFileValidatorEdgeCases:
         validator = FileValidator()
 
         # Create a temporary file with Unicode name
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix="测试.txt", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix="测试.txt", delete=False) as f:
             f.write("test content")
             test_file = f.name
 

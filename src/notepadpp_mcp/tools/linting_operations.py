@@ -7,8 +7,9 @@ Consolidates linting operations (python, javascript, json, markdown, tools) and 
 import json
 import os
 import re
+import shutil
 import subprocess
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from fastmcp import FastMCP
 
@@ -40,131 +41,29 @@ class LintingOperationsTool:
         @self.app.tool()
         async def linting_ops(
             operation: Literal["python", "javascript", "json", "markdown", "tools"],
-            file_path: Optional[str] = None,
-        ) -> Dict[str, Any]:
-            """Perform comprehensive code quality analysis with multiple linting engines.
+            file_path: str | None = None,
+        ) -> dict[str, Any]:
+            """LINTING_OPS — Run linters/validators on disk files or list available engines.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 5 separate tools (python, javascript, json, markdown, tools), this tool consolidates
-            linting operations into a single interface. Prevents tool explosion (5 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: One tool for python/js/json/md + introspection (TOOL_DESIGN_STANDARDS.md §1).
 
-            Supported Operations:
-            - Python code linting with ruff/flake8
-            - JavaScript linting with ESLint
-            - JSON syntax validation
-            - Markdown structure checking
-            - Linting tools information and availability
-
-            Operations Detail:
-            **Code Quality Analysis:**
-            - "python": Lint Python files using ruff, flake8, or basic syntax checking
-            - "javascript": Lint JavaScript files using ESLint or basic validation
-            - "json": Validate JSON syntax and structure
-            - "markdown": Check Markdown formatting and structure
-
-            **Tool Management:**
-            - "tools": Display information about available linting tools and their status
-
-            Prerequisites:
-            - File system read access to target files
-            - External linting tools installed (optional but recommended):
-              - Python: ruff (`pip install ruff`) or flake8 (`pip install flake8`)
-              - JavaScript: eslint (`npm install -g eslint`) or basic validation
-            - JSON/Markdown: Built-in validators (no external dependencies)
+            Operations:
+            - python | javascript | json | markdown: Lint/validate file_path.
+            - tools: Report which backends are available (ruff, eslint, etc.).
 
             Args:
-                operation (Literal, required): The linting operation to perform. Must be one of: "python", "javascript", "json", "markdown", "tools".
-                    - "python": Lint Python file (requires file_path)
-                    - "javascript": Lint JavaScript file (requires file_path)
-                    - "json": Validate JSON file (requires file_path)
-                    - "markdown": Check Markdown file (requires file_path)
-                    - "tools": Show linting tools info (no additional parameters required)
-
-                file_path (str | None): Path to file for linting operations. Required for: python, javascript, json, markdown operations.
-                    Must be a readable file with appropriate extension for the operation type.
-                    Python: .py files, JavaScript: .js files, JSON: .json files, Markdown: .md files.
+                operation (Literal, required): "python" | "javascript" | "json" | "markdown" | "tools".
+                file_path (str | None): Required for file-based operations; omit for tools.
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "python",
-                  "summary": "Python file linted successfully - 2 issues found",
-                  "result": {
-                    "file_path": "/path/to/script.py",
-                    "linter_used": "ruff",
-                    "issues": [
-                      {
-                        "line": 15,
-                        "column": 10,
-                        "severity": "warning",
-                        "message": "Unused import",
-                        "rule": "F401"
-                      }
-                    ],
-                    "total_issues": 2,
-                    "errors": 0,
-                    "warnings": 2
-                  },
-                  "next_steps": ["Fix linting issues", "Run again after fixes"],
-                  "context": {
-                    "operation_type": "code_quality_analysis"
-                  }
-                }
-                ```
-
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Linting operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Linting-specific data (issues found, file info, linter used)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (file_not_found, linter_unavailable, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
+                dict with success, issues[], linter metadata, and recovery_options on failure.
 
             Examples:
-                # Lint Python file
-                result = await linting_ops("python", file_path="script.py")
-                # Returns: {"success": true, "result": {"issues": [...], "linter_used": "ruff"}, ...}
-
-                # Lint JavaScript file
-                result = await linting_ops("javascript", file_path="app.js")
-                # Returns: {"success": true, "result": {"issues": [...], "linter_used": "eslint"}, ...}
-
-                # Validate JSON file
-                result = await linting_ops("json", file_path="config.json")
-                # Returns: {"success": true, "result": {"valid": true, "issues": []}, ...}
-
-                # Check Markdown file
-                result = await linting_ops("markdown", file_path="README.md")
-                # Returns: {"success": true, "result": {"issues": [...], "structure_valid": true}, ...}
-
-                # Show available tools
-                result = await linting_ops("tools")
-                # Returns: {"success": true, "result": {"linting_tools": {...}, "total_supported_types": 4}, ...}
+                await linting_ops("python", file_path="C:/tmp/a.py")
+                await linting_ops("tools")
 
             Errors:
-                **Common Errors:**
-                - "File not found": Specified file_path does not exist or is not readable
-                - "Unsupported file type": File extension doesn't match operation type
-                - "Linter not available": Required external linter not installed (python: ruff/flake8, javascript: eslint)
-                - "Invalid JSON": JSON file contains syntax errors
-                - "Permission denied": No read access to target file
-
-                **Recovery Options:**
-                - Check file path and ensure file exists and is readable
-                - Use correct file extension for operation type (.py for python, .js for javascript, etc.)
-                - Install required linters: `pip install ruff` or `npm install -g eslint`
-                - Fix JSON syntax errors before validation
-                - Ensure proper file permissions
+                Missing file, wrong extension, or external linter not installed.
             """
             if operation == "tools":
                 # Return information about available linting tools
@@ -238,8 +137,11 @@ class LintingOperationsTool:
                 if operation == "python":
                     # Try ruff first (fastest Python linter)
                     try:
-                        result = subprocess.run(
-                            ["ruff", "check", abs_path, "--output-format=json"],
+                        ruff_exe = shutil.which("ruff")
+                        if not ruff_exe:
+                            raise FileNotFoundError("ruff not on PATH")
+                        result = subprocess.run(  # noqa: S603
+                            [ruff_exe, "check", abs_path, "--output-format=json"],
                             capture_output=True,
                             text=True,
                             timeout=30,
@@ -262,16 +164,8 @@ class LintingOperationsTool:
                         else:
                             # Parse JSON output from ruff
                             issues = json.loads(result.stdout) if result.stdout else []
-                            errors = [
-                                issue
-                                for issue in issues
-                                if issue.get("type") == "error"
-                            ]
-                            warnings = [
-                                issue
-                                for issue in issues
-                                if issue.get("type") == "warning"
-                            ]
+                            errors = [issue for issue in issues if issue.get("type") == "error"]
+                            warnings = [issue for issue in issues if issue.get("type") == "warning"]
 
                             return {
                                 "success": True,
@@ -298,7 +192,7 @@ class LintingOperationsTool:
                     except (FileNotFoundError, subprocess.TimeoutExpired):
                         # Fallback to basic Python syntax checking
                         try:
-                            with open(abs_path, "r", encoding="utf-8") as f:
+                            with open(abs_path, encoding="utf-8") as f:
                                 compile(f.read(), abs_path, "exec")
                             return {
                                 "success": True,
@@ -337,7 +231,7 @@ class LintingOperationsTool:
 
                 elif operation == "json":
                     try:
-                        with open(abs_path, "r", encoding="utf-8") as f:
+                        with open(abs_path, encoding="utf-8") as f:
                             json.load(f)
                         return {
                             "success": True,
@@ -385,9 +279,7 @@ class LintingOperationsTool:
                             "issues": [],
                             "note": "Advanced linting not yet implemented",
                         },
-                        "next_steps": [
-                            f"Install {operation} linter for comprehensive analysis"
-                        ],
+                        "next_steps": [f"Install {operation} linter for comprehensive analysis"],
                         "context": {
                             "linter_used": f"{operation}_basic",
                             "implementation_status": "basic",
@@ -436,20 +328,17 @@ class LintingOperationsTool:
                 }
 
         @self.app.tool()
-        async def lint_javascript_file(file_path: str) -> Dict[str, Any]:
-            """
-            Lint a JavaScript file using eslint or basic syntax checking.
-
-            Supports:
-            - ESLint (if installed globally)
-            - Basic JavaScript syntax validation
-            - Common JS issues detection
+        async def lint_javascript_file(file_path: str) -> dict[str, Any]:
+            """LINT_JAVASCRIPT_FILE — ESLint JSON output, or a minimal heuristic fallback.
 
             Args:
-                file_path: Path to the JavaScript file to lint
+                file_path (str, required): Absolute or relative .js path.
 
             Returns:
-                Dictionary with linting results and any issues found
+                dict with success, issues[], linter name, summary.
+
+            Errors:
+                File missing, eslint unavailable (falls back), or read errors.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}
@@ -464,16 +353,17 @@ class LintingOperationsTool:
 
                 # Try eslint first
                 try:
-                    result = subprocess.run(
-                        ["eslint", "--format=json", abs_path],
+                    eslint_exe = shutil.which("eslint")
+                    if not eslint_exe:
+                        raise FileNotFoundError("eslint not on PATH")
+                    result = subprocess.run(  # noqa: S603
+                        [eslint_exe, "--format=json", abs_path],
                         capture_output=True,
                         text=True,
                         timeout=30,
                     )
 
-                    if (
-                        result.returncode == 0 or result.returncode == 2
-                    ):  # 2 = linting errors found
+                    if result.returncode == 0 or result.returncode == 2:  # 2 = linting errors found
                         issues = []
                         if result.stdout.strip():
                             try:
@@ -483,17 +373,13 @@ class LintingOperationsTool:
                                         for message in file_result["messages"]:
                                             issues.append(
                                                 {
-                                                    "rule": message.get(
-                                                        "ruleId", "unknown"
-                                                    ),
+                                                    "rule": message.get("ruleId", "unknown"),
                                                     "message": message.get(
                                                         "message", "Unknown issue"
                                                     ),
                                                     "line": message.get("line", 0),
                                                     "column": message.get("column", 0),
-                                                    "severity": message.get(
-                                                        "severity", 1
-                                                    ),
+                                                    "severity": message.get("severity", 1),
                                                     "type": "error"
                                                     if message.get("severity", 1) > 1
                                                     else "warning",
@@ -519,7 +405,7 @@ class LintingOperationsTool:
                 except (FileNotFoundError, subprocess.TimeoutExpired):
                     # ESLint not available, do basic validation
                     try:
-                        with open(abs_path, "r", encoding="utf-8") as f:
+                        with open(abs_path, encoding="utf-8") as f:
                             content = f.read()
 
                         # Basic JavaScript validation (very simple)
@@ -585,21 +471,17 @@ class LintingOperationsTool:
                 }
 
         @self.app.tool()
-        async def lint_json_file(file_path: str) -> Dict[str, Any]:
-            """
-            Validate and lint a JSON file.
-
-            Checks:
-            - JSON syntax validity
-            - Schema compliance (if schema provided)
-            - Common JSON issues
-            - Pretty-printing suggestions
+        async def lint_json_file(file_path: str) -> dict[str, Any]:
+            """LINT_JSON_FILE — Parse JSON and report syntax or style nits (trailing commas, long lines).
 
             Args:
-                file_path: Path to the JSON file to lint
+                file_path (str, required): Path to a .json file.
 
             Returns:
-                Dictionary with validation results and any issues found
+                dict with valid_json flag, issues[], summary.
+
+            Errors:
+                JSONDecodeError surfaces as success=False with line/column.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}
@@ -613,7 +495,7 @@ class LintingOperationsTool:
                     return {"success": False, "error": f"File not found: {abs_path}"}
 
                 try:
-                    with open(abs_path, "r", encoding="utf-8") as f:
+                    with open(abs_path, encoding="utf-8") as f:
                         content = f.read()
 
                     # Parse JSON to validate syntax
@@ -634,9 +516,7 @@ class LintingOperationsTool:
 
                     # Check if it's minified (very long lines)
                     lines = content.split("\n")
-                    long_lines = [
-                        i for i, line in enumerate(lines, 1) if len(line) > 100
-                    ]
+                    long_lines = [i for i, line in enumerate(lines, 1) if len(line) > 100]
                     if long_lines:
                         issues.append(
                             {
@@ -649,9 +529,7 @@ class LintingOperationsTool:
                     # Check for common issues
                     if isinstance(data, dict):
                         if not data:
-                            issues.append(
-                                {"message": "Empty JSON object", "type": "info"}
-                            )
+                            issues.append({"message": "Empty JSON object", "type": "info"})
 
                     return {
                         "success": True,
@@ -681,22 +559,17 @@ class LintingOperationsTool:
                 return {"success": False, "error": f"Failed to lint JSON file: {e}"}
 
         @self.app.tool()
-        async def lint_markdown_file(file_path: str) -> Dict[str, Any]:
-            """
-            Lint a Markdown file for common issues and style problems.
-
-            Checks:
-            - Basic Markdown syntax
-            - Header hierarchy
-            - Link validity
-            - Code block formatting
-            - Common Markdown issues
+        async def lint_markdown_file(file_path: str) -> dict[str, Any]:
+            """LINT_MARKDOWN_FILE — Lightweight Markdown structure checks (headers, links, code fences).
 
             Args:
-                file_path: Path to the Markdown file to lint
+                file_path (str, required): Path to a .md file.
 
             Returns:
-                Dictionary with linting results and any issues found
+                dict with issues[], summary.
+
+            Errors:
+                File missing or unreadable.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}
@@ -710,7 +583,7 @@ class LintingOperationsTool:
                     return {"success": False, "error": f"File not found: {abs_path}"}
 
                 try:
-                    with open(abs_path, "r", encoding="utf-8") as f:
+                    with open(abs_path, encoding="utf-8") as f:
                         content = f.read()
 
                     lines = content.split("\n")

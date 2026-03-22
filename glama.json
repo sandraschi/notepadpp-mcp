@@ -3,21 +3,21 @@
   "mcpServers": {
     "notepadpp-mcp": {
       "command": "python",
-      "args": ["-m", "notepadpp_mcp.tools.server"],
+      "args": ["-m", "notepadpp_mcp.server"],
       "env": {
         "PYTHONPATH": "${PWD}",
         "PYTHONUNBUFFERED": "1"
       },
-      "description": "FastMCP 2.14.1 compatible MCP server for Notepad++ automation, plugin management, and code quality analysis. Currently uses 26 individual tools - needs portmanteau consolidation for full SOTA compliance. Includes plugin ecosystem integration with 1,400+ plugins.",
+      "description": "FastMCP 3.1 Notepad++ automation: portmanteau tools, sampling, prompts, skill:// resources, agentic_notepad_workflow.",
       "capabilities": {
         "tools": {
           "enabled": true
         },
         "resources": {
-          "enabled": false
+          "enabled": true
         },
         "prompts": {
-          "enabled": false
+          "enabled": true
         }
       },
       "timeout": {
@@ -25,7 +25,7 @@
         "message": 60000
       },
       "metadata": {
-        "version": "1.2.0",
+        "version": "0.2.0",
         "author": "Sandra Schi",
         "homepage": "https://github.com/sandraschi/notepadpp-mcp",
         "license": "MIT",

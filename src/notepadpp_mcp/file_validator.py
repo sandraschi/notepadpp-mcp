@@ -21,11 +21,11 @@ Usage:
         logger.warning("invalid_file", errors=result.errors)
 """
 
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-import logging
+from typing import Any
 
 try:
     import yaml
@@ -43,10 +43,10 @@ class ValidationResult:
 
     is_valid: bool
     file_path: str
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    content: Optional[str] = None
-    frontmatter: Optional[Dict[str, Any]] = None
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    content: str | None = None
+    frontmatter: dict[str, Any] | None = None
     encoding: str = "utf-8"
     size_bytes: int = 0
 
@@ -194,9 +194,7 @@ class FileValidator:
         # Check for dangerous characters
         dangerous = self.DANGEROUS_CHARS & set(filename)
         if dangerous:
-            result.add_error(
-                f"Dangerous characters in filename: {dangerous} in {filename}"
-            )
+            result.add_error(f"Dangerous characters in filename: {dangerous} in {filename}")
 
         # Check for Windows reserved names
         name_without_ext = file_path.stem.upper()
@@ -213,9 +211,7 @@ class FileValidator:
 
         # Warn about spaces or special chars that might cause issues
         if " " in filename:
-            result.add_warning(
-                f"Spaces in filename (consider using underscores): {filename}"
-            )
+            result.add_warning(f"Spaces in filename (consider using underscores): {filename}")
 
         # Check extension
         if file_path.suffix.lower() not in [".md", ".markdown"]:
@@ -253,15 +249,11 @@ class FileValidator:
 
         # Check if too large
         if size > self.max_file_size:
-            result.add_error(
-                f"File too large ({size} > {self.max_file_size}): {file_path}"
-            )
+            result.add_error(f"File too large ({size} > {self.max_file_size}): {file_path}")
 
         # Warn if suspiciously large for markdown
         if size > 1024 * 1024:  # > 1 MB
-            result.add_warning(
-                f"Large markdown file ({size / 1024 / 1024:.2f} MB): {file_path}"
-            )
+            result.add_warning(f"Large markdown file ({size / 1024 / 1024:.2f} MB): {file_path}")
 
     def _validate_content(self, file_path: Path, result: ValidationResult):
         """Try to read file content with multiple encodings."""
@@ -270,7 +262,7 @@ class FileValidator:
 
         for encoding in self.ENCODINGS:
             try:
-                with open(file_path, "r", encoding=encoding, errors="strict") as f:
+                with open(file_path, encoding=encoding, errors="strict") as f:
                     content = f.read()
                 result.encoding = encoding
                 break
@@ -280,9 +272,7 @@ class FileValidator:
                 continue
 
             except Exception as e:
-                result.add_error(
-                    f"Failed to read file: {file_path}: {type(e).__name__}: {e}"
-                )
+                result.add_error(f"Failed to read file: {file_path}: {type(e).__name__}: {e}")
                 return
 
         if content is None:
@@ -293,9 +283,7 @@ class FileValidator:
 
                 # Check for null bytes (binary indicator)
                 if b"\x00" in raw:
-                    result.add_error(
-                        f"Binary file detected (contains null bytes): {file_path}"
-                    )
+                    result.add_error(f"Binary file detected (contains null bytes): {file_path}")
                 else:
                     result.add_error(
                         f"Encoding error (tried {', '.join(self.ENCODINGS)}): {file_path}: {last_error}"
@@ -317,9 +305,7 @@ class FileValidator:
         lines = content.split("\n")
         max_line_len = max(len(line) for line in lines) if lines else 0
         if max_line_len > 10000:
-            result.add_warning(
-                f"Very long line detected ({max_line_len} chars): {file_path}"
-            )
+            result.add_warning(f"Very long line detected ({max_line_len} chars): {file_path}")
 
     def _validate_frontmatter(self, result: ValidationResult):
         """Validate YAML frontmatter if present."""
@@ -372,8 +358,8 @@ class FileValidator:
             result.add_warning("Cannot validate frontmatter (PyYAML not installed)")
 
     def validate_batch(
-        self, file_paths: List[str | Path], on_error: str = "continue"
-    ) -> Dict[str, ValidationResult]:
+        self, file_paths: list[str | Path], on_error: str = "continue"
+    ) -> dict[str, ValidationResult]:
         """
         Validate multiple files.
 
@@ -395,7 +381,7 @@ class FileValidator:
 
         return results
 
-    def get_summary(self, results: Dict[str, ValidationResult]) -> str:
+    def get_summary(self, results: dict[str, ValidationResult]) -> str:
         """Generate human-readable summary of validation results."""
         total = len(results)
         valid = sum(1 for r in results.values() if r.is_valid)

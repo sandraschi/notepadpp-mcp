@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "notepadpp-mcp",
-  "version": "1.2.0",
-  "description": "FastMCP 2.14.1 SOTA compliant Notepad++ automation server",
+  "version": "0.2.0",
+  "description": "FastMCP 3.1 Notepad++ automation: portmanteau tools, sampling, prompts, skills, agentic workflow",
   "long_description": "Enterprise production-ready MCP server for Notepad++ automation, plugin management, and code quality analysis. ✅ FULLY SOTA COMPLIANT: Uses 8 portmanteau tools consolidating 26 operations with enhanced response patterns. Includes plugin ecosystem integration with 1,400+ plugins.",
   "author": {
     "name": "Sandra Schi",
@@ -20,10 +20,10 @@
   "keywords": ["notepad++", "mcp", "automation", "text-editor", "windows", "plugin-management", "code-quality", "linting", "fastmcp", "mcpb"],
   "server": {
     "type": "python",
-    "entry_point": "src/notepadpp_mcp/tools/server.py",
+    "entry_point": "src/notepadpp_mcp/server.py",
     "mcp_config": {
       "command": "python",
-      "args": ["-m", "notepadpp_mcp.tools.server"],
+      "args": ["-m", "notepadpp_mcp.server"],
       "env": {
         "PYTHONPATH": "${PWD}",
         "NOTEPADPP_PATH": "${user_config.notepadpp_path}",
@@ -91,7 +91,7 @@
     }
   ],
   "tools_generated": true,
-  "prompts_generated": false,
+  "prompts_generated": true,
   "compatibility": {
     "platforms": ["win32"]
   }

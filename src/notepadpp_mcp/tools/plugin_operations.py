@@ -5,9 +5,17 @@ Consolidates plugin operations (discover, install, list, execute) into a unified
 """
 
 import asyncio
-from typing import Any, Dict, Literal, Optional
+import logging
+from typing import Any, Literal
 
 from fastmcp import FastMCP
+
+from ..plugin_catalog import (
+    enrich_installed_plugins_disk,
+    get_plugins_list_cached,
+    one_line_description,
+    plugin_list_url,
+)
 
 # Windows-specific imports
 try:
@@ -21,6 +29,8 @@ except ImportError:
     win32api = None
     win32con = None
     win32gui = None
+
+_logger = logging.getLogger(__name__)
 
 
 class PluginOperationsTool:
@@ -37,227 +47,92 @@ class PluginOperationsTool:
         @self.app.tool()
         async def plugin_ops(
             operation: Literal["discover", "install", "list", "execute"],
-            plugin_name: Optional[str] = None,
-            command: Optional[str] = None,
-            category: Optional[str] = None,
-            search_term: Optional[str] = None,
+            plugin_name: str | None = None,
+            command: str | None = None,
+            category: str | None = None,
+            search_term: str | None = None,
             limit: int = 20,
-        ) -> Dict[str, Any]:
-            """Manage Notepad++ plugins with comprehensive discovery, installation, and execution.
+        ) -> dict[str, Any]:
+            """PLUGIN_OPS — Discover, install, list, or invoke Notepad++ plugins.
 
-            PORTMANTEAU PATTERN RATIONALE:
-            Instead of creating 4 separate tools (discover, install, list, execute), this tool consolidates
-            plugin management operations into a single interface. Prevents tool explosion (4 tools -> 1 tool) while maintaining
-            full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+            PORTMANTEAU PATTERN RATIONALE: One surface for plugin CRUD-style actions (TOOL_DESIGN_STANDARDS.md §1).
 
-            Supported Operations:
-            - Discover available plugins from official repositories
-            - Install plugins to Notepad++ plugin directory
-            - List installed and available plugins
-            - Execute plugin commands and functions
-
-            Operations Detail:
-            **Plugin Discovery:**
-            - "discover": Browse official Notepad++ plugin repositories with filtering and search
-
-            **Plugin Installation:**
-            - "install": Download and install plugins to Notepad++ plugins directory
-
-            **Plugin Inventory:**
-            - "list": Show installed plugins and their status
-
-            **Plugin Execution:**
-            - "execute": Run plugin commands and access plugin functionality
-
-            Prerequisites:
-            - Windows OS with Notepad++ installed
-            - Internet access for plugin discovery and download
-            - File system write access to Notepad++ plugins directory
-            - pywin32 package for Windows API access (for plugin execution)
-            - requests library for HTTP operations (`pip install requests`)
+            Operations:
+            - discover: Search/filter official list (search_term, category, limit).
+            - install: Install plugin_name.
+            - list: Installed plugins.
+            - execute: Run command on plugin_name.
 
             Args:
-                operation (Literal, required): The plugin operation to perform. Must be one of: "discover", "install", "list", "execute".
-                    - "discover": Browse available plugins (optional filters and search)
-                    - "install": Install plugin (requires plugin_name)
-                    - "list": Show installed plugins (no additional parameters required)
-                    - "execute": Run plugin command (requires plugin_name and command)
-
-                plugin_name (str | None): Plugin identifier for install/execute operations. Required for: install, execute operations.
-                    Must match official plugin naming conventions.
-
-                command (str | None): Plugin command or function to execute. Required for: execute operation.
-                    Command format depends on specific plugin API.
-
-                category (str | None): Plugin category filter for discovery. Used by: discover operation.
-                    Common categories: "editing", "development", "productivity", "utilities".
-                    Default: None (no category filtering).
-
-                search_term (str | None): Text search filter for plugin discovery. Used by: discover operation.
-                    Searches plugin names, descriptions, and tags.
-                    Default: None (no text filtering).
-
-                limit (int): Maximum results for discovery operations. Used by: discover operation.
-                    Default: 20. Valid range: 1-100.
+                operation (Literal, required): "discover" | "install" | "list" | "execute".
+                plugin_name (str | None): For install/execute.
+                command (str | None): For execute.
+                category (str | None): Optional discover filter.
+                search_term (str | None): Optional discover filter.
+                limit (int): Max discover results (default 20).
 
             Returns:
-                Dictionary following FastMCP 2.14.1+ enhanced response patterns:
-                ```json
-                {
-                  "success": true,
-                  "operation": "discover",
-                  "summary": "Found 15 plugins matching criteria",
-                  "result": {
-                    "plugins": [
-                      {
-                        "name": "XMLTools",
-                        "version": "3.0.2",
-                        "description": "XML editing tools",
-                        "category": "development",
-                        "download_url": "https://...",
-                        "size_bytes": 245760
-                      }
-                    ],
-                    "total_found": 15,
-                    "filtered_by": {
-                      "category": "development",
-                      "search_term": "xml"
-                    }
-                  },
-                  "next_steps": ["Install desired plugins", "Execute plugin commands"],
-                  "context": {
-                    "operation_type": "plugin_discovery"
-                  }
-                }
-                ```
-
-                **Success Response Structure:**
-                - success (bool): Operation success status
-                - operation (str): Plugin operation that was performed
-                - summary (str): Human-readable result summary
-                - result (dict): Plugin-specific data (plugin list, install status, execution results)
-                - next_steps (list[str]): Suggested next actions
-                - context (dict): Additional operation context
-
-                **Error Response Structure:**
-                - success (bool): Always false for errors
-                - error (str): Error type (network_error, plugin_not_found, etc.)
-                - operation (str): Failed operation
-                - summary (str): Human-readable error summary
-                - recovery_options (list[str]): Suggested recovery actions
+                dict with success, operation, summary, result (plugins, install status, etc.).
 
             Examples:
-                # Discover plugins with search
-                result = await plugin_ops("discover", search_term="xml", limit=10)
-                # Returns: {"success": true, "result": {"plugins": [...], "total_found": 5}, ...}
-
-                # Install specific plugin
-                result = await plugin_ops("install", plugin_name="XMLTools")
-                # Returns: {"success": true, "summary": "Plugin XMLTools installed", ...}
-
-                # List installed plugins
-                result = await plugin_ops("list")
-                # Returns: {"success": true, "result": {"installed_plugins": [...]}, ...}
-
-                # Execute plugin command
-                result = await plugin_ops("execute", plugin_name="XMLTools", command="format")
-                # Returns: {"success": true, "summary": "XML formatting completed", ...}
+                await plugin_ops("discover", search_term="xml", limit=10)
+                await plugin_ops("install", plugin_name="XMLTools")
 
             Errors:
-                **Common Errors:**
-                - "Network error": Internet connection required for discovery/installation
-                - "Plugin not found": Specified plugin_name doesn't exist in repositories
-                - "Download failed": Unable to download plugin package
-                - "Installation failed": No write access to Notepad++ plugins directory
-                - "Plugin execution failed": Plugin not installed or command not supported
-                - "Invalid plugin name": Plugin name doesn't match official naming conventions
-
-                **Recovery Options:**
-                - Check internet connection for discovery and download operations
-                - Verify plugin name spelling and availability with "discover" operation
-                - Ensure write permissions to Notepad++ plugins directory
-                - Install plugins before attempting to execute them
-                - Use "list" operation to verify plugin installation status
-                - Check plugin documentation for supported commands
+                Network, permission, unknown plugin, or missing parameters; see error/summary fields.
             """
             if operation == "discover":
                 try:
-                    import requests
-                    import json
-
-                    # Official Notepad++ Plugin List URLs
-                    plugin_list_urls = [
-                        "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pluginList.json",
-                        "https://api.github.com/repos/notepad-plus-plus/nppPluginList/contents/src/pluginList.json",
-                    ]
-
-                    plugins_data = None
-
-                    # Try to fetch plugin list from GitHub
-                    for url in plugin_list_urls:
-                        try:
-                            response = requests.get(url, timeout=10)
-                            if response.status_code == 200:
-                                if "api.github.com" in url:
-                                    # GitHub API returns base64 encoded content
-                                    import base64
-
-                                    content = base64.b64decode(
-                                        response.json()["content"]
-                                    ).decode("utf-8")
-                                    plugins_data = json.loads(content)
-                                else:
-                                    plugins_data = response.json()
-                                break
-                        except Exception:
-                            continue
-
-                    if not plugins_data:
+                    raw_list, fetch_err = get_plugins_list_cached()
+                    if not raw_list:
                         return {
                             "success": False,
-                            "error": "Could not fetch plugin list from any source",
+                            "error": fetch_err or "Could not load official plugin list",
                             "operation": operation,
-                            "summary": "Plugin discovery failed - unable to fetch plugin list",
+                            "summary": "Plugin discovery failed — catalog unavailable",
                             "recovery_options": [
                                 "Check internet connection",
+                                "Set NOTEPADPP_PLUGIN_LIST_URL if using a mirror",
                                 "Try again later",
-                                "Check GitHub status",
                             ],
-                            "context": {"sources_tried": plugin_list_urls},
+                            "context": {
+                                "catalog_url": plugin_list_url(),
+                                "detail": fetch_err,
+                            },
                         }
 
-                    # Process plugin data
-                    plugins = []
-                    if "plugins" in plugins_data:
-                        for plugin in plugins_data["plugins"]:
-                            # Apply filters
-                            if (
-                                category
-                                and plugin.get("category", "").lower()
-                                != category.lower()
-                            ):
+                    total_available = len(raw_list)
+                    plugins: list[dict[str, Any]] = []
+                    st = (search_term or "").strip().lower()
+                    cat = (category or "").strip().lower()
+
+                    for plugin in raw_list:
+                        if cat:
+                            pc = (plugin.get("category") or "").strip().lower()
+                            if pc != cat:
                                 continue
-                            if (
-                                search_term
-                                and search_term.lower()
-                                not in plugin.get("display-name", "").lower()
-                                and search_term.lower()
-                                not in plugin.get("description", "").lower()
-                            ):
+                        if st:
+                            dn = (plugin.get("display-name") or "").lower()
+                            desc = (plugin.get("description") or "").lower()
+                            fn = (plugin.get("folder-name") or "").lower()
+                            if st not in dn and st not in desc and st not in fn:
                                 continue
 
-                            plugins.append(
-                                {
-                                    "name": plugin.get("display-name", ""),
-                                    "description": plugin.get("description", ""),
-                                    "category": plugin.get("category", ""),
-                                    "version": plugin.get("version", ""),
-                                    "author": plugin.get("author", ""),
-                                    "homepage": plugin.get("homepage", ""),
-                                }
-                            )
+                        plugins.append(
+                            {
+                                "name": plugin.get("display-name", ""),
+                                "folder_name": plugin.get("folder-name", ""),
+                                "description": plugin.get("description", ""),
+                                "description_one_line": one_line_description(
+                                    plugin.get("description") or "", max_len=220
+                                ),
+                                "category": plugin.get("category") or "",
+                                "version": plugin.get("version", ""),
+                                "author": plugin.get("author", ""),
+                                "homepage": plugin.get("homepage", ""),
+                            }
+                        )
 
-                    # Limit results
                     plugins = plugins[:limit]
 
                     return {
@@ -269,16 +144,15 @@ class PluginOperationsTool:
                             "total_found": len(plugins),
                             "limit": limit,
                         },
-                        "next_steps": [
-                            "Use plugin_ops install to install desired plugins"
-                        ],
+                        "next_steps": ["Use plugin_ops install to install desired plugins"],
                         "context": {
-                            "source": "official_notepad_plugin_list",
+                            "source": "nppPluginList_pl_x64",
+                            "catalog_url": plugin_list_url(),
                             "filters_applied": {
                                 "category": category,
                                 "search_term": search_term,
                             },
-                            "total_available": len(plugins_data.get("plugins", [])),
+                            "total_available": total_available,
                         },
                     }
 
@@ -395,27 +269,18 @@ class PluginOperationsTool:
 
                 try:
                     await self.controller.ensure_notepadpp_running()
-
-                    # Focus on Notepad++
-                    win32gui.SetForegroundWindow(self.controller.hwnd)
-                    await asyncio.sleep(0.1)
-
-                    # Open Plugins menu with Alt+P to see installed plugins
-                    # (This is a simplified approach - full enumeration would need menu parsing)
-
+                    data = enrich_installed_plugins_disk(self.controller.notepadpp_exe)
+                    n = int(data.get("count") or 0)
+                    m = int(data.get("catalog_matched_count") or 0)
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": "Plugin list requested - check Notepad++ Plugins menu",
-                        "result": {"plugins_menu_accessed": True},
+                        "summary": f"Found {n} plugin DLL(s) on disk; {m} matched official catalog by folder name.",
+                        "result": data,
                         "next_steps": [
-                            "Check Plugins menu in Notepad++ for installed plugins"
+                            "Use description_one_line for a quick summary when catalog_match is true",
                         ],
-                        "context": {
-                            "method": "menu_inspection",
-                            "manual_check": "View: Plugins menu in Notepad++",
-                            "limitation": "Full plugin enumeration requires menu parsing API",
-                        },
+                        "context": {"method": "filesystem_plus_catalog", "catalog_url": plugin_list_url()},
                     }
 
                 except Exception as e:
@@ -423,10 +288,10 @@ class PluginOperationsTool:
                         "success": False,
                         "error": f"Plugin list failed: {e}",
                         "operation": operation,
-                        "summary": "Failed to access plugin list",
+                        "summary": "Failed to build plugin list",
                         "recovery_options": [
                             "Check Notepad++ is running",
-                            "Try manual menu inspection",
+                            "Check network if catalog enrichment fails",
                         ],
                         "diagnostic_info": {"exception_type": type(e).__name__},
                     }

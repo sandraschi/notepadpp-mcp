@@ -59,3 +59,11 @@ temp/
 
 # Private documentation (internal dev notes, not for public)
 docs-private/
+
+# Frontend / Rust build
+node_modules/
+/target/
+
+# Local junk
+*.bak
+help_output.txt

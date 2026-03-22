@@ -18,19 +18,20 @@ Status: Beta - Actively developed, API may change
 
 import asyncio
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 from fastmcp import FastMCP
 
+from .display_operations import DisplayOperationsTool
+
 # Tool imports
 from .file_operations import FileOperationsTool
-from .text_operations import TextOperationsTool
+from .linting_operations import LintingOperationsTool
+from .plugin_operations import PluginOperationsTool
+from .session_operations import SessionOperationsTool
 from .status_operations import StatusOperationsTool
 from .tab_operations import TabOperationsTool
-from .session_operations import SessionOperationsTool
-from .linting_operations import LintingOperationsTool
-from .display_operations import DisplayOperationsTool
-from .plugin_operations import PluginOperationsTool
+from .text_operations import TextOperationsTool
 
 # Windows-specific imports for controller
 try:
@@ -114,15 +115,16 @@ linting_tool.register_tools()
 display_tool.register_tools()
 plugin_tool.register_tools()
 
+
 def register_agentic_tools(app: FastMCP) -> None:
     """Register agentic workflow tools with sampling capabilities."""
 
     @app.tool()
     async def agentic_notepad_workflow(
         workflow_prompt: str,
-        available_tools: List[str],
+        available_tools: list[str],
         max_iterations: int = 5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute agentic Notepad++ workflows using FastMCP 2.14.3 sampling with tools.
 
         This tool demonstrates SEP-1577 by enabling the server's LLM to autonomously
@@ -148,7 +150,7 @@ def register_agentic_tools(app: FastMCP) -> None:
                 "prompt": workflow_prompt,
                 "available_tools": available_tools,
                 "max_iterations": max_iterations,
-                "analysis": "LLM will autonomously orchestrate Notepad++ operations"
+                "analysis": "LLM will autonomously orchestrate Notepad++ operations",
             }
 
             # This would use FastMCP 2.14.3 sampling to execute complex workflows
@@ -160,13 +162,14 @@ def register_agentic_tools(app: FastMCP) -> None:
                 "workflow_prompt": workflow_prompt,
                 "available_tools": available_tools,
                 "max_iterations": max_iterations,
+                "workflow_analysis": workflow_analysis,
                 "capabilities": [
                     "Autonomous tool orchestration",
                     "Complex multi-step workflows",
                     "Conversational responses",
                     "Error recovery and validation",
-                    "Parallel processing support"
-                ]
+                    "Parallel processing support",
+                ],
             }
 
             return result
@@ -175,16 +178,16 @@ def register_agentic_tools(app: FastMCP) -> None:
             return {
                 "success": False,
                 "error": f"Failed to execute agentic workflow: {str(e)}",
-                "message": "An error occurred while setting up the agentic workflow."
+                "message": "An error occurred while setting up the agentic workflow.",
             }
 
     @app.tool()
     async def intelligent_file_processing(
-        files: List[Dict[str, Any]],
+        files: list[dict[str, Any]],
         processing_goal: str,
-        available_operations: List[str],
+        available_operations: list[str],
         batch_strategy: str = "adaptive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Intelligent batch processing using FastMCP 2.14.3 sampling with tools.
 
         This tool uses the client's LLM to intelligently decide how to process batches
@@ -211,7 +214,7 @@ def register_agentic_tools(app: FastMCP) -> None:
                 "file_count": len(files),
                 "available_operations": available_operations,
                 "strategy": batch_strategy,
-                "analysis": "LLM will analyze each file and choose optimal processing operations"
+                "analysis": "LLM will analyze each file and choose optimal processing operations",
             }
 
             result = {
@@ -222,13 +225,14 @@ def register_agentic_tools(app: FastMCP) -> None:
                 "file_count": len(files),
                 "available_operations": available_operations,
                 "batch_strategy": batch_strategy,
+                "processing_plan": processing_plan,
                 "capabilities": [
                     "Content-aware processing",
                     "Automatic operation selection",
                     "Adaptive batching strategies",
                     "Quality validation",
-                    "Error recovery"
-                ]
+                    "Error recovery",
+                ],
             }
 
             return result
@@ -237,8 +241,9 @@ def register_agentic_tools(app: FastMCP) -> None:
             return {
                 "success": False,
                 "error": f"Failed to initiate intelligent processing: {str(e)}",
-                "message": "An error occurred while setting up intelligent file processing."
+                "message": "An error occurred while setting up intelligent file processing.",
             }
+
 
 # Register agentic workflow tools (FastMCP 2.14.3 sampling features)
 register_agentic_tools(app)
