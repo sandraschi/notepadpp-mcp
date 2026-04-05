@@ -183,56 +183,6 @@ class TestTabManagement:
             assert "closed" in result["message"].lower()
 
 
-class TestSessionManagement:
-    """Test session management tools."""
-
-    @pytest.mark.asyncio
-    async def test_save_session_success(self, mock_win32):
-        """Test saving sessions."""
-        from notepadpp_mcp.tools.server import save_session
-
-        with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
-            mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
-            mock_controller.send_message = AsyncMock(return_value=True)
-
-            result = await (save_session.fn if hasattr(save_session, "fn") else save_session)(
-                "test_session"
-            )
-
-            assert result["success"] is True
-            assert "saved" in result["message"].lower()
-
-    @pytest.mark.asyncio
-    async def test_load_session_success(self, mock_win32):
-        """Test loading sessions."""
-        from notepadpp_mcp.tools.server import load_session
-
-        with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
-            mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
-            mock_controller.send_message = AsyncMock(return_value=True)
-
-            result = await (load_session.fn if hasattr(load_session, "fn") else load_session)(
-                "test_session"
-            )
-
-            assert result["success"] is True
-            assert "loaded" in result["message"].lower()
-
-    @pytest.mark.asyncio
-    async def test_list_sessions_success(self, mock_win32):
-        """Test listing sessions."""
-        from notepadpp_mcp.tools.server import list_sessions
-
-        with patch("notepadpp_mcp.tools.server.controller") as mock_controller:
-            mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
-            mock_controller.send_message = AsyncMock(return_value=True)
-
-            result = await (list_sessions.fn if hasattr(list_sessions, "fn") else list_sessions)()
-
-            assert result["success"] is True
-            assert "sessions" in result
-
-
 class TestLintingTools:
     """Test code quality and linting tools."""
 

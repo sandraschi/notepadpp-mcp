@@ -1,4 +1,4 @@
-# Web SOTA start — frontend 10814, FastAPI bridge 10815 (see mcp-central-docs WEBAPP_PORTS)
+﻿# Web SOTA start â€” frontend 10814, FastAPI bridge 10815 (see mcp-central-docs WEBAPP_PORTS)
 $WebPort = 10814
 $BackendPort = 10815
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -14,7 +14,7 @@ Set-Location $PSScriptRoot
 if (-not (Test-Path "node_modules")) { npm install }
 
 Write-Host "Starting backend (uvicorn) on $BackendPort ..." -ForegroundColor Cyan
-# Run from repo root with -WorkingDirectory so `uv run` resolves notepadpp_mcp — no PYTHONPATH (avoids quoting bugs in -Command).
+# Run from repo root with -WorkingDirectory so `uv run` resolves notepadpp_mcp â€” no PYTHONPATH (avoids quoting bugs in -Command).
 Start-Process powershell -WorkingDirectory $ProjectRoot -WindowStyle Normal -ArgumentList @(
     "-NoExit"
     "-Command"
@@ -52,9 +52,18 @@ $openBrowserJob = Start-Job -ScriptBlock {
 } -ArgumentList $WebPort, $WebUrl
 
 try {
+
+# 4b. Launch background task to open browser once frontend is ready (Auto-opened by Antigravity)
+$frontendUrl = "http://127.0.0.1:$WebPort/"
+$pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequest -Uri '$frontendUrl' -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop; Start-Process '$frontendUrl'; exit } catch { Start-Sleep -Seconds 1 } }"
+Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
+
+Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
     npm run dev -- --port $WebPort --host 127.0.0.1
 }
 finally {
     Stop-Job $openBrowserJob -ErrorAction SilentlyContinue
     Remove-Job $openBrowserJob -ErrorAction SilentlyContinue
 }
+
+

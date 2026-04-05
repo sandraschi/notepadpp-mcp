@@ -1,13 +1,18 @@
 """
 Session Operations Portmanteau Tool
 
-Consolidates session operations (save, load, list) into a unified interface.
+Persists named sessions as Notepad++-compatible session XML (see npp_session_store).
 """
 
-import time
+from __future__ import annotations
+
+import asyncio
 from typing import Any, Literal
 
 from fastmcp import FastMCP
+
+from .. import npp_session_store
+from ..editor_bridge import normalize_title_filename, try_resolve_path_from_hint
 
 
 class SessionOperationsTool:
@@ -26,18 +31,22 @@ class SessionOperationsTool:
             operation: Literal["save", "load", "list"],
             session_name: str | None = None,
         ) -> dict[str, Any]:
-            """SESSION_OPS — Save, load, or list Notepad++ workspace sessions.
+            """SESSION_OPS — Save, load, or list persisted Notepad++ workspace sessions.
 
-            PORTMANTEAU PATTERN RATIONALE: One tool for save/load/list (TOOL_DESIGN_STANDARDS.md §1).
+            PORTMANTEAU PATTERN RATIONALE: One tool for save/load/list (TOOL_DESIGN_STANDARDS.md).
+
+            Save copies Notepad++ live session.xml (all open buffers) into a named XML under the
+            MCP storage folder, loadable by Notepad++ via -openSession. If Live session is empty,
+            falls back to the active tab path when it resolves to a real file on disk.
 
             Operations:
-            - save: Persist workspace as session_name.
-            - load: Restore session_name.
-            - list: List saved session files.
+            - save: Copy current session to disk as session_name.xml.
+            - load: Run Notepad++ with -openSession on that saved file.
+            - list: List saved session files with paths and file counts.
 
             Args:
                 operation (Literal, required): "save" | "load" | "list".
-                session_name (str | None): Required for save and load.
+                session_name (str | None): Required for save and load (stem; .xml added automatically).
 
             Returns:
                 dict with success, operation, summary, result (paths, sessions, counts).
@@ -45,9 +54,10 @@ class SessionOperationsTool:
             Examples:
                 await session_ops("save", session_name="morning_work")
                 await session_ops("list")
+                await session_ops("load", session_name="morning_work")
 
             Errors:
-                Missing name, session not found, permissions, or Windows API unavailable.
+                Missing name, session not found, permissions, empty session, or Windows unavailable.
             """
             if not self.controller:
                 return {
@@ -65,7 +75,7 @@ class SessionOperationsTool:
                 await self.controller.ensure_notepadpp_running()
 
                 if operation == "save":
-                    if not session_name:
+                    if not session_name or not session_name.strip():
                         return {
                             "success": False,
                             "error": "session_name required for save operation",
@@ -79,48 +89,62 @@ class SessionOperationsTool:
                             },
                         }
 
-                    # Get current file info to save session state
-                    # Note: This would need to be imported from file_operations in a real implementation
-                    # For now, we'll simulate the file info
-                    file_info = {
-                        "success": True,
-                        "result": {
-                            "filename": "current_file.txt",  # Would be actual filename
-                            "is_modified": False,  # Would be actual modification status
-                        },
-                    }
+                    window_text = await self.controller.get_window_text(self.controller.hwnd)
+                    fallback: list[str] = []
+                    if " - Notepad++" in window_text:
+                        fn = normalize_title_filename(
+                            window_text.split(" - Notepad++")[0],
+                        )
+                        resolved = try_resolve_path_from_hint(fn)
+                        if resolved:
+                            fallback.append(resolved)
 
-                    session_data = {
-                        "name": session_name,
-                        "timestamp": time.time(),
-                        "files": [file_info.get("result", {}).get("filename", "Untitled")],
-                        "active_file": file_info.get("result", {}).get("filename", "Untitled"),
-                        "is_modified": file_info.get("result", {}).get("is_modified", False),
-                    }
+                    try:
+                        result = await asyncio.to_thread(
+                            npp_session_store.save_named_session,
+                            session_name.strip(),
+                            fallback_paths=fallback or None,
+                        )
+                    except ValueError as e:
+                        return {
+                            "success": False,
+                            "error": str(e),
+                            "operation": operation,
+                            "summary": "Session save failed",
+                            "recovery_options": [
+                                "Open at least one saved file in Notepad++ so session.xml lists paths",
+                                "Exit and restart Notepad++ once if session.xml is missing",
+                                "Set NOTEPADPP_LIVE_SESSION_XML if using a custom config directory",
+                            ],
+                        }
+                    except OSError as e:
+                        return {
+                            "success": False,
+                            "error": str(e),
+                            "operation": operation,
+                            "summary": "Session save failed - could not read or write session files",
+                            "recovery_options": [
+                                "Check permissions on %APPDATA%\\Notepad++",
+                                "Close other programs locking session.xml",
+                            ],
+                        }
 
-                    # In a real implementation, this would save to a session file
-                    # For now, we'll return the session data
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": f"Successfully saved session '{session_name}'",
-                        "result": {
-                            "session_name": session_name,
-                            "session_data": session_data,
-                            "saved": True,
-                        },
+                        "summary": (
+                            f"Saved session '{result['session_name']}' "
+                            f"({result['file_count']} file(s), source={result['source']})"
+                        ),
+                        "result": result,
                         "next_steps": [
-                            "Use session_ops list to see all saved sessions",
-                            "Use session_ops load to restore this session later",
+                            "Use session_ops list to see saved sessions",
+                            "Use session_ops load to open this session in Notepad++",
                         ],
-                        "context": {
-                            "persistence_note": "Session persistence requires additional file I/O implementation",
-                            "current_state": "In-memory only - sessions not persisted to disk",
-                        },
                     }
 
-                elif operation == "load":
-                    if not session_name:
+                if operation == "load":
+                    if not session_name or not session_name.strip():
                         return {
                             "success": False,
                             "error": "session_name required for load operation",
@@ -133,61 +157,64 @@ class SessionOperationsTool:
                                 }
                             },
                         }
-
-                    # In a real implementation, this would load from a session file
-                    # For now, we'll simulate loading a session
+                    try:
+                        out = await asyncio.to_thread(
+                            npp_session_store.load_session_subprocess,
+                            session_name.strip(),
+                            self.controller.notepadpp_exe,
+                        )
+                    except FileNotFoundError as e:
+                        return {
+                            "success": False,
+                            "error": str(e),
+                            "operation": operation,
+                            "summary": "Session load failed - file not found",
+                            "recovery_options": [
+                                "Use session_ops list to see valid session names",
+                                "Use session_ops save to create a session first",
+                            ],
+                        }
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": f"Successfully loaded session '{session_name}'",
+                        "summary": f"Started Notepad++ with saved session '{out['session_name']}'",
+                        "result": out,
+                        "next_steps": [
+                            "Use tab_ops list to verify open files",
+                            "If nothing opens, check Multi-instance settings in Notepad++ preferences",
+                        ],
+                    }
+
+                if operation == "list":
+                    rows = await asyncio.to_thread(npp_session_store.list_saved_sessions)
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": f"Found {len(rows)} saved session(s)",
                         "result": {
-                            "session_name": session_name,
-                            "loaded": True,
-                            "restored_files": [],  # Would contain actual file list
+                            "sessions": rows,
+                            "total_sessions": len(rows),
+                            "storage_dir": str(npp_session_store.session_storage_dir()),
                         },
                         "next_steps": [
-                            "Use tab_ops list to verify loaded files",
-                            "Continue working in the restored session",
+                            "Use session_ops load with a session name to open one",
+                            "Use session_ops save to add another named snapshot",
                         ],
-                        "context": {
-                            "restoration_note": "Full session restoration requires session file format implementation",
-                            "current_state": "Simulation only - no actual files restored",
-                        },
                     }
 
-                elif operation == "list":
-                    # In a real implementation, this would scan for session files
-                    # For now, we'll return a placeholder
-                    return {
-                        "success": True,
-                        "operation": operation,
-                        "summary": "Retrieved session list (currently empty)",
-                        "result": {"sessions": [], "total_sessions": 0},
-                        "next_steps": [
-                            "Use session_ops save to create your first session",
-                            "Sessions will appear here once persistence is implemented",
-                        ],
-                        "context": {
-                            "implementation_note": "Session listing requires file system scanning implementation",
-                            "current_state": "No sessions found - session persistence not yet implemented",
-                            "future_capabilities": "Will scan session directory for .session files",
-                        },
-                    }
-
-                else:
-                    return {
-                        "success": False,
-                        "error": f"Unknown operation: {operation}",
-                        "operation": operation,
-                        "summary": f"Session operation failed - unknown operation '{operation}'",
-                        "recovery_options": ["Use 'save', 'load', or 'list' operations"],
-                        "clarification_options": {
-                            "operation": {
-                                "description": "What session operation would you like to perform?",
-                                "options": ["save", "load", "list"],
-                            }
-                        },
-                    }
+                return {
+                    "success": False,
+                    "error": f"Unknown operation: {operation}",
+                    "operation": operation,
+                    "summary": f"Session operation failed - unknown operation '{operation}'",
+                    "recovery_options": ["Use 'save', 'load', or 'list' operations"],
+                    "clarification_options": {
+                        "operation": {
+                            "description": "What session operation would you like to perform?",
+                            "options": ["save", "load", "list"],
+                        }
+                    },
+                }
 
             except Exception as e:
                 return {

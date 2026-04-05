@@ -245,5 +245,5 @@ def setup_webapp(
     @app.get("/api/fleet")
     async def fleet_status(user: str = Depends(authenticate)) -> dict:
         """Probe registered fleet ports for /api/health (Apps Hub)."""
-        entries = await probe_fleet()
-        return {"fleet": entries}
+        entries, fleet_meta = await probe_fleet()
+        return {"fleet": entries, "fleet_meta": fleet_meta}

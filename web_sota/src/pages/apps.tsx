@@ -11,25 +11,47 @@ interface FleetEntry {
   health?: Record<string, unknown> | null;
 }
 
+interface FleetMeta {
+  total_ports_registered?: number;
+  ports_probed?: number;
+  truncated?: boolean;
+  max_ports_cap?: number;
+}
+
 export function Apps() {
   const [fleet, setFleet] = useState<FleetEntry[]>([]);
+  const [fleetMeta, setFleetMeta] = useState<FleetMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch("/api/fleet")
+    const ac = new AbortController();
+    const t = window.setTimeout(() => ac.abort(), 60000);
+    apiFetch("/api/fleet", { signal: ac.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: { fleet?: FleetEntry[] }) => {
+      .then((data: { fleet?: FleetEntry[]; fleet_meta?: FleetMeta }) => {
         setFleet(data.fleet ?? []);
+        setFleetMeta(data.fleet_meta ?? null);
         setLoading(false);
       })
-      .catch(() => {
-        setError("Fleet discovery failed (bridge on 10815?)");
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof DOMException && err.name === "AbortError"
+            ? "Fleet probe timed out (60s). Is the bridge on 10815 running?"
+            : "Fleet discovery failed (bridge on 10815? auth?)";
+        setError(msg);
         setLoading(false);
+      })
+      .finally(() => {
+        window.clearTimeout(t);
       });
+    return () => {
+      ac.abort();
+      window.clearTimeout(t);
+    };
   }, []);
 
   return (
@@ -40,6 +62,12 @@ export function Apps() {
       </div>
 
       {error && <p className="text-sm text-amber-400">{error}</p>}
+      {fleetMeta?.truncated && (
+        <p className="text-sm text-slate-500">
+          Showing {fleetMeta.ports_probed ?? fleet.length} of {fleetMeta.total_ports_registered} ports
+          (cap {fleetMeta.max_ports_cap}; set NOTEPADPP_FLEET_MAX_PORTS to raise).
+        </p>
+      )}
 
       <Card className="border-slate-800 bg-slate-950/50">
         <CardHeader>
