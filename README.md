@@ -1,5 +1,7 @@
 # Notepad++ MCP Server
 
+[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.1.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
+
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
@@ -7,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/sandraschi/notepadpp-mcp/releases)
 
-MCP server for **Notepad++** on **Windows**. Uses **FastMCP 3.1** with portmanteau tools (fewer tools, same coverage), optional **HTTP bridge**, **sampling** (Ollama-compatible HTTP or client LLM), **prompts**, **`skill://` resources**, and **agentic** workflows.
+MCP server for **Notepad++** on **Windows**. Uses **FastMCP 3.1.0** with portmanteau tools (fewer tools, same coverage), optional **HTTP bridge**, **sampling** (Ollama-compatible HTTP or client LLM), **prompts**, **`skill://` resources**, and **agentic** workflows.
 
 **Editor vs this repo:** Notepad++s own strengths (Scintilla, plugins, macros, sessions, ) are separate from what this MCP exposes. See **[docs/EDITOR_AND_MCP_SCOPE.md](docs/EDITOR_AND_MCP_SCOPE.md)** for a clear split and a fuller editor-side overview.
 
@@ -197,10 +199,21 @@ Older changelog bullets (multi-instance, plugin analytics, etc.) are folded into
 ## Changelog (short)
 
 - **0.2.x**  **`session_ops`** persists named sessions: copies live `session.xml`, loads via **`-openSession`** (see README section *Session snapshots*).
-- **0.2.0**  FastMCP 3.1, sampling, skills, prompts, agentic workflow, HTTP bridge + web hooks as implemented in `server.py`.
+- **0.2.0**  FastMCP 3.1.0, sampling, skills, prompts, agentic workflow, HTTP bridge + web hooks as implemented in `server.py`.
 - **Earlier**  Portmanteau tool consolidation, linting and plugin tooling.
 
 ---
+
+
+## 🛡️ Industrial Quality Stack
+
+This project adheres to **SOTA 14.1** industrial standards for high-fidelity agentic orchestration:
+
+- **Python (Core)**: [Ruff](https://astral.sh/ruff) for linting and formatting. Zero-tolerance for `print` statements in core handlers (`T201`).
+- **Webapp (UI)**: [Biome](https://biomejs.dev/) for sub-millisecond linting. Strict `noConsoleLog` enforcement.
+- **Protocol Compliance**: Hardened `stdout/stderr` isolation to ensure crash-resistant JSON-RPC communication.
+- **Automation**: [Justfile](./justfile) recipes for all fleet operations (`just lint`, `just fix`, `just dev`).
+- **Security**: Automated audits via `bandit` and `safety`.
 
 ## License
 

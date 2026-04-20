@@ -1,4 +1,14 @@
-﻿# Web SOTA start â€” frontend 10814, FastAPI bridge 10815 (see mcp-central-docs WEBAPP_PORTS)
+﻿Param([switch]$Headless)
+
+# --- SOTA Headless Standard ---
+if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
+    Start-Process pwsh -ArgumentList '-NoProfile', '-File', $PSCommandPath, '-Headless' -WindowStyle Hidden
+    exit
+}
+$WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
+# ------------------------------
+
+# Web SOTA start â€” frontend 10814, FastAPI bridge 10815 (see mcp-central-docs WEBAPP_PORTS)
 $WebPort = 10814
 $BackendPort = 10815
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -65,5 +75,6 @@ finally {
     Stop-Job $openBrowserJob -ErrorAction SilentlyContinue
     Remove-Job $openBrowserJob -ErrorAction SilentlyContinue
 }
+
 
 
