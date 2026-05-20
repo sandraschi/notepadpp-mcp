@@ -69,3 +69,5 @@ node_modules/
 help_output.txt
 # Rust / Zed IDE — rust-analyzer may create target/ at repo root
 target/
+
+_dashboard/

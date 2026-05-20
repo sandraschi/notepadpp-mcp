@@ -1,6 +1,11 @@
 # Notepad++ MCP Server
 
-[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.1.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
+<p align="center">
+  <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+</p>
 
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
@@ -25,6 +30,21 @@ MCP server for **Notepad++** on **Windows**. Uses **FastMCP 3.1.0** with portman
 | API | **pywin32** (pulled in on Windows) |
 
 ---
+
+## Quick Start
+
+```powershell
+git clone https://github.com/sandraschi/notepadpp-mcp
+cd notepadpp-mcp
+just
+```
+
+This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
+
+### Manual Setup
+
+If you don't have `just` installed:
+
 
 ## Installation
 
@@ -179,9 +199,29 @@ Work that is **planned or open**  good first issues for contributors:
 - [ ] **Linting**  HTML/CSS, optional config files for linters
 - [ ] **Config profiles**  server-side defaults (paths, timeouts, auto-start)
 - [ ] **Batch**  first-class batch file operations with progress reporting
-- [ ] **Web UI**  align docs with the actual dashboard package (e.g. `web_sota/`) and ports
-- [ ] **Tests / coverage**  raise coverage; keep CI green on Windows runners
-- [ ] **Macros**  curated XML snippets in-repo; optional read/list/merge for `%APPDATA%\Notepad++\shortcuts.xml` (see `docs/NOTEPADPP_MACROS.md`)
+- [ ] **Web UI** - Align docs with the actual dashboard package (e.g. `web_sota/`) and ports
+- [ ] **Tests / coverage** - Raise coverage; keep CI green on Windows runners
+- [ ] **Macros** - Curated XML snippets in-repo; optional read/list/merge for `%APPDATA%\Notepad++\shortcuts.xml` (see `docs/NOTEPADPP_MACROS.md`)
+
+---
+
+##  Webapp Dashboard
+
+This MCP server includes a free, premium web interface for monitoring and control.
+By default, the web dashboard runs on port **10814**.
+*(Assigned ports: **10814** (Web dashboard frontend), **10815** (Web dashboard backend (API)))*
+
+To start the webapp dashboard and backend:
+```powershell
+.\start.ps1
+```
+
+### Advanced Startup Flags
+- `-Headless`: Runs everything in the background (hidden windows).
+- `-BackendOnly`: Starts only the Python API server (no Vite frontend).
+- `-NoBrowser`: Prevents the automatic browser opening.
+
+Access the dashboard at `http://localhost:10814`.
 
 Older changelog bullets (multi-instance, plugin analytics, etc.) are folded into the list above where they still apply.
 

@@ -86,6 +86,23 @@ Skills: skill://notepadpp-mcp/SKILL.md. Prompts: prompt://notepadpp-mcp/*.
     strict_input_validation=True,
 )
 
+# MCP Bridge — Proxy external MCP servers via MCP_BRIDGE_URLS
+_bridge_proxies: list[str] = []
+bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
+if bridge_urls:
+    try:
+        from fastmcp.server import create_proxy
+        for url in bridge_urls.split(","):
+            url = url.strip()
+            if url:
+                try:
+                    mcp.add_provider(create_proxy(url))
+                    _bridge_proxies.append(url)
+                except Exception:
+                    pass
+    except ImportError:
+        pass
+
 # Initialize tool managers
 file_tool = FileOperationsTool(mcp, controller)
 text_tool = TextOperationsTool(mcp, controller)
