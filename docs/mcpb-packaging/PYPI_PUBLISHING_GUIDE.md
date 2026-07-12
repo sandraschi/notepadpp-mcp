@@ -2,7 +2,7 @@
 
 **Complete guide to publishing notepadpp-mcp on the Python Package Index (PyPI)**
 
-**Date**: October 8, 2025  
+**Date**: January 12, 2026  
 **Status**: Ready to publish  
 **Target**: Make `pip install notepadpp-mcp` work globally
 
@@ -781,7 +781,7 @@ https://pepy.tech/project/notepadpp-mcp
 ---
 
 *PyPI Publishing Guide*  
-*Created: October 8, 2025*  
+*Created: January 12, 2026*  
 *For: notepadpp-mcp v1.2.0*  
 *Status: Ready to publish*
 

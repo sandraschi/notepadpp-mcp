@@ -12,7 +12,7 @@ async def tool_name(operation: Literal[...], param1: type, param2: type = defaul
     PORTMANTEAU PATTERN RATIONALE:
     Instead of creating N separate tools (one per operation), this tool consolidates related
     operations into a single interface. Prevents tool explosion (N tools -> 1 tool) while maintaining
-    full functionality and improving discoverability. Follows FastMCP 2.14.1+ SOTA standards.
+    full functionality and improving discoverability. Follows FastMCP 3.4.2+ SOTA standards.
 
     Supported Operations:
     - [High-level operation 1]
@@ -45,7 +45,7 @@ async def tool_name(operation: Literal[...], param1: type, param2: type = defaul
             Default: [default_value]. Valid values: [valid_values]
 
     Returns:
-        **FastMCP 2.14.1+ Conversational Response Structure:**
+        **FastMCP 3.4.2+ Conversational Response Structure:**
 
         ```json
         {

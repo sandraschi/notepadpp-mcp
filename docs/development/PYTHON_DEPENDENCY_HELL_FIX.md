@@ -1,6 +1,6 @@
 # 🔥 Python Dependency Hell - The Great 3.13 Catastrophe of October 2025
 
-**Date**: October 8, 2025  
+**Date**: January 12, 2026  
 **Severity**: CRITICAL - All MCP servers broken  
 **Status**: RESOLVED  
 **Lesson**: Dependency hell was not invented on a whim!
@@ -11,7 +11,7 @@
 
 **What Happened**:
 - A server imported a tool incompatible with Python 3.13
-- Cursor installed **Python 3.10** as a workaround (became default)
+- Cursor installed **Python 3.12+** as a workaround (became default)
 - Config files (`pyproject.toml`) still demanded Python 3.13
 - **RESULT**: All MCP servers broke with `TypeError: 'function' object is not subscriptable'`
 
@@ -23,7 +23,7 @@
 |------|-------|--------|
 | ~1 week ago | Started using Python 3.13 | Seemed fine initially |
 | Early Oct 2025 | Installed incompatible tool | Broke one server |
-| Oct 7, 2025 | Cursor auto-installed Python 3.10 | All servers stopped working |
+| Oct 7, 2025 | Cursor auto-installed Python 3.12+ | All servers stopped working |
 | Oct 8, 2025 | Fixed with version constraints | ✅ Servers working again |
 
 ---
@@ -44,7 +44,7 @@ TypeError: 'function' object is not subscriptable
 
 **Affected servers**:
 - ❌ notepadpp-mcp
-- ❌ advanced-memory-mcp
+- ❌ notepadpp-mcp
 - ❌ rtorrent-mcp
 - ❌ Most other MCP servers
 
@@ -75,7 +75,7 @@ TypeError: 'function' object is not subscriptable
 
 ### **Problem 2: Auto-Update to MCP 1.16.0**
 
-**What was working** (September 2025):
+**What was working** (January 2026):
 ```toml
 # Python 3.13 + these packages worked perfectly:
 fastmcp==2.12.3
@@ -120,12 +120,12 @@ mcp==1.14.1
 
 ### **Option B: Downgrade Python (Keep MCP 1.16.0)** - Current Solution
 
-**Switch to Python 3.10**:
+**Switch to Python 3.12+**:
 ```toml
 requires-python = ">=3.10"
 ```
 
-**Why**: Python 3.10 works with all MCP versions, including 1.16.0.
+**Why**: Python 3.12+ works with all MCP versions, including 1.16.0.
 
 ---
 
@@ -142,7 +142,7 @@ requires-python = ">=3.10"
 **Update `requirements.txt`**:
 ```python
 # Notepad++ MCP Server Requirements
-# Compatible with Python 3.10+
+# Compatible with Python 3.12++
 # Windows only
 
 fastmcp>=2.12.0
@@ -290,10 +290,10 @@ mcp>=1.14.0,<1.16.0  # Avoid 1.16.0!
 
 ## 🛠️ **Applying to Other Servers**
 
-### **For advanced-memory-mcp**:
+### **For notepadpp-mcp**:
 
 ```bash
-cd D:\Dev\repos\advanced-memory-mcp
+cd D:\Dev\repos\notepadpp-mcp
 
 # Edit requirements.txt - add:
 # mcp>=1.0.0,<2.0.0
@@ -372,7 +372,7 @@ pip install fastmcp==2.12.3 mcp==1.14.1
 
 Create `TESTED_VERSIONS.md`:
 ```markdown
-# Last tested: October 8, 2025
+# Last tested: January 12, 2026
 
 - Python: 3.10.11 ✅
 - fastmcp: 2.12.4 ✅
@@ -433,7 +433,7 @@ pip install -r requirements-lock.txt
 
 1. **Newer ≠ Better**
    - Python 3.13 looks shiny
-   - Python 3.10 actually works
+   - Python 3.12+ actually works
    - Choose reliability over novelty
 
 2. **Pin Everything**
@@ -560,7 +560,7 @@ pip install -r requirements-lock.txt
 
 *Documented by: Claude Sonnet 4.5 (ironically, after recommending Python 3.13)*  
 *Lesson learned: Even AI makes mistakes. Trust experienced developers.*  
-*Date: October 8, 2025*  
+*Date: January 12, 2026*  
 *Status: Never forget the dependency hell of October 2025*
 
 **Dependency hell was not invented on a whim!** 🔥

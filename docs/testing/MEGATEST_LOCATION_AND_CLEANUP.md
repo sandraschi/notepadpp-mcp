@@ -93,7 +93,7 @@ if config.location == "visible":
 
 **Paths**:
 - `{repo}/test-results/megatest/{timestamp}/`
-- Example: `advanced-memory-mcp/test-results/megatest/2025-10-15_14-30-45/`
+- Example: `notepadpp-mcp/test-results/megatest/2026-01-12_14-30-45/`
 
 **Pros**:
 - ✅ Easy to find (same directory as code)
@@ -245,15 +245,15 @@ def isolated_test_env(request):
 **Directory structure**:
 ```
 ~/Documents/megatest-results/
-├── 2025-10-15_09-30-45_smoke_PASS/
+├── 2026-01-12_09-30-45_smoke_PASS/
 │   ├── test_data/
 │   ├── artifacts/
 │   └── report.html
-├── 2025-10-15_10-15-22_standard_PASS/
+├── 2026-01-12_10-15-22_standard_PASS/
 │   ├── test_data/
 │   ├── artifacts/
 │   └── report.html
-├── 2025-10-15_14-45-10_full_FAIL/
+├── 2026-01-12_14-45-10_full_FAIL/
 │   ├── test_data/
 │   ├── artifacts/
 │   ├── report.html
@@ -334,7 +334,7 @@ def isolated_test_env(request):
 **Directory structure**:
 ```
 ~/Documents/megatest-results/
-├── 2025-10-15_smoke_PASS/          (kept: recent)
+├── 2026-01-12_smoke_PASS/          (kept: recent)
 ├── 2025-10-14_smoke_PASS/          (kept: recent)
 ├── 2025-10-13_standard_FAIL/       (kept: failure)
 ├── 2025-10-10_full_PASS/           (kept: level 5)
@@ -625,7 +625,7 @@ def isolated_test_env(request):
 ### Visible (Documents) - After Runs
 ```
 ~/Documents/megatest-results/
-├── 2025-10-15_09-30-45_smoke_PASS/
+├── 2026-01-12_09-30-45_smoke_PASS/
 │   ├── test_data/
 │   │   ├── test_personal/
 │   │   │   ├── note1.md
@@ -637,7 +637,7 @@ def isolated_test_env(request):
 │   │   └── screenshots/
 │   └── megatest_report.html
 │
-├── 2025-10-15_14-30-00_full_PASS/
+├── 2026-01-12_14-30-00_full_PASS/
 │   ├── test_data/ (100+ notes)
 │   ├── artifacts/
 │   │   ├── docsify_export/ (working site)
@@ -658,7 +658,7 @@ def isolated_test_env(request):
 {
   "runs": [
     {
-      "timestamp": "2025-10-15_09-30-45",
+      "timestamp": "2026-01-12_09-30-45",
       "level": "smoke",
       "status": "PASS",
       "duration_seconds": 125,
@@ -667,7 +667,7 @@ def isolated_test_env(request):
       "artifacts_size_mb": 2.3
     },
     {
-      "timestamp": "2025-10-15_14-30-00",
+      "timestamp": "2026-01-12_14-30-00",
       "level": "full",
       "status": "PASS",
       "duration_seconds": 5420,
@@ -681,12 +681,12 @@ def isolated_test_env(request):
 
 ### Local (Repo) - Gitignored
 ```
-advanced-memory-mcp/
+notepadpp-mcp/
 ├── .gitignore  (includes test-results/)
 ├── test-results/
 │   └── megatest/
-│       ├── 2025-10-15_09-30-45/
-│       └── 2025-10-15_14-30-00/
+│       ├── 2026-01-12_09-30-45/
+│       └── 2026-01-12_14-30-00/
 └── (rest of repo)
 
 # .gitignore
@@ -729,7 +729,7 @@ export MEGATEST_CLEANUP=archive
 pytest tests/megatest/ -m megatest_full
 
 # Result:
-# → ~/Documents/megatest-results/2025-10-15_14-30-00_full_PASS/
+# → ~/Documents/megatest-results/2026-01-12_14-30-00_full_PASS/
 # → Contains all artifacts, screenshots, reports
 # → Permanent record of release validation
 ```
@@ -906,7 +906,7 @@ MEGATEST_LOCATION=hidden MEGATEST_CLEANUP=immediate pytest tests/megatest/ -m me
 
 ---
 
-*Location and cleanup guide created: October 15, 2025*
+*Location and cleanup guide created: January 12, 2026*
 *Flexible by design, safe by default*
 *Your testing ground, your choice!*
 

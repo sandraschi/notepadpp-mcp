@@ -1,14 +1,14 @@
 # Notepad++ MCP Upgrade Summary
 
-**Date**: 2025-12-29  
-**Upgraded From**: FastMCP 2.12.0  
-**Upgraded To**: FastMCP 2.14.1  
+**Date**: 2026-01-12  
+**Upgraded From**: FastMCP 3.4.2  
+**Upgraded To**: FastMCP 3.4.2  
 **Status**: ✅ Complete
 
 ## Upgrade Checklist
 
-### ✅ FastMCP 2.14.1 Upgrade
-- [x] Updated `pyproject.toml` to `fastmcp>=2.14.1,<2.15.0`
+### ✅ FastMCP 3.4.2 Upgrade
+- [x] Updated `pyproject.toml` to `fastmcp>=3.4.2,<2.15.0`
 - [x] Changed `app.run()` to `app.run_stdio_async()` in server.py
 - [x] Added server lifespan with `@asynccontextmanager` decorator
 - [x] Added comprehensive `instructions` parameter to FastMCP constructor
@@ -34,7 +34,7 @@
 - [x] Added complete metadata (version, author, tags, categories)
 - [x] Configured capabilities (tools enabled, resources/prompts disabled)
 - [x] Set proper timeouts (initialize: 30000ms, message: 60000ms)
-- [x] Updated framework version to FastMCP 2.14.1
+- [x] Updated framework version to FastMCP 3.4.2
 
 ### ✅ Test Harness Enhancement
 - [x] Created `pytest.ini` configuration file
@@ -43,7 +43,7 @@
 - [x] Updated CI/CD workflow already exists and is compatible
 
 ### ✅ Documentation
-- [x] Updated main `README.md` with FastMCP 2.14.1 references
+- [x] Updated main `README.md` with FastMCP 3.4.2 references
 - [x] Updated badges and version information
 - [x] Added Beta status note
 - [x] Updated development commands section
@@ -68,13 +68,13 @@
 
 ## Standards Compliance
 
-✅ **FastMCP 2.14.1**: Fully compliant  
+✅ **FastMCP 3.4.2**: Fully compliant  
 ✅ **Structured Logging**: JSON output to stderr only  
 ✅ **Server Lifespan**: Startup/shutdown lifecycle implemented  
 ✅ **Enhanced Instructions**: Comprehensive server-level documentation  
 ✅ **Code Quality**: All ruff linting issues resolved  
 ✅ **Test Harness**: Enhanced pytest configuration and Makefile commands  
-✅ **Documentation**: Updated to reflect FastMCP 2.14.1
+✅ **Documentation**: Updated to reflect FastMCP 3.4.2
 
 ## Testing
 

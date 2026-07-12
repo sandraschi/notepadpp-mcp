@@ -537,7 +537,7 @@ your-mcp/
 
 ### FastMCP Server Best Practices
 
-- Use FastMCP 2.12.0 or later
+- Use FastMCP 3.4.2 or later
 - Implement proper signal handling
 - Use structured logging
 - Handle all exceptions gracefully
@@ -1002,7 +1002,7 @@ httpx>=0.24.0
   "name": "example-mcp",
   "version": "1.0.0",
   "description": "Example MCP server with external tool integration",
-  "long_description": "Comprehensive MCP server that demonstrates proper external dependency handling, user configuration, and professional tool integration patterns using FastMCP 2.12.0+.",
+  "long_description": "Comprehensive MCP server that demonstrates proper external dependency handling, user configuration, and professional tool integration patterns using FastMCP 3.4.2+.",
   "author": {
     "name": "Sandra Schi",
     "email": "sandra@sandraschi.dev",
@@ -1422,7 +1422,7 @@ ImportError: cannot import name 'FastMCP' from 'fastmcp'
 AttributeError: 'FastMCP' object has no attribute 'some_method'
 ```
 
-#### Solution: Update to FastMCP 2.12.0+
+#### Solution: Update to FastMCP 3.4.2+
 
 ```bash
 # Uninstall old version
@@ -1798,7 +1798,7 @@ mcpb pack . ../package.mcpb
 
 ### Critical Updates
 
-1. **FastMCP 2.12.0 Requirement**: Mandatory for MCPB compatibility
+1. **FastMCP 3.4.2 Requirement**: Mandatory for MCPB compatibility
 2. **Python Path Fix**: Explicit `cwd` and `PYTHONPATH` configuration
 3. **Updated Examples**: All examples include new requirements
 4. **Enhanced Troubleshooting**: Manual MCP fallback procedures

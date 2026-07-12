@@ -1,6 +1,6 @@
 # Robust Link Parser - Complete Solution
 
-**Date:** October 10, 2025  
+**Date:** January 12, 2026  
 **Problem:** write_note fails on large notes with many links  
 **Solution:** Timeout-safe, limit-enforcing link parser
 
@@ -764,5 +764,5 @@ save_note(content, links=result.links if result.is_valid else [])
 
 ---
 
-*From catastrophic backtracking to linear time - October 10, 2025*
+*From catastrophic backtracking to linear time - January 12, 2026*
 

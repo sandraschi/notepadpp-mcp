@@ -52,9 +52,9 @@ git commit -m "feat: improved search"
 ### Output Location
 ```
 repo/test-results/megatest/
-├── 2025-10-15_09-30-45/  (deleted - passed)
-├── 2025-10-15_10-15-20/  (deleted - passed)
-└── 2025-10-15_11-45-30/  (KEPT - failed, for debugging)
+├── 2026-01-12_09-30-45/  (deleted - passed)
+├── 2026-01-12_10-15-20/  (deleted - passed)
+└── 2026-01-12_11-45-30/  (KEPT - failed, for debugging)
     ├── test_data/
     ├── artifacts/
     ├── logs/
@@ -352,7 +352,7 @@ When a user installs your MCPB (e.g., in Claude Desktop):
 
 ```bash
 # User installs your MCPB
-# Drag-and-drop advanced-memory-mcp.mcpb into Claude Desktop
+# Drag-and-drop notepadpp-mcp.mcpb into Claude Desktop
 # Or: Install via marketplace
 ```
 
@@ -384,7 +384,7 @@ export MEGATEST_CLEANUP=archive
 
 #### Before Validation
 ```
-User: "I installed Advanced Memory MCP via MCPB..."
+User: "I installed Notepad++ MCP via MCPB..."
 User: "...but how do I know it's working?"
 ```
 
@@ -393,7 +393,7 @@ User: "...but how do I know it's working?"
 $ advanced-memory validate
 
 ╔══════════════════════════════════════════════════════════╗
-║          ADVANCED MEMORY VALIDATION TEST                 ║
+║          NOTEPAD++ MCP VALIDATION TEST                 ║
 ╠══════════════════════════════════════════════════════════╣
 ║ This will test your installation is working correctly   ║
 ║ Time: ~2 minutes                                         ║
@@ -424,14 +424,14 @@ $ advanced-memory validate
 ║ Report saved to:                                         ║
 ║ C:\Users\sandr\Documents\megatest-results\...            ║
 ║                                                          ║
-║ 🎉 Advanced Memory MCP is ready to use!                 ║
+║ 🎉 Notepad++ MCP is ready to use!                 ║
 ╚══════════════════════════════════════════════════════════╝
 ```
 
 #### After Validation
 ```
 User: "WOW! It actually works! I can see the test results!"
-User: *Opens Documents/megatest-results/2025-10-15_validation_PASS/*
+User: *Opens Documents/megatest-results/2026-01-12_validation_PASS/*
 User: *Sees generated test notes, artifacts, HTML report*
 User: "This MCP server is HIGH QUALITY - they test everything!"
 ```
@@ -490,12 +490,12 @@ def validate(
     open_report: bool = typer.Option(True, help="Open HTML report after completion"),
 ):
     """
-    Validate your Advanced Memory installation.
+    Validate your Notepad++ MCP installation.
     
     This runs a comprehensive test to ensure everything is working correctly.
     Test data is created in an isolated environment (safe).
     """
-    console.print("\n[bold cyan]Advanced Memory Validation Test[/bold cyan]")
+    console.print("\n[bold cyan]Notepad++ MCP Validation Test[/bold cyan]")
     console.print("=" * 60)
     console.print(f"Level: {level}")
     console.print(f"Time: ~{get_level_time(level)}")
@@ -517,7 +517,7 @@ def validate(
     # Display results
     if result.returncode == 0:
         console.print("\n[bold green]✅ VALIDATION PASSED[/bold green]")
-        console.print("\n🎉 Your Advanced Memory installation is working perfectly!")
+        console.print("\n🎉 Your Notepad++ MCP installation is working perfectly!")
         
         if keep_artifacts:
             report_path = find_latest_report()
@@ -541,7 +541,7 @@ def validate(
 ```markdown
 ## Installation Validation
 
-After installing Advanced Memory MCP, validate it works:
+After installing Notepad++ MCP, validate it works:
 
 \`\`\`bash
 # Quick validation (2 minutes)
@@ -698,7 +698,7 @@ for test in track(tests, description="Running tests..."):
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Advanced Memory Validation Report</title>
+    <title>Notepad++ MCP Validation Report</title>
     <style>
         body { font-family: system-ui; max-width: 1200px; margin: 0 auto; padding: 20px; }
         .pass { color: green; }
@@ -707,14 +707,14 @@ for test in track(tests, description="Running tests..."):
     </style>
 </head>
 <body>
-    <h1>🎉 Advanced Memory Validation Report</h1>
+    <h1>🎉 Notepad++ MCP Validation Report</h1>
     
     <div class="summary">
         <h2>Summary</h2>
         <p><strong>Status:</strong> <span class="pass">✅ ALL TESTS PASSED</span></p>
         <p><strong>Tests Run:</strong> 10/10</p>
         <p><strong>Duration:</strong> 2m 15s</p>
-        <p><strong>Timestamp:</strong> 2025-10-15 14:30:45</p>
+        <p><strong>Timestamp:</strong> 2026-01-12 14:30:45</p>
     </div>
     
     <h2>Test Results</h2>
@@ -733,7 +733,7 @@ for test in track(tests, description="Running tests..."):
     </ul>
     
     <h2>What This Means</h2>
-    <p><strong>✅ Your Advanced Memory installation is working correctly!</strong></p>
+    <p><strong>✅ Your Notepad++ MCP installation is working correctly!</strong></p>
     <p>You can now use it with confidence. All core features have been validated.</p>
 </body>
 </html>
@@ -744,7 +744,7 @@ for test in track(tests, description="Running tests..."):
 User can inspect test artifacts to see capabilities:
 
 ```
-~/Documents/megatest-results/2025-10-15_validation_PASS/
+~/Documents/megatest-results/2026-01-12_validation_PASS/
 ├── test_data/
 │   ├── sample_note_1.md  ← User can read these
 │   ├── sample_note_2.md
@@ -767,7 +767,7 @@ User can inspect test artifacts to see capabilities:
 **When user reports issues**:
 
 ```
-User: "Advanced Memory doesn't work for me"
+User: "Notepad++ MCP doesn't work for me"
 Support: "Please run: advanced-memory validate"
 Support: "Send the report from Documents/megatest-results/"
 
@@ -794,7 +794,7 @@ Support: "I see the issue - you need to install X dependency"
 #### manifest.json
 ```json
 {
-  "name": "advanced-memory-mcp",
+  "name": "notepadpp-mcp",
   "version": "0.13.0",
   "mcpServers": {
     "advanced-memory": {
@@ -859,7 +859,7 @@ This will:
 ### Use Case 1: Developer (You)
 ```bash
 # Monday morning: Quick check
-cd advanced-memory-mcp
+cd notepadpp-mcp
 pytest tests/megatest/ -m megatest_smoke  # 2 min
 
 # Tuesday: Before PR
@@ -903,7 +903,7 @@ $ npm run validate
 
 # Result: 2 minutes later
 ✅ ALL TESTS PASSED
-📊 Report: Documents/megatest-results/2025-10-15_validation_PASS/
+📊 Report: Documents/megatest-results/2026-01-12_validation_PASS/
 🎉 Your installation is working perfectly!
 
 # User opens report, sees:
@@ -978,8 +978,8 @@ User: "Best MCP server I've found - has built-in validation!"
 ### Scenario 1: New User Install
 ```bash
 # User just installed MCPB
-User: *Drags advanced-memory-mcp.mcpb into Claude*
-User: *Sees "Advanced Memory installed"*
+User: *Drags notepadpp-mcp.mcpb into Claude*
+User: *Sees "Notepad++ MCP installed"*
 User: "Let me validate it works..."
 User: $ advanced-memory validate
 
@@ -1067,7 +1067,7 @@ Instead of wondering "Does this work?", they can **PROVE it works** in 2 minutes
 
 ---
 
-*Three use cases documented: October 15, 2025*
+*Three use cases documented: January 12, 2026*
 *Development + GitHub + User Validation = Complete coverage*
 *Your megatest framework serves everyone!*
 

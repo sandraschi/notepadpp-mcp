@@ -1,6 +1,6 @@
 # Serena MCP - Complete Installation & Usage Guide
 
-**Date:** 2025-10-09  
+**Date:** 2026-01-12  
 **Status:** Production-ready FOSS project  
 **GitHub:** https://github.com/oraios/serena  
 **Stars:** 9.8k+ (very active!)
@@ -68,7 +68,7 @@
 ### Prerequisites
 
 **Required:**
-- Python 3.10+ (you have 3.13 ✅)
+- Python 3.12++ (you have 3.13 ✅)
 - `uv` package manager (Python's new fast package tool)
 
 **Install uv (Windows PowerShell):**

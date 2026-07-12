@@ -2,7 +2,7 @@
 
 **When to Docker and When NOT to Docker**  
 **Based on Real Project Experience**  
-**Timeline**: September 2025
+**Timeline**: January 2026
 
 ---
 

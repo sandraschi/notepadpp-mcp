@@ -28,7 +28,7 @@ This project follows a code of conduct to ensure a welcoming environment for all
 
 ### Prerequisites
 
-- **Python 3.10+** installed
+- **Python 3.12++** installed
 - **Windows 10/11** (required for full functionality)
 - **Notepad++ 8.0+** installed
 - **Git** for version control

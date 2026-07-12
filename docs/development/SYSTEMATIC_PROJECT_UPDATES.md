@@ -2,7 +2,7 @@
 
 **The Challenge of Comprehensive Changes**  
 **Based on Real FastMCP 2.12 Migration Experience**  
-**Timeline**: September 2025
+**Timeline**: January 2026
 
 ---
 

@@ -129,8 +129,8 @@ npm run validate
 
 #### Installation
 ```bash
-User: *Drags advanced-memory-mcp.mcpb into Claude Desktop*
-Claude: "Advanced Memory MCP installed ✅"
+User: *Drags notepadpp-mcp.mcpb into Claude Desktop*
+Claude: "Notepad++ MCP installed ✅"
 User: "How do I know it actually works?"
 ```
 
@@ -139,7 +139,7 @@ User: "How do I know it actually works?"
 User: $ advanced-memory validate
 
 ╔══════════════════════════════════════════════════════════╗
-║          ADVANCED MEMORY VALIDATION TEST                 ║
+║          NOTEPAD++ MCP VALIDATION TEST                 ║
 ╠══════════════════════════════════════════════════════════╣
 ║ Testing your installation...                             ║
 ║ Time: ~2 minutes                                         ║
@@ -169,11 +169,11 @@ User: $ advanced-memory validate
 ║                                                          ║
 ║ 📊 Detailed report saved to:                            ║
 ║ C:\Users\sandr\Documents\megatest-results\               ║
-║ 2025-10-15_validation_PASS\megatest_report.html         ║
+║ 2026-01-12_validation_PASS\megatest_report.html         ║
 ║                                                          ║
 ║ Opening report in browser...                             ║
 ║                                                          ║
-║ 🎉 Advanced Memory MCP is ready to use!                 ║
+║ 🎉 Notepad++ MCP is ready to use!                 ║
 ╚══════════════════════════════════════════════════════════╝
 
 *Browser opens with beautiful HTML report*
@@ -193,11 +193,11 @@ User: "Everyone should use this MCP - it has built-in validation!"
 ### Marketing Power
 
 **Instead of**:
-> "Advanced Memory MCP - A knowledge management tool"
+> "Notepad++ MCP - A knowledge management tool"
 > (User thinks: "Yeah, like all the others...")
 
 **You say**:
-> "Advanced Memory MCP - **The only MCP with built-in validation!**"
+> "Notepad++ MCP - **The only MCP with built-in validation!**"
 > 
 > After installation, run `advanced-memory validate` to **prove it works**.
 > 
@@ -262,7 +262,7 @@ Support: *Issue resolved in 5 minutes*
 ### In manifest.json
 ```json
 {
-  "name": "advanced-memory-mcp",
+  "name": "notepadpp-mcp",
   "version": "0.13.0",
   "description": "Knowledge management with built-in validation testing",
   "scripts": {
@@ -321,7 +321,7 @@ npm run validate-full
 > Unlike other MCP servers, we're **confident enough** to let you test everything yourself.
 
 **On Social Media**:
-> 🎉 Just released Advanced Memory MCP v0.13.0
+> 🎉 Just released Notepad++ MCP v0.13.0
 > 
 > **NEW**: Built-in validation testing!
 > 
@@ -330,7 +330,7 @@ npm run validate-full
 > No other MCP server does this. Quality you can verify! ✅
 
 **On Website**:
-> ### Why Choose Advanced Memory?
+> ### Why Choose Notepad++ MCP?
 > 
 > **We test. You verify. Together, we trust.** ✅
 > 
@@ -410,7 +410,7 @@ npm run validate-full
 cd virtualization-mcp
 
 # Copy universal guide
-cp ../advanced-memory-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
+cp ../notepadpp-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
 
 # Customize production paths
 # Edit tests/megatest/conftest.py:
@@ -429,7 +429,7 @@ PRODUCTION_PATHS = [
 cd avatar-mcp
 
 # Copy universal guide
-cp ../advanced-memory-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
+cp ../notepadpp-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
 
 # Customize production paths
 PRODUCTION_PATHS = [
@@ -446,7 +446,7 @@ PRODUCTION_PATHS = [
 cd database-mcp
 
 # Copy universal guide
-cp ../advanced-memory-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
+cp ../notepadpp-mcp/docs/testing/UNIVERSAL_MCP_MEGATEST_GUIDE.md docs/testing/
 
 # Customize production paths
 PRODUCTION_PATHS = [
@@ -491,7 +491,7 @@ User: "This is professional software!"
 
 ### User Testimonials (Anticipated)
 
-> "I've tried 10 different MCP servers. Advanced Memory is the **ONLY one** 
+> "I've tried 10 different MCP servers. Notepad++ MCP is the **ONLY one** 
 > that let me validate it works. That shows real confidence in their code!" 
 > ⭐⭐⭐⭐⭐
 
@@ -591,7 +591,7 @@ A **universal, multi-level, production-safe** testing framework that:
 - **Implementation roadmap**
 
 ### Applicability
-- ✅ Advanced Memory MCP (this repo)
+- ✅ Notepad++ MCP (this repo)
 - ✅ Virtualization MCP (ready to deploy)
 - ✅ Avatar MCP (ready to deploy)
 - ✅ Database MCP (ready to deploy)
@@ -601,7 +601,7 @@ A **universal, multi-level, production-safe** testing framework that:
 
 ## 🎯 Next Actions
 
-### For Advanced Memory MCP
+### For Notepad++ MCP
 1. Implement Level 1 (smoke tests) - Week 1
 2. Add `advanced-memory validate` CLI - Week 2
 3. Add to MCPB scripts - Week 2
@@ -663,7 +663,7 @@ The **Universal MCP Megatest Framework** is a **game-changer** for MCP server de
 
 ---
 
-*Framework completed: October 15, 2025*
+*Framework completed: January 12, 2026*
 *Documentation: 4,060 lines across 6 guides*
 *Universal applicability: ALL MCP servers*
 *Killer feature: User validation*

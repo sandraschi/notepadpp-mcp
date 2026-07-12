@@ -2,7 +2,7 @@
 
 **From Specialist Territory to 5-Minute Setup**  
 **Grafana + Prometheus + Loki + Promtail with AI + Docker**  
-**Timeline**: September 2025
+**Timeline**: January 2026
 
 ---
 

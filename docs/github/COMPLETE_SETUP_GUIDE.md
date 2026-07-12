@@ -2,7 +2,7 @@
 
 > **6 hours of pain distilled into 30 minutes of setup** 
 > 
-> Everything we learned fixing advanced-memory-mcp from broken to production-ready.
+> Everything we learned fixing notepadpp-mcp from broken to production-ready.
 
 ---
 
@@ -81,7 +81,7 @@
 ### Step 1: Copy Files (5 min)
 
 ```bash
-# From advanced-memory-mcp repo:
+# From notepadpp-mcp repo:
 NEW_REPO=/path/to/new-repo
 
 # Copy workflow files
@@ -150,7 +150,7 @@ Search and replace in `.github/workflows/*.yml`:
 
 1. **Project name**:
    - Replace `advanced-memory` → `your-project`
-   - Replace `sandraschi/advanced-memory-mcp` → `your-org/your-repo`
+   - Replace `sandraschi/notepadpp-mcp` → `your-org/your-repo`
 
 2. **Python version** (if different):
    - Replace `PYTHON_VERSION: "3.12"` → Your version
@@ -193,7 +193,7 @@ uv run twine check dist/*
 git add -A
 git commit -m "chore: set up GitHub Actions with proven config
 
-Copied from advanced-memory-mcp complete setup including:
+Copied from notepadpp-mcp complete setup including:
 - CI/CD workflows (lint, test, build, security)
 - Release automation
 - Complete dev-dependencies
@@ -532,7 +532,7 @@ All guides in `docs/github/`:
 #!/bin/bash
 # copy-github-setup.sh
 
-SOURCE="/path/to/advanced-memory-mcp"
+SOURCE="/path/to/notepadpp-mcp"
 TARGET="/path/to/new-repo"
 
 # Copy workflows
@@ -558,9 +558,9 @@ Search and replace in copied files:
 | Find | Replace With |
 |------|-------------|
 | `advanced-memory` | `your-project` |
-| `sandraschi/advanced-memory-mcp` | `your-org/your-repo` |
+| `sandraschi/notepadpp-mcp` | `your-org/your-repo` |
 | `advanced_memory` | `your_package` |
-| `Advanced Memory` | `Your Project Name` |
+| `Notepad++ MCP` | `Your Project Name` |
 
 ---
 
@@ -772,12 +772,12 @@ Your repo can have:
 
 ## 📝 Credits
 
-**Created**: October 15, 2025  
-**Based on**: advanced-memory-mcp production release odyssey  
+**Created**: January 12, 2026  
+**Based on**: notepadpp-mcp production release odyssey  
 **By**: Claude AI & Sandra (Human-AI collaboration)  
 **Time Investment**: 6 hours debugging → 8,000 words documentation  
 **Goal**: Save everyone else 5+ hours per project  
 
-**License**: Same as Advanced Memory (AGPL-3.0)  
+**License**: Same as Notepad++ MCP (AGPL-3.0)  
 **Status**: Battle-tested and production-proven! ✅
 

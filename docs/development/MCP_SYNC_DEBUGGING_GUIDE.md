@@ -7,7 +7,7 @@
 
 ## The Problem
 
-MCP servers with file watching (like advanced-memory-mcp, basic-memory-mcp) can fail silently:
+MCP servers with file watching (like notepadpp-mcp, notepadpp-mcp) can fail silently:
 - ✅ Server starts successfully
 - ✅ Tools register properly
 - ❌ File watcher never starts
@@ -498,7 +498,7 @@ When sync appears stuck:
 ## Related Issues
 
 - Advanced-memory-mcp sync stuck (2025-10-10)
-- Similar issue in basic-memory-mcp (resolved with better logging)
+- Similar issue in notepadpp-mcp (resolved with better logging)
 - Watchdog library issues on Windows (known bug)
 
 ---

@@ -3,8 +3,8 @@
 <p align="center">
   <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
-  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
-  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.4.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
 </p>
 
 
@@ -13,11 +13,11 @@
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.1-green.svg)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.4.2-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/sandraschi/notepadpp-mcp/releases)
 
-MCP server for **Notepad++** on **Windows**. Uses **FastMCP 3.1.0** with portmanteau tools (fewer tools, same coverage), optional **HTTP bridge**, **sampling** (Ollama-compatible HTTP or client LLM), **prompts**, **`skill://` resources**, and **agentic** workflows.
+MCP server for **Notepad++** on **Windows**. Uses **FastMCP 3.4.2** with portmanteau tools (fewer tools, same coverage), optional **HTTP bridge**, **sampling** (Ollama-compatible HTTP or client LLM), **prompts**, **`skill://` resources**, and **agentic** workflows.
 
 **Editor vs this repo:** Notepad++s own strengths (Scintilla, plugins, macros, sessions, ) are separate from what this MCP exposes. See **[docs/EDITOR_AND_MCP_SCOPE.md](docs/EDITOR_AND_MCP_SCOPE.md)** for a clear split and a fuller editor-side overview.
 
@@ -242,7 +242,7 @@ Older changelog bullets (multi-instance, plugin analytics, etc.) are folded into
 ## Changelog (short)
 
 - **0.2.x**  **`session_ops`** persists named sessions: copies live `session.xml`, loads via **`-openSession`** (see README section *Session snapshots*).
-- **0.2.0**  FastMCP 3.1.0, sampling, skills, prompts, agentic workflow, HTTP bridge + web hooks as implemented in `server.py`.
+- **0.2.0**  FastMCP 3.4.2, sampling, skills, prompts, agentic workflow, HTTP bridge + web hooks as implemented in `server.py`.
 - **Earlier**  Portmanteau tool consolidation, linting and plugin tooling.
 
 ---

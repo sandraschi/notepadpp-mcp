@@ -1,6 +1,6 @@
 # MCPB Implementation Summary
 
-**Date**: October 8, 2025  
+**Date**: January 12, 2026  
 **Version**: 1.2.0  
 **Status**: ✅ **COMPLETED**
 
@@ -177,7 +177,7 @@ Successfully implemented complete MCPB (MCP Bundle) packaging for the Notepad++ 
 ### Build Steps
 
 1. **Checkout** repository
-2. **Setup** Python 3.10 and Node.js 18
+2. **Setup** Python 3.12+ and Node.js 18
 3. **Install** MCPB CLI and dependencies
 4. **Validate** manifest.json
 5. **Build** MCPB package
@@ -381,7 +381,7 @@ The Notepad++ MCP Server now has:
 
 ---
 
-*Document created: October 8, 2025*  
+*Document created: January 12, 2026*  
 *Implementation completed by: AI Assistant following MCPB Building Guide v3.1*  
 *Status: ✅ Production Ready*
 

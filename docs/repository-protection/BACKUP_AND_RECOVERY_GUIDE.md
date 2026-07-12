@@ -149,7 +149,7 @@ A **single file** containing your entire repository:
 .\scripts\backup-repo.ps1
 
 # Default location: D:\Backups\notepadpp-mcp\
-# Creates: notepadpp-mcp_2025-10-08_14-30-00.bundle
+# Creates: notepadpp-mcp_2026-01-12_14-30-00.bundle
 ```
 
 ### Automated Daily Backups
@@ -188,13 +188,13 @@ Get-ScheduledTask -TaskName "Notepadpp-MCP Backup"
 
 ```powershell
 # Option 1: Clone from bundle to new directory
-git clone D:\Backups\notepadpp-mcp\notepadpp-mcp_2025-10-08.bundle restored-repo
+git clone D:\Backups\notepadpp-mcp\notepadpp-mcp_2026-01-12.bundle restored-repo
 cd restored-repo
 git remote set-url origin https://github.com/sandraschi/notepadpp-mcp.git
 
 # Option 2: Restore to existing repo
 cd D:\Dev\repos\notepadpp-mcp
-git bundle unbundle D:\Backups\notepadpp-mcp\notepadpp-mcp_2025-10-08.bundle
+git bundle unbundle D:\Backups\notepadpp-mcp\notepadpp-mcp_2026-01-12.bundle
 git reset --hard origin/main
 ```
 
@@ -449,7 +449,7 @@ If something goes wrong:
 
 ---
 
-*Document created: October 8, 2025*  
+*Document created: January 12, 2026*  
 *Backup script: `scripts/backup-repo.ps1`*  
 *Your code is safe! 🛡️*
 

@@ -2,7 +2,7 @@
 
 **Real-World Issues and Practical Solutions**  
 **Based on Actual Development Experience**  
-**Timeline**: September 2025
+**Timeline**: January 2026
 
 ---
 

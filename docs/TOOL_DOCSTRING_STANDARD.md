@@ -1,7 +1,7 @@
 # MCP Tool Docstring Standard
 
 **Version:** 1.0.0  
-**Last Updated:** October 10, 2025  
+**Last Updated:** January 12, 2026  
 **Status:** MANDATORY for all tools
 
 ---

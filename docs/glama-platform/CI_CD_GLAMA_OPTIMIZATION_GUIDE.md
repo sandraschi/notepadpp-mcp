@@ -22,7 +22,7 @@ This document provides a comprehensive guide to our **enterprise-grade CI/CD pip
 ### Key Achievements
 - 🏆 **Gold Status** on Glama.ai platform (85/100 points)
 - 🧪 **64/64 tests passing** with comprehensive coverage
-- 🚀 **Multi-version testing** across Python 3.10-3.13
+- 🚀 **Multi-version testing** across Python 3.12+-3.13
 - 📦 **Automated releases** with PyPI publishing
 - 🔒 **Security scanning** and dependency monitoring
 - 📊 **Real-time quality tracking** and platform updates

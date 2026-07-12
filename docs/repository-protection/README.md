@@ -150,7 +150,7 @@ git reflog
 git reset --hard HEAD@{5}
 
 # Option 2: Use backup branch
-git reset --hard backup-safe-2025-10-08
+git reset --hard backup-safe-2026-01-12
 
 # Option 3: Restore from bundle
 git clone D:\Backups\notepadpp-mcp\[latest-bundle].bundle restored
@@ -325,7 +325,7 @@ With these three documents and tools, you have:
 ---
 
 *Repository Protection Documentation*  
-*Created: October 8, 2025*  
+*Created: January 12, 2026*  
 *Location: `docs/repository-protection/`*  
 *Status: Complete and Ready to Use*
 

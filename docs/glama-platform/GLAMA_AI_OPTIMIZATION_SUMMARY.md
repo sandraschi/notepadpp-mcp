@@ -28,7 +28,7 @@ The **notepadpp-mcp** repository has been successfully optimized for the Glama.a
 
 ### 4-Workflow Pipeline
 1. **CI Workflow** (`.github/workflows/ci.yml`)
-   - Multi-version testing (Python 3.10-3.13)
+   - Multi-version testing (Python 3.12+-3.13)
    - Cross-platform compatibility (Ubuntu, Windows)
    - Comprehensive quality gates
    - Automated package building

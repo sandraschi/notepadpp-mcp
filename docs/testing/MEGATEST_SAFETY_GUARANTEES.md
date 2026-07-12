@@ -601,7 +601,7 @@ If you EVER see these messages, test will abort immediately:
 
 ---
 
-*Safety guarantees established: October 15, 2025*
+*Safety guarantees established: January 12, 2026*
 *Protection level: MAXIMUM*
 *Risk to production: ZERO*
 

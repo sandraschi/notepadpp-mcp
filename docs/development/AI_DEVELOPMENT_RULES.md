@@ -2,7 +2,7 @@
 
 **Based on Real-World Disasters and Recoveries**  
 **Project**: nest-protect MCP Server Development  
-**Timeline**: September 2025  
+**Timeline**: January 2026  
 
 **WARNING**: These rules prevent catastrophic AI-generated "solutions" that destroy working functionality.
 

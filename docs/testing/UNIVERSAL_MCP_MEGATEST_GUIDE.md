@@ -15,7 +15,7 @@ This guide helps you build a **megatest framework** for ANY MCP server repositor
 ## 📚 Applicable to ALL MCP Servers
 
 This framework works for:
-- ✅ **Advanced Memory MCP** (knowledge management)
+- ✅ **Notepad++ MCP** (knowledge management)
 - ✅ **Virtualization MCP** (VM management tools)
 - ✅ **Avatar MCP** (avatar/persona tools)
 - ✅ **Database MCP** (database operation tools)
@@ -263,7 +263,7 @@ def get_production_paths():
     """Return production paths specific to YOUR MCP server."""
     # CUSTOMIZE THIS for your server!
     return [
-        # Example for Advanced Memory:
+        # Example for Notepad++ MCP:
         # Path.home() / ".advanced-memory",
         # Path.home() / "Documents" / "claude-depot",
         
@@ -374,7 +374,7 @@ async def test_server_initializes(isolated_test_env, assert_production_safe):
 async def test_list_operation_works(isolated_test_env):
     """Test: Basic list/enumerate operation works."""
     # Example for ANY MCP server:
-    # - Advanced Memory: list_directory()
+    # - Notepad++ MCP: list_directory()
     # - Virtualization: list_vms()
     # - Avatar: list_avatars()
     # - Database: list_databases()
@@ -390,7 +390,7 @@ async def test_list_operation_works(isolated_test_env):
 async def test_basic_read_works(isolated_test_env):
     """Test: Basic read/get operation works."""
     # Example for ANY MCP server:
-    # - Advanced Memory: read_note()
+    # - Notepad++ MCP: read_note()
     # - Virtualization: get_vm_status()
     # - Avatar: get_avatar_info()
     # - Database: get_table_schema()
@@ -408,7 +408,7 @@ async def test_basic_create_works(isolated_test_env, assert_production_safe):
     assert_production_safe(test_dir)
     
     # Example for ANY MCP server:
-    # - Advanced Memory: write_note()
+    # - Notepad++ MCP: write_note()
     # - Virtualization: create_vm()
     # - Avatar: create_avatar()
     # - Database: create_table()
@@ -435,7 +435,7 @@ Follow the same pattern, adding more tools and complexity at each level.
 ## 🎯 Customization Guide by MCP Server Type
 
 ### For Knowledge/Document MCP Servers
-**Examples**: Advanced Memory, Obsidian, Notion
+**Examples**: Notepad++ MCP, Obsidian, Notion
 
 **Focus Areas**:
 - Document CRUD operations
@@ -1094,7 +1094,7 @@ Each level is:
 
 ---
 
-## 🎉 Success Story: Advanced Memory
+## 🎉 Success Story: Notepad++ MCP
 
 ### Implementation
 - **Time**: 2 weeks (concept to Level 1 implementation)
@@ -1173,14 +1173,14 @@ The **Universal MCP Megatest Framework** provides:
 - See `MEGATEST_QUICK_REFERENCE.md` for quick commands
 
 ### Implementation Help?
-Refer to Advanced Memory MCP as reference implementation:
-- Repository: github.com/basicmachines-co/advanced-memory-mcp
+Refer to Notepad++ MCP as reference implementation:
+- Repository: github.com/basicmachines-co/notepadpp-mcp
 - Tests: `tests/megatest/` (once implemented)
 - Docs: `docs/testing/`
 
 ---
 
-*Universal guide created: October 15, 2025*
+*Universal guide created: January 12, 2026*
 *Applicable to: ALL MCP servers*
 *Implementation time: 1-2 weeks per server*
 *ROI: Positive within first month*

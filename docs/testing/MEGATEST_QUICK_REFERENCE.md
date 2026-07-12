@@ -594,7 +594,7 @@ Each level builds on the previous, adding more features and coverage.
 
 ---
 
-*Quick reference created: October 15, 2025*
+*Quick reference created: January 12, 2026*
 *All levels: ISOLATED and SAFE*
 *Choose wisely, test confidently!*
 

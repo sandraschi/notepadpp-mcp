@@ -230,7 +230,7 @@ If protection blocks something you need:
 
 ---
 
-*Setup Guide created: October 8, 2025*  
+*Setup Guide created: January 12, 2026*  
 *Estimated setup time: 5 minutes*  
 *Difficulty: Easy*
 

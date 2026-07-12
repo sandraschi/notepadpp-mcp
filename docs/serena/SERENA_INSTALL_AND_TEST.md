@@ -1,6 +1,6 @@
 # Serena MCP - Installation & Testing Guide for Sandra
 
-**Date:** 2025-10-09  
+**Date:** 2026-01-12  
 **Target:** Test Serena on myai or veogen (large, half-built repos)  
 **Setup:** Claude Desktop + Cursor IDE
 
