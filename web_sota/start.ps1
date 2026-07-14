@@ -89,6 +89,3 @@ finally {
     Stop-Job $openBrowserJob -ErrorAction SilentlyContinue
     Remove-Job $openBrowserJob -ErrorAction SilentlyContinue
 }
-
-
-

@@ -56,9 +56,9 @@ function Write-Error { Write-Host "[ERROR] $args" -ForegroundColor Red }
 
 # Banner
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║  Notepad++ MCP Server - MCPB Package Builder v$Version ║" -ForegroundColor Cyan
-Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor Cyan
+Write-Host "â•‘  Notepad++ MCP Server - MCPB Package Builder v$Version â•‘" -ForegroundColor Cyan
+Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•" -ForegroundColor Cyan
 Write-Host ""
 
 # Step 1: Check prerequisites
@@ -173,9 +173,9 @@ if (!$NoSign) {
 
 # Step 7: Display summary
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║               BUILD COMPLETED SUCCESSFULLY                ║" -ForegroundColor Green
-Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor Green
+Write-Host "â•‘               BUILD COMPLETED SUCCESSFULLY                â•‘" -ForegroundColor Green
+Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•" -ForegroundColor Green
 Write-Host ""
 Write-Success "Package: $PackageOutput"
 Write-Success "Size: $([math]::Round($packageSize, 2)) MB"
@@ -187,4 +187,3 @@ Write-Info "2. Verify: Configure and test all 26 tools"
 Write-Info "3. SOTA Upgrade: Convert individual tools to portmanteau pattern for full compliance"
 Write-Info "4. Release: Upload to GitHub releases or distribute directly"
 Write-Host ""
-
