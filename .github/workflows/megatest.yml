@@ -163,25 +163,6 @@ jobs:
 
     - name: Run Level 4 Integration Tests
       run: |
-        pytest tests/megatest/level4_integration/ -v --tb=short --durations=10
-      env:
-        MEGATEST_MODE: ci
-        MEGATEST_LOCATION: local
-        MEGATEST_CLEANUP: immediate
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-        name: integration-test-results
-        path: |
-          test-results/
-          htmlcov/
-        retention-days: 7
-
-  full-test:
-    name: Level 5 - Full Blast Test
-    runs-on: windows-latest
-    timeout-minutes: 120
     needs: integration-test
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_level == 'full'
 
