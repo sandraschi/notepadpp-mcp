@@ -14,9 +14,7 @@ from urllib.parse import urlparse
 from .editor_bridge import list_installed_plugins_disk
 
 # Upstream moved from pluginList.json to arch-specific pl.*.json
-DEFAULT_PLUGIN_LIST_URL = (
-    "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pl.x64.json"
-)
+DEFAULT_PLUGIN_LIST_URL = "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pl.x64.json"
 
 _CACHE_LOCK = threading.Lock()
 _cached_plugins: list[dict[str, Any]] | None = None

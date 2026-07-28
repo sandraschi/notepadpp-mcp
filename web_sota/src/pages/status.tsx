@@ -1,6 +1,6 @@
+import { Activity, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Loader2 } from "lucide-react";
 import { apiFetch, fetchHealth } from "@/lib/api";
 
 export function Status() {
@@ -30,8 +30,12 @@ export function Status() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Status / Audit</h2>
-        <p className="text-slate-400">Bridge connectivity and authenticated status payload.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          Status / Audit
+        </h2>
+        <p className="text-slate-400">
+          Bridge connectivity and authenticated status payload.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -39,7 +43,9 @@ export function Status() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-emerald-500" />
-              <CardTitle className="text-white text-md">Public health</CardTitle>
+              <CardTitle className="text-white text-md">
+                Public health
+              </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -55,7 +61,9 @@ export function Status() {
 
         <Card className="border-slate-800 bg-slate-950/50">
           <CardHeader>
-            <CardTitle className="text-white text-md">Authenticated /api/status</CardTitle>
+            <CardTitle className="text-white text-md">
+              Authenticated /api/status
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -65,7 +73,10 @@ export function Status() {
                 {JSON.stringify(status, null, 2)}
               </pre>
             ) : (
-              <p className="text-sm text-amber-400">Unauthorized or bridge offline. Check VITE_MCP_WEB_* credentials.</p>
+              <p className="text-sm text-amber-400">
+                Unauthorized or bridge offline. Check VITE_MCP_WEB_*
+                credentials.
+              </p>
             )}
           </CardContent>
         </Card>
@@ -76,7 +87,8 @@ export function Status() {
           <CardTitle className="text-white text-md">JSON-RPC log</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-slate-500">
-          Streamed MCP traffic is available to MCP clients on <code className="text-slate-400">/mcp</code>. Browser-side JSON-RPC
+          Streamed MCP traffic is available to MCP clients on{" "}
+          <code className="text-slate-400">/mcp</code>. Browser-side JSON-RPC
           tracing can be added via the MCP SDK or devtools Network tab.
         </CardContent>
       </Card>

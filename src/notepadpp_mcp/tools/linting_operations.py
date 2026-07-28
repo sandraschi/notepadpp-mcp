@@ -97,9 +97,7 @@ class LintingOperationsTool:
                         "total_supported_types": 4,
                     },
                     "next_steps": ["Use specific linting operations with file paths"],
-                    "context": {
-                        "portmanteau_note": "Consolidated linting interface for multiple file types"
-                    },
+                    "context": {"portmanteau_note": "Consolidated linting interface for multiple file types"},
                 }
 
             if not file_path:
@@ -140,7 +138,7 @@ class LintingOperationsTool:
                         ruff_exe = shutil.which("ruff")
                         if not ruff_exe:
                             raise FileNotFoundError("ruff not on PATH")
-                        result = subprocess.run(  # noqa: S603
+                        result = subprocess.run(
                             [ruff_exe, "check", abs_path, "--output-format=json"],
                             capture_output=True,
                             text=True,
@@ -201,9 +199,7 @@ class LintingOperationsTool:
                                 "linter": "basic_syntax",
                                 "summary": "Python syntax validation passed",
                                 "result": {"issues": [], "syntax_valid": True},
-                                "next_steps": [
-                                    "Consider installing ruff for comprehensive linting"
-                                ],
+                                "next_steps": ["Consider installing ruff for comprehensive linting"],
                                 "context": {
                                     "linter_used": "basic_syntax",
                                     "fallback": True,
@@ -292,9 +288,7 @@ class LintingOperationsTool:
                         "error": f"Unknown linting operation: {operation}",
                         "operation": operation,
                         "summary": f"Linting operation failed - unknown operation '{operation}'",
-                        "recovery_options": [
-                            "Use 'python', 'javascript', 'json', 'markdown', or 'tools' operations"
-                        ],
+                        "recovery_options": ["Use 'python', 'javascript', 'json', 'markdown', or 'tools' operations"],
                         "clarification_options": {
                             "operation": {
                                 "description": "What type of file would you like to lint?",
@@ -356,7 +350,7 @@ class LintingOperationsTool:
                     eslint_exe = shutil.which("eslint")
                     if not eslint_exe:
                         raise FileNotFoundError("eslint not on PATH")
-                    result = subprocess.run(  # noqa: S603
+                    result = subprocess.run(
                         [eslint_exe, "--format=json", abs_path],
                         capture_output=True,
                         text=True,
@@ -374,15 +368,11 @@ class LintingOperationsTool:
                                             issues.append(
                                                 {
                                                     "rule": message.get("ruleId", "unknown"),
-                                                    "message": message.get(
-                                                        "message", "Unknown issue"
-                                                    ),
+                                                    "message": message.get("message", "Unknown issue"),
                                                     "line": message.get("line", 0),
                                                     "column": message.get("column", 0),
                                                     "severity": message.get("severity", 1),
-                                                    "type": "error"
-                                                    if message.get("severity", 1) > 1
-                                                    else "warning",
+                                                    "type": "error" if message.get("severity", 1) > 1 else "warning",
                                                 }
                                             )
                             except Exception:

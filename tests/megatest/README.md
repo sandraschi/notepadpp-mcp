@@ -230,7 +230,7 @@ All Windows API calls are mocked for CI environments:
 
 ```python
 # Mock win32api, win32con, win32gui
-with patch('notepadpp_mcp.tools.controller.win32api') as mock_win32api:
+with patch("notepadpp_mcp.tools.controller.win32api") as mock_win32api:
     mock_win32api.SendMessage.return_value = 0
     mock_win32api.keybd_event = MagicMock()
 ```
@@ -241,7 +241,7 @@ External commands (linting tools) are mocked:
 
 ```python
 # Mock ruff, eslint, etc.
-mock_subprocess.run.return_value = Mock(returncode=0, stdout='', stderr='')
+mock_subprocess.run.return_value = Mock(returncode=0, stdout="", stderr="")
 ```
 
 ### HTTP Mocks

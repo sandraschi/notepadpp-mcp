@@ -360,9 +360,7 @@ class SyncHealthMonitor:
             },
             "watcher": {
                 "exists": self.watcher is not None,
-                "alive": self.watcher.is_alive()
-                if self.watcher and hasattr(self.watcher, "is_alive")
-                else None,
+                "alive": self.watcher.is_alive() if self.watcher and hasattr(self.watcher, "is_alive") else None,
             },
             "errors": self.errors[-10:],  # Last 10 errors
             "recovery_attempts": self.recovery_attempts,

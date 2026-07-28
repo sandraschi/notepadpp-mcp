@@ -98,38 +98,48 @@ def compute_checksum(path: Path) -> str:
 
 @pytest.fixture(scope="session")
 def mock_windows_api():
-    """Mock Windows API calls for CI environments without Notepad++."""
-    with (
-        patch("notepadpp_mcp.tools.controller.win32api") as mock_win32api,
-        patch("notepadpp_mcp.tools.controller.win32con") as mock_win32con,
-        patch("notepadpp_mcp.tools.controller.win32gui") as mock_win32gui,
+    """Mock Windows API calls globally using sys.modules patching for CI environments."""
+    mock_win32api = MagicMock()
+    mock_win32con = MagicMock()
+    mock_win32gui = MagicMock()
+    mock_win32process = MagicMock()
+    mock_win32clipboard = MagicMock()
+
+    # Mock win32con constants
+    mock_win32con.VK_MENU = 0x12
+    mock_win32con.VK_CONTROL = 0x11
+    mock_win32con.VK_RETURN = 0x0D
+    mock_win32con.VK_ESCAPE = 0x1B
+    mock_win32con.WM_GETTEXT = 0x000D
+    mock_win32con.WM_GETTEXTLENGTH = 0x000E
+    mock_win32con.KEYEVENTF_KEYUP = 0x0002
+
+    # Mock win32gui functions
+    mock_win32gui.IsWindowVisible = MagicMock(return_value=True)
+    mock_win32gui.GetWindowText = MagicMock(return_value="test.txt - Notepad++")
+    mock_win32gui.GetClassName = MagicMock(return_value="Notepad++")
+    mock_win32gui.EnumWindows = MagicMock()
+    mock_win32gui.EnumChildWindows = MagicMock()
+    mock_win32gui.SendMessage = MagicMock(return_value=0)
+    mock_win32gui.SetForegroundWindow = MagicMock()
+    mock_win32gui.PyMakeBuffer = MagicMock(return_value=b"test content\x00")
+
+    with patch.dict(
+        "sys.modules",
+        {
+            "win32api": mock_win32api,
+            "win32con": mock_win32con,
+            "win32gui": mock_win32gui,
+            "win32process": mock_win32process,
+            "win32clipboard": mock_win32clipboard,
+        },
     ):
-        # Mock win32api
-        mock_win32api.keybd_event = MagicMock()
-        mock_win32api.SendMessage = MagicMock(return_value=0)
-
-        # Mock win32con constants
-        mock_win32con.VK_MENU = 0x12
-        mock_win32con.VK_CONTROL = 0x11
-        mock_win32con.VK_RETURN = 0x0D
-        mock_win32con.WM_GETTEXT = 0x000D
-        mock_win32con.WM_GETTEXTLENGTH = 0x000E
-        mock_win32con.KEYEVENTF_KEYUP = 0x0002
-
-        # Mock win32gui functions
-        mock_win32gui.IsWindowVisible = MagicMock(return_value=True)
-        mock_win32gui.GetWindowText = MagicMock(return_value="test.txt - Notepad++")
-        mock_win32gui.GetClassName = MagicMock(return_value="Notepad++")
-        mock_win32gui.EnumWindows = MagicMock()
-        mock_win32gui.EnumChildWindows = MagicMock()
-        mock_win32gui.SendMessage = MagicMock(return_value=0)
-        mock_win32gui.SetForegroundWindow = MagicMock()
-        mock_win32gui.PyMakeBuffer = MagicMock(return_value=b"test content\x00")
-
         yield {
             "win32api": mock_win32api,
             "win32con": mock_win32con,
             "win32gui": mock_win32gui,
+            "win32process": mock_win32process,
+            "win32clipboard": mock_win32clipboard,
         }
 
 
@@ -277,7 +287,8 @@ def notepadpp_test_config(isolated_test_env):
 @pytest.fixture(scope="session", autouse=True)
 def display_test_environment():
     """Display test environment information."""
-    print(f"""
+    print(
+        f"""
 ╔══════════════════════════════════════════════╗
 ║         NOTEPAD++ MCP MEGATEST ENVIRONMENT     ║
 ╠══════════════════════════════════════════════╣
@@ -286,7 +297,8 @@ def display_test_environment():
 ║ Status: ✅ SAFE TO PROCEED                    ║
 ║ Mode: {os.getenv("MEGATEST_MODE", "local")}   ║
 ╚══════════════════════════════════════════════╝
-""")
+"""
+    )
 
 
 # ============================================================================

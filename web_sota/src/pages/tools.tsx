@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronDown, ChevronRight, Loader2, Wrench } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Wrench, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 
 interface ToolEntry {
@@ -45,17 +45,24 @@ export function Tools() {
     return line.length > 220 ? `${line.slice(0, 219)}…` : line;
   }
 
-  const hasLongDoc = (t: ToolEntry) => (t.description ?? "").length > (t.summary ?? "").length + 20;
+  const hasLongDoc = (t: ToolEntry) =>
+    (t.description ?? "").length > (t.summary ?? "").length + 20;
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Tools Hub</h2>
-        <p className="text-slate-400">One-line summary per tool; expand for full MCP docstring.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          Tools Hub
+        </h2>
+        <p className="text-slate-400">
+          One-line summary per tool; expand for full MCP docstring.
+        </p>
       </div>
 
       {error && (
-        <p className="text-sm text-amber-400 border border-amber-900/40 rounded-md p-3 bg-amber-950/20">{error}</p>
+        <p className="text-sm text-amber-400 border border-amber-900/40 rounded-md p-3 bg-amber-950/20">
+          {error}
+        </p>
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -63,11 +70,18 @@ export function Tools() {
           const open = !!expanded[tool.name];
           const longDoc = hasLongDoc(tool);
           return (
-            <Card key={tool.name} className="border-slate-800 bg-slate-950/50 hover:bg-slate-900/50 transition-colors">
+            <Card
+              key={tool.name}
+              className="border-slate-800 bg-slate-950/50 hover:bg-slate-900/50 transition-colors"
+            >
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 gap-2">
                 <div className="space-y-1 min-w-0 flex-1">
-                  <CardTitle className="text-sm font-medium text-white font-mono">{tool.name}</CardTitle>
-                  <p className="text-xs text-slate-400 leading-relaxed">{preview(tool)}</p>
+                  <CardTitle className="text-sm font-medium text-white font-mono">
+                    {tool.name}
+                  </CardTitle>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    {preview(tool)}
+                  </p>
                 </div>
                 <Wrench className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
               </CardHeader>

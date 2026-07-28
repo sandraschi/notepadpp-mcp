@@ -12,13 +12,14 @@ import asyncio
 import logging
 import os
 import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
 from fastmcp import Context, FastMCP
+from prefab_ui.components import Card, CardContent, CardHeader, Column, DataTable, DataTableColumn, Text
 
+from .fleet import probe_fleet
 from .sampling import NotepadSamplingHandler
 from .tools.agentic_notepad_workflow import register_agentic_notepad_workflow
 from .tools.display_operations import DisplayOperationsTool
@@ -60,12 +61,6 @@ _USE_CLIENT_SAMPLING = os.getenv("NOTEPADPP_SAMPLING_USE_CLIENT_LLM", "").lower(
 sampling_handler = NotepadSamplingHandler()
 
 
-@asynccontextmanager
-async def server_lifespan(_mcp_instance: FastMCP):
-    """FastMCP 3.1 lifespan (extend for background services if needed)."""
-    yield
-
-
 mcp = FastMCP(
     "Notepad++ MCP Server",
     version="0.2.0",
@@ -79,12 +74,20 @@ or NOTEPADPP_SAMPLING_USE_CLIENT_LLM=1 with sampling_handler_behavior fallback s
 
 Skills: skill://notepadpp-mcp/SKILL.md. Prompts: prompt://notepadpp-mcp/*.
 """,
-    lifespan=server_lifespan,
     sampling_handler=sampling_handler,
     sampling_handler_behavior="fallback" if _USE_CLIENT_SAMPLING else "always",
     on_duplicate="replace",
     strict_input_validation=True,
 )
+
+
+@mcp.lifespan()
+async def server_lifespan(server: FastMCP):
+    """FastMCP native lifespan for server-level lifecycle tasks."""
+    logger.info("Notepad++ MCP native lifespan starting")
+    yield
+    logger.info("Notepad++ MCP native lifespan stopping")
+
 
 # MCP Bridge — Proxy external MCP servers via MCP_BRIDGE_URLS
 _bridge_proxies: list[str] = []
@@ -92,16 +95,17 @@ bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
 if bridge_urls:
     try:
         from fastmcp.server import create_proxy
+
         for url in bridge_urls.split(","):
             url = url.strip()
             if url:
                 try:
                     mcp.add_provider(create_proxy(url))
                     _bridge_proxies.append(url)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Failed to add bridge proxy for %s: %s", url, e)
     except ImportError:
-        pass
+        logger.warning("fastmcp.server.create_proxy not available, skipping bridge configuration")
 
 # Initialize tool managers
 file_tool = FileOperationsTool(mcp, controller)
@@ -205,13 +209,112 @@ async def suggest_notepad_plan(goal: str, ctx: Context) -> dict[str, Any]:
         messages=(
             f"Goal for Notepad++ on Windows (MCP tools: file_ops, text_ops, tab_ops, session_ops, "
             f"linting_ops, display_ops, plugin_ops, status_ops):\n{goal[:3000]}\n\n"
-            "Reply with a numbered plan (3–7 steps). Name tools explicitly. No JSON."
+            "Reply with a numbered plan (3-7 steps). Name tools explicitly. No JSON."
         ),
         system_prompt="Be concise. Plain text only.",
         max_tokens=500,
     )
     text = getattr(result, "text", None) or str(result)
     return {"success": True, "plan": text.strip(), "goal": goal}
+
+
+@mcp.tool(app=True)
+async def notepad_dashboard() -> Column:
+    """NOTEPAD_DASHBOARD — Show the MCP server status, open tab info, and fleet status in a rich UI dashboard.
+
+    PORTMANTEAU PATTERN RATIONALE: Integrates editor metrics, tab details, and fleet health into a unified interface (TOOL_DESIGN_STANDARDS.md §1).
+
+    Returns:
+        Column: A prefab-ui layout containing Card and DataTable elements.
+    """
+    # 1. Notepad++ running status
+    status_details = []
+    if controller:
+        try:
+            is_running = await controller.ensure_notepadpp_running()
+            if is_running:
+                status_details = [
+                    "Status: Notepad++ is running",
+                    f"Main Window Handle: {controller.hwnd}",
+                    f"Scintilla Window Handle: {controller.scintilla_hwnd}",
+                    f"Executable Path: {controller.notepadpp_exe or 'Unknown'}",
+                ]
+            else:
+                status_details = ["Status: Notepad++ is not running"]
+        except Exception as e:
+            status_details = [f"Status: Verification failed ({e})"]
+    else:
+        status_details = ["Status: Windows API unavailable"]
+
+    # 2. Get active tab information
+    tab_details = []
+    if controller and getattr(controller, "hwnd", None):
+        try:
+            window_text = await controller.get_window_text(controller.hwnd)
+            filename = "Untitled"
+            if " - Notepad++" in window_text:
+                filename = window_text.split(" - Notepad++")[0]
+            is_modified = "*" in window_text
+            tab_details = [
+                f"Active File: {filename}",
+                f"Unsaved Changes: {'Yes' if is_modified else 'No'}",
+                f"Full Window Title: {window_text}",
+            ]
+        except Exception:
+            tab_details = ["Active File: None or inaccessible"]
+    else:
+        tab_details = ["Active File: None or inaccessible"]
+
+    # 3. Probe fleet ports
+    fleet_rows = []
+    try:
+        entries, _meta = await probe_fleet()
+        for entry in entries:
+            fleet_rows.append(
+                {
+                    "port": entry.get("port"),
+                    "url": entry.get("url"),
+                    "status": "Online" if entry.get("reachable") else "Offline",
+                }
+            )
+    except Exception as e:
+        fleet_rows = [{"port": 0, "url": f"Probe error: {e}", "status": "Error"}]
+
+    # Combine into prefab-ui components
+    return Column(
+        children=[
+            Card(
+                children=[
+                    CardHeader(children=[Text("Notepad++ MCP Bridge Status")]),
+                    CardContent(children=[Text("\n".join(status_details))]),
+                ]
+            ),
+            Card(
+                children=[
+                    CardHeader(children=[Text("Active Editor Tab")]),
+                    CardContent(children=[Text("\n".join(tab_details))]),
+                ]
+            ),
+            Card(
+                children=[
+                    CardHeader(children=[Text("Fleet Status")]),
+                    CardContent(
+                        children=[
+                            DataTable(
+                                columns=[
+                                    DataTableColumn(key="port", header="Port", sortable=True),
+                                    DataTableColumn(key="url", header="URL"),
+                                    DataTableColumn(key="status", header="Status"),
+                                ],
+                                rows=fleet_rows,
+                                search=True,
+                            )
+                        ]
+                    ),
+                ]
+            ),
+        ]
+    )
 
 
 # —— Agentic workflow (register after portmanteau tools) ——
@@ -228,9 +331,7 @@ app.mount("/mcp", _mcp_http)
 def run() -> None:
     """Entry point: stdio MCP or FastAPI + uvicorn on the bridge port."""
     parser = argparse.ArgumentParser(description="Notepad++ MCP Server")
-    parser.add_argument(
-        "--http", action="store_true", help="Run FastAPI bridge + MCP HTTP on MCP_PORT"
-    )
+    parser.add_argument("--http", action="store_true", help="Run FastAPI bridge + MCP HTTP on MCP_PORT")
     parser.add_argument("--port", type=int, default=10815, help="Port for the bridge (HTTP mode)")
     args, _unknown = parser.parse_known_args()
 

@@ -131,9 +131,7 @@ class FileOperationsTool:
                             ],
                             "diagnostic_info": {
                                 "requested_path": abs_path,
-                                "directory_exists": os.path.exists(os.path.dirname(abs_path))
-                                if abs_path
-                                else False,
+                                "directory_exists": os.path.exists(os.path.dirname(abs_path)) if abs_path else False,
                                 "exists": False,
                                 "path_type": "absolute" if os.path.isabs(abs_path) else "relative",
                             },
@@ -156,7 +154,7 @@ class FileOperationsTool:
                         }
 
                     # Use subprocess to open file (Notepad++ command line)
-                    subprocess.Popen(  # noqa: S603
+                    subprocess.Popen(
                         [self.controller.notepadpp_exe, abs_path],
                         shell=False,
                         stdout=subprocess.PIPE,
@@ -173,9 +171,7 @@ class FileOperationsTool:
                         "result": {
                             "file_path": abs_path,
                             "file_name": os.path.basename(abs_path),
-                            "file_size": os.path.getsize(abs_path)
-                            if os.path.exists(abs_path)
-                            else 0,
+                            "file_size": os.path.getsize(abs_path) if os.path.exists(abs_path) else 0,
                             "action_taken": "file_opened",
                         },
                         "next_steps": [
@@ -185,12 +181,8 @@ class FileOperationsTool:
                         ],
                         "context": {
                             "file_path": abs_path,
-                            "file_size": os.path.getsize(abs_path)
-                            if os.path.exists(abs_path)
-                            else 0,
-                            "last_modified": os.path.getmtime(abs_path)
-                            if os.path.exists(abs_path)
-                            else None,
+                            "file_size": os.path.getsize(abs_path) if os.path.exists(abs_path) else 0,
+                            "last_modified": os.path.getmtime(abs_path) if os.path.exists(abs_path) else None,
                             "encoding": "detected_encoding",  # Would be detected in real implementation
                         },
                         "suggestions": [

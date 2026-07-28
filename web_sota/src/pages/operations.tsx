@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play, Terminal } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { postMcpInvoke } from "@/lib/api";
-import { Terminal, Play } from "lucide-react";
 
 const TOOL_OPTIONS = [
   "file_ops",
@@ -46,10 +46,14 @@ export function Operations() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Tool operations</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          Tool operations
+        </h2>
         <p className="text-slate-400 text-sm mt-1">
-          HTTP bridge to <code className="text-slate-300">POST /api/mcp/invoke</code> — same payloads as MCP{" "}
-          <code className="text-slate-300">call_tool</code>. Only whitelisted portmanteau tools are accepted.
+          HTTP bridge to{" "}
+          <code className="text-slate-300">POST /api/mcp/invoke</code> — same
+          payloads as MCP <code className="text-slate-300">call_tool</code>.
+          Only whitelisted portmanteau tools are accepted.
         </p>
       </div>
 
@@ -88,7 +92,9 @@ export function Operations() {
             </Button>
           </div>
           <div>
-            <label className="text-xs text-slate-500 block mb-1">Arguments (JSON)</label>
+            <label className="text-xs text-slate-500 block mb-1">
+              Arguments (JSON)
+            </label>
             <textarea
               value={argsJson}
               onChange={(e) => setArgsJson(e.target.value)}
@@ -97,7 +103,9 @@ export function Operations() {
             />
           </div>
           {run.isError && (
-            <p className="text-red-400 text-sm whitespace-pre-wrap">{(run.error as Error).message}</p>
+            <p className="text-red-400 text-sm whitespace-pre-wrap">
+              {(run.error as Error).message}
+            </p>
           )}
           {run.data && (
             <pre className="text-xs p-4 rounded-md border border-slate-800 bg-slate-900/70 text-slate-300 overflow-x-auto whitespace-pre-wrap max-h-[480px]">

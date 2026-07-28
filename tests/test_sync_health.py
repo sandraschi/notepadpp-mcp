@@ -43,9 +43,7 @@ class MockSyncManager:
             "state": self.sync_state,
             "files_scanned": self.files_scanned,
             "files_total": self.files_total,
-            "progress_percent": (self.files_scanned / self.files_total * 100)
-            if self.files_total > 0
-            else 0,
+            "progress_percent": (self.files_scanned / self.files_total * 100) if self.files_total > 0 else 0,
             "errors": self.errors,
             "watcher_alive": self.watcher is not None if self.watcher else False,
             "runtime_seconds": time.time() - self._start_time,
@@ -327,9 +325,7 @@ class TestSyncMonitoring:
 # Pytest configuration
 def pytest_configure(config):
     """Configure custom markers."""
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
-    )
+    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
     config.addinivalue_line("markers", "performance: marks tests as performance tests")
 
 

@@ -103,9 +103,7 @@ def minimal_session_xml_for_files(absolute_paths: list[str]) -> bytes:
         '        <MainView activeIndex="0">',
     ]
     for p in absolute_paths:
-        esc = (
-            p.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
-        )
+        esc = p.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
         parts.append(
             f'            <File firstVisibleLine="0" xOffset="0" scrollWidth="1" '
             f'startPos="0" endPos="0" selMode="0" offset="0" wrapCount="0" lang="None" '
@@ -162,9 +160,7 @@ def save_named_session(
     if not paths and fallback_paths:
         norm = [str(Path(p).resolve()) for p in fallback_paths if p and Path(p).is_file()]
         if not norm:
-            raise ValueError(
-                "No valid files for session snapshot (live session empty and no valid fallback paths)"
-            )
+            raise ValueError("No valid files for session snapshot (live session empty and no valid fallback paths)")
         data = minimal_session_xml_for_files(norm)
         paths = norm
         built_from_fallback = True
@@ -220,5 +216,5 @@ def load_session_subprocess(session_name: str, notepad_exe: str) -> dict[str, An
 
     # Case-sensitive flag per N++ manual
     cmd = [notepad_exe, "-openSession", str(path.resolve())]
-    subprocess.Popen(cmd, shell=False, cwd=str(path.parent))  # noqa: S603
+    subprocess.Popen(cmd, shell=False, cwd=str(path.parent))
     return {"session_name": stem, "path": str(path.resolve()), "command": cmd}

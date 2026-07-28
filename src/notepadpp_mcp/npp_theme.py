@@ -100,8 +100,7 @@ def read_theme_state(config_path: Path | None = None) -> dict[str, Any]:
         "dark_mode_configured": True,
         "dark_mode_enabled": dark_on,
         "color_tone": tone,
-        "dark_theme_name": (dark.get("darkThemeName") or "DarkModeDefault.xml").strip()
-        or "DarkModeDefault.xml",
+        "dark_theme_name": (dark.get("darkThemeName") or "DarkModeDefault.xml").strip() or "DarkModeDefault.xml",
         "light_theme_name": (dark.get("lightThemeName") or "").strip(),
         "raw_attributes": raw,
     }
@@ -112,9 +111,7 @@ def _validate_theme_basename(name: str, notepad_exe: str) -> str:
     if not n:
         raise ValueError("theme_xml is empty")
     if not _THEME_XML_RE.match(n):
-        raise ValueError(
-            "theme_xml must be a safe .xml basename (letters, digits, ._-), e.g. Solarized.xml"
-        )
+        raise ValueError("theme_xml must be a safe .xml basename (letters, digits, ._-), e.g. Solarized.xml")
     if n.lower() == "stylers.xml":
         return n
     available = {x.lower() for x in list_theme_files(notepad_exe)}
@@ -122,8 +119,7 @@ def _validate_theme_basename(name: str, notepad_exe: str) -> str:
         all_t = list_theme_files(notepad_exe)
         raise ValueError(
             f"Theme file not found in Notepad++ themes folder: {n}. "
-            f"Available: {', '.join(all_t[:40])}"
-            + (" …" if len(all_t) > 40 else "")
+            f"Available: {', '.join(all_t[:40])}" + (" …" if len(all_t) > 40 else "")
         )
     return n
 
@@ -177,9 +173,7 @@ def patch_config_xml(
 
 def _atomic_write_tree(tree: ET.ElementTree, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(
-        prefix="npp_config_", suffix=".xml", dir=str(path.parent), text=False
-    )
+    fd, tmp = tempfile.mkstemp(prefix="npp_config_", suffix=".xml", dir=str(path.parent), text=False)
     tmp_path = Path(tmp)
     try:
         os.close(fd)

@@ -162,15 +162,11 @@ class LinkParser:
 
             # Check if too many links
             if len(result.links) >= self.max_links:
-                result.add_warning(
-                    f"Maximum links reached ({self.max_links}), some links may be missing"
-                )
+                result.add_warning(f"Maximum links reached ({self.max_links}), some links may be missing")
 
             # Warn if many links
             if len(result.links) > self.WARN_LINK_COUNT:
-                result.add_warning(
-                    f"Large number of links ({len(result.links)}) may impact performance"
-                )
+                result.add_warning(f"Large number of links ({len(result.links)}) may impact performance")
 
             # Calculate parse time
             result.parse_time_ms = (time.time() - start_time) * 1000

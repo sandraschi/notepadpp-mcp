@@ -1,9 +1,9 @@
 # Notepad++ Plugin Ecosystem Integration
 
-**Version**: 1.0  
-**Date**: 2025-01-15  
-**Author**: Sandra  
-**Status**: Planning Phase  
+**Version**: 1.0
+**Date**: 2025-01-15
+**Author**: Sandra
+**Status**: Planning Phase
 
 ---
 
@@ -84,10 +84,10 @@ nppPluginList/
 async def list_available_plugins(category: str = None) -> Dict[str, Any]:
     """
     List available plugins from the official Notepad++ Plugin List.
-    
+
     Args:
         category: Optional category filter (e.g., 'code_analysis', 'file_ops')
-    
+
     Returns:
         Dictionary with available plugins and their information
     """
@@ -99,10 +99,10 @@ async def list_available_plugins(category: str = None) -> Dict[str, Any]:
 async def install_plugin(plugin_name: str) -> Dict[str, Any]:
     """
     Install a plugin from the official Plugin List.
-    
+
     Args:
         plugin_name: Name of the plugin to install
-    
+
     Returns:
         Dictionary with installation status
     """
@@ -114,12 +114,12 @@ async def install_plugin(plugin_name: str) -> Dict[str, Any]:
 async def execute_plugin_command(plugin_name: str, command: str, **kwargs) -> Dict[str, Any]:
     """
     Execute a command from an installed plugin.
-    
+
     Args:
         plugin_name: Name of the plugin
         command: Command to execute
         **kwargs: Additional command parameters
-    
+
     Returns:
         Dictionary with command execution results
     """
@@ -131,10 +131,10 @@ async def execute_plugin_command(plugin_name: str, command: str, **kwargs) -> Di
 async def get_plugin_status(plugin_name: str = None) -> Dict[str, Any]:
     """
     Get status and configuration of installed plugins.
-    
+
     Args:
         plugin_name: Optional specific plugin name
-    
+
     Returns:
         Dictionary with plugin status information
     """
@@ -189,16 +189,19 @@ async def get_plugin_status(plugin_name: str = None) -> Dict[str, Any]:
 import requests
 import json
 
+
 class PluginListClient:
     def __init__(self):
         self.base_url = "https://api.github.com/repos/notepad-plus-plus/nppPluginList"
-        self.plugin_list_url = "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pluginList.json"
-    
+        self.plugin_list_url = (
+            "https://raw.githubusercontent.com/notepad-plus-plus/nppPluginList/master/src/pluginList.json"
+        )
+
     async def get_plugin_list(self) -> Dict[str, Any]:
         """Fetch the official plugin list from GitHub."""
         response = requests.get(self.plugin_list_url)
         return response.json()
-    
+
     async def search_plugins(self, query: str, category: str = None) -> List[Dict]:
         """Search plugins by name or category."""
         plugins = await self.get_plugin_list()
@@ -211,21 +214,22 @@ class PluginListClient:
 import win32gui
 import win32con
 
+
 class PluginAdminInterface:
     def __init__(self, notepadpp_hwnd):
         self.hwnd = notepadpp_hwnd
-    
+
     async def open_plugin_admin(self):
         """Open Notepad++ Plugin Admin dialog."""
         # Send Alt+P+A to open Plugin Admin
         win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, win32con.VK_MENU, 0)
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, ord('P'), 0)
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, ord('A'), 0)
+        win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, ord("P"), 0)
+        win32gui.SendMessage(self.hwnd, win32con.WM_KEYDOWN, ord("A"), 0)
         # Release keys
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, ord('A'), 0)
-        win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, ord('P'), 0)
+        win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, ord("A"), 0)
+        win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, ord("P"), 0)
         win32gui.SendMessage(self.hwnd, win32con.WM_KEYUP, win32con.VK_MENU, 0)
-    
+
     async def install_plugin(self, plugin_name: str):
         """Install a plugin via Plugin Admin."""
         await self.open_plugin_admin()
@@ -243,6 +247,7 @@ def validate_plugin_name(plugin_name: str) -> bool:
     # Validate plugin name format
     # Check compatibility with current Notepad++ version
     pass
+
 
 def check_plugin_compatibility(plugin_name: str, notepadpp_version: str) -> bool:
     """Check if plugin is compatible with Notepad++ version."""
@@ -292,10 +297,8 @@ def check_plugin_compatibility(plugin_name: str, notepadpp_version: str) -> bool
 
 ---
 
-**Document Status**: 📋 Planning Phase  
-**Next Review**: 2025-02-15  
-**Implementation Target**: Q1 2025  
+**Document Status**: 📋 Planning Phase
+**Next Review**: 2025-02-15
+**Implementation Target**: Q1 2025
 
 *This document outlines the integration strategy between the Notepad++ MCP Server and the official Notepad++ Plugin List ecosystem.*
-
-

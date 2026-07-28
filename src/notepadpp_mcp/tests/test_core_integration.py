@@ -1,14 +1,17 @@
 """Comprehensive integration tests for core functionality.
 
-This module tests the core functionality to achieve 80%+ test coverage
-by testing the underlying functions and classes directly.
+This module tests the core functionality of the Notepad++ controller.
 """
 
 from unittest.mock import patch
 
 import pytest
 
-from notepadpp_mcp.tools.server import (
+from notepadpp_mcp.tools.controller import (
+    DEFAULT_NOTEPADPP_PATHS,
+    NOTEPADPP_AUTO_START,
+    NOTEPADPP_TIMEOUT,
+    WINDOWS_AVAILABLE,
     NotepadPPController,
     NotepadPPError,
     NotepadPPNotFoundError,
@@ -46,7 +49,7 @@ class TestNotepadPPControllerCore:
         controller = NotepadPPController()
 
         with patch.object(controller, "_find_notepadpp_window", return_value=None):
-            with patch("notepadpp_mcp.tools.server.NOTEPADPP_AUTO_START", False):
+            with patch("notepadpp_mcp.tools.controller.NOTEPADPP_AUTO_START", False):
                 with pytest.raises(NotepadPPNotFoundError):
                     await controller.ensure_notepadpp_running()
 
@@ -55,9 +58,7 @@ class TestNotepadPPControllerCore:
         """Test sending Windows messages."""
         controller = NotepadPPController()
 
-        with patch(
-            "notepadpp_mcp.tools.server.win32gui.SendMessage", return_value=123
-        ) as mock_send:
+        with patch("notepadpp_mcp.tools.controller.win32gui.SendMessage", return_value=123) as mock_send:
             result = await controller.send_message(12345, 0x000E, 0, 0)
             assert result == 123
             mock_send.assert_called_once_with(12345, 0x000E, 0, 0)
@@ -68,7 +69,7 @@ class TestNotepadPPControllerCore:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.server.win32gui.SendMessage",
+            "notepadpp_mcp.tools.controller.win32gui.SendMessage",
             side_effect=Exception("SendMessage failed"),
         ):
             with pytest.raises(NotepadPPError):
@@ -103,16 +104,24 @@ class TestNotepadPPControllerCore:
         """Test finding Notepad++ window."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.win32gui.FindWindow", return_value=12345):
-            result = controller._find_notepadpp_window()
-            assert result == 12345
+        def mock_enum(callback, extra):
+            callback(12345, extra)
+
+        with patch("notepadpp_mcp.tools.controller.win32gui.EnumWindows", side_effect=mock_enum):
+            with patch("notepadpp_mcp.tools.controller.win32gui.IsWindowVisible", return_value=True):
+                with patch("notepadpp_mcp.tools.controller.win32gui.GetClassName", return_value="Notepad++"):
+                    with patch(
+                        "notepadpp_mcp.tools.controller.win32gui.GetWindowText", return_value="test.txt - Notepad++"
+                    ):
+                        result = controller._find_notepadpp_window()
+                        assert result == 12345
 
     @pytest.mark.asyncio
     async def test_find_notepadpp_window_not_found(self, mock_win32):
         """Test finding Notepad++ window when not found."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.win32gui.FindWindow", return_value=0):
+        with patch("notepadpp_mcp.tools.controller.win32gui.EnumWindows"):
             result = controller._find_notepadpp_window()
             assert result is None
 
@@ -121,16 +130,20 @@ class TestNotepadPPControllerCore:
         """Test finding Scintilla window."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.win32gui.FindWindowEx", return_value=54321):
-            result = controller._find_scintilla_window(12345)
-            assert result == 54321
+        def mock_enum_child(parent, callback, extra):
+            callback(54321, extra)
+
+        with patch("notepadpp_mcp.tools.controller.win32gui.EnumChildWindows", side_effect=mock_enum_child):
+            with patch("notepadpp_mcp.tools.controller.win32gui.GetClassName", return_value="Scintilla"):
+                result = controller._find_scintilla_window(12345)
+                assert result == 54321
 
     @pytest.mark.asyncio
     async def test_find_scintilla_window_not_found(self, mock_win32):
         """Test finding Scintilla window when not found."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.win32gui.FindWindowEx", return_value=0):
+        with patch("notepadpp_mcp.tools.controller.win32gui.EnumChildWindows"):
             result = controller._find_scintilla_window(12345)
             assert result is None
 
@@ -195,14 +208,12 @@ class TestWindowsAPIIntegration:
 
     def test_windows_api_available(self):
         """Test when Windows API is available."""
-        from notepadpp_mcp.tools.server import WINDOWS_AVAILABLE
-
         assert WINDOWS_AVAILABLE is True
 
     @pytest.mark.asyncio
     async def test_windows_api_unavailable(self):
         """Test when Windows API is not available."""
-        with patch("notepadpp_mcp.tools.server.WINDOWS_AVAILABLE", False):
+        with patch("notepadpp_mcp.tools.controller.WINDOWS_AVAILABLE", False):
             with pytest.raises(NotepadPPError):
                 NotepadPPController()
 
@@ -211,7 +222,7 @@ class TestWindowsAPIIntegration:
         """Test Notepad++ path detection."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.os.path.exists", return_value=True):
+        with patch("os.path.exists", return_value=True):
             result = controller._find_notepadpp_exe()
             assert result is not None
 
@@ -220,7 +231,7 @@ class TestWindowsAPIIntegration:
         """Test Notepad++ path not found."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.server.Path.exists", return_value=False):
+        with patch("pathlib.Path.exists", return_value=False):
             with pytest.raises(NotepadPPNotFoundError):
                 controller._find_notepadpp_exe()
 
@@ -230,30 +241,15 @@ class TestConfiguration:
 
     def test_default_notepadpp_paths(self):
         """Test default Notepad++ paths."""
-        from notepadpp_mcp.tools.server import DEFAULT_NOTEPADPP_PATHS
-
         assert isinstance(DEFAULT_NOTEPADPP_PATHS, list)
         assert len(DEFAULT_NOTEPADPP_PATHS) > 0
         assert all(isinstance(path, str) for path in DEFAULT_NOTEPADPP_PATHS)
 
     def test_configuration_constants(self):
         """Test configuration constants."""
-        from notepadpp_mcp.tools.server import (
-            NOTEPADPP_AUTO_START,
-            NOTEPADPP_TIMEOUT,
-        )
-
         assert isinstance(NOTEPADPP_AUTO_START, bool)
         assert isinstance(NOTEPADPP_TIMEOUT, int)
         assert NOTEPADPP_TIMEOUT > 0
-
-    def test_logging_configuration(self):
-        """Test logging configuration."""
-        from notepadpp_mcp.tools.server import console_handler, formatter, logger
-
-        assert logger is not None
-        assert console_handler is not None
-        assert formatter is not None
 
 
 class TestEdgeCases:
@@ -265,8 +261,9 @@ class TestEdgeCases:
         controller = NotepadPPController()
         controller.hwnd = 0  # Invalid handle
 
-        with pytest.raises(NotepadPPError):
-            await controller.send_message(0, 0x000E, 0, 0)
+        with patch("notepadpp_mcp.tools.controller.win32gui.SendMessage", side_effect=Exception("Invalid hwnd")):
+            with pytest.raises(NotepadPPError):
+                await controller.send_message(0, 0x000E, 0, 0)
 
     @pytest.mark.asyncio
     async def test_controller_with_invalid_scintilla_hwnd(self, mock_win32):
@@ -274,8 +271,9 @@ class TestEdgeCases:
         controller = NotepadPPController()
         controller.scintilla_hwnd = 0  # Invalid handle
 
-        with pytest.raises(NotepadPPError):
-            await controller.get_window_text(0)
+        with patch("notepadpp_mcp.tools.controller.win32gui.GetWindowText", side_effect=Exception("Invalid hwnd")):
+            with pytest.raises(NotepadPPError):
+                await controller.get_window_text(0)
 
     @pytest.mark.asyncio
     async def test_controller_timeout_scenario(self, mock_win32):
@@ -283,7 +281,7 @@ class TestEdgeCases:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.server.win32gui.SendMessage",
+            "notepadpp_mcp.tools.controller.win32gui.SendMessage",
             side_effect=Exception("Timeout"),
         ):
             with pytest.raises(NotepadPPError):

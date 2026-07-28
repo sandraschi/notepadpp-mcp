@@ -1,6 +1,6 @@
+import { ExternalLink, LayoutGrid, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LayoutGrid, Loader2, ExternalLink } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 interface FleetEntry {
@@ -57,15 +57,21 @@ export function Apps() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Apps Hub</h2>
-        <p className="text-slate-400">Probe fleet registry ports for <code className="text-slate-500">/api/health</code>.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          Apps Hub
+        </h2>
+        <p className="text-slate-400">
+          Probe fleet registry ports for{" "}
+          <code className="text-slate-500">/api/health</code>.
+        </p>
       </div>
 
       {error && <p className="text-sm text-amber-400">{error}</p>}
       {fleetMeta?.truncated && (
         <p className="text-sm text-slate-500">
-          Showing {fleetMeta.ports_probed ?? fleet.length} of {fleetMeta.total_ports_registered} ports
-          (cap {fleetMeta.max_ports_cap}; set NOTEPADPP_FLEET_MAX_PORTS to raise).
+          Showing {fleetMeta.ports_probed ?? fleet.length} of{" "}
+          {fleetMeta.total_ports_registered} ports (cap{" "}
+          {fleetMeta.max_ports_cap}; set NOTEPADPP_FLEET_MAX_PORTS to raise).
         </p>
       )}
 
@@ -95,9 +101,17 @@ export function Apps() {
                 <tbody>
                   {fleet.map((row) => (
                     <tr key={row.port} className="border-b border-slate-800/60">
-                      <td className="py-2 pr-4 font-mono text-slate-300">{row.port}</td>
+                      <td className="py-2 pr-4 font-mono text-slate-300">
+                        {row.port}
+                      </td>
                       <td className="py-2 pr-4">
-                        <span className={row.reachable ? "text-emerald-400" : "text-slate-600"}>
+                        <span
+                          className={
+                            row.reachable
+                              ? "text-emerald-400"
+                              : "text-slate-600"
+                          }
+                        >
                           {row.reachable ? "yes" : "no"}
                         </span>
                       </td>

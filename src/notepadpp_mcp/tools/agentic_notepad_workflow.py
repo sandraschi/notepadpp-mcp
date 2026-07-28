@@ -131,9 +131,7 @@ def register_agentic_notepad_workflow(app: FastMCP) -> None:
                             "iterations": iterations,
                             "executed_tools": list(dict.fromkeys(executed)),
                         },
-                        next_steps=[
-                            "Refine prompt or call file_ops/status_ops if something failed."
-                        ],
+                        next_steps=["Refine prompt or call file_ops/status_ops if something failed."],
                     )
 
             return _ok(

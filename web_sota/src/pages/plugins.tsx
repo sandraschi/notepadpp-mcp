@@ -1,7 +1,8 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, HardDrive, Puzzle, Search } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,6 @@ import {
   fetchPluginsInstalled,
   postPluginInstall,
 } from "@/lib/api";
-import { Puzzle, Search, HardDrive, Download } from "lucide-react";
 
 export function Plugins() {
   const qc = useQueryClient();
@@ -46,7 +46,8 @@ export function Plugins() {
   };
 
   const rows =
-    installed.data?.plugins && Array.isArray(installed.data.plugins as unknown[])
+    installed.data?.plugins &&
+    Array.isArray(installed.data.plugins as unknown[])
       ? (installed.data.plugins as InstalledRow[])
       : [];
 
@@ -55,16 +56,18 @@ export function Plugins() {
     typeof discover.data === "object" &&
     discover.data !== null &&
     "result" in discover.data
-      ? (discover.data as {
-          result?: {
-            plugins?: {
-              name?: string;
-              description?: string;
-              category?: string;
-              version?: string;
-            }[];
-          };
-        }).result?.plugins ?? []
+      ? ((
+          discover.data as {
+            result?: {
+              plugins?: {
+                name?: string;
+                description?: string;
+                category?: string;
+                version?: string;
+              }[];
+            };
+          }
+        ).result?.plugins ?? [])
       : [];
 
   const scrollH = "h-[min(32rem,calc(100vh-13rem))]";
@@ -72,17 +75,23 @@ export function Plugins() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-white">Plugins</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          Plugins
+        </h2>
         <p className="text-slate-400 text-sm mt-1">
-          Pick a tab: Installed lists DLLs on disk with catalog descriptions when matched; Catalog searches{" "}
+          Pick a tab: Installed lists DLLs on disk with catalog descriptions
+          when matched; Catalog searches{" "}
           <code className="text-slate-300">pl.x64.json</code>. Install uses{" "}
-          <code className="text-slate-300">plugin_ops</code> (Plugin Admin — manual finish).
+          <code className="text-slate-300">plugin_ops</code> (Plugin Admin —
+          manual finish).
         </p>
       </div>
 
       <Card className="border-slate-800 bg-slate-950/50">
         <CardHeader className="pb-2">
-          <CardTitle className="text-white text-lg">Notepad++ plugins</CardTitle>
+          <CardTitle className="text-white text-lg">
+            Notepad++ plugins
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="installed" className="w-full">
@@ -94,23 +103,37 @@ export function Plugins() {
                 <HardDrive className="h-4 w-4 shrink-0 text-emerald-500" />
                 Installed
               </TabsTrigger>
-              <TabsTrigger value="catalog" className="flex-1 data-[state=active]:bg-slate-800 gap-1.5">
+              <TabsTrigger
+                value="catalog"
+                className="flex-1 data-[state=active]:bg-slate-800 gap-1.5"
+              >
                 <Puzzle className="h-4 w-4 shrink-0 text-purple-400" />
                 Catalog
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="installed" className="mt-4 space-y-3 outline-none">
-              {installed.isLoading && <p className="text-slate-400 text-sm">Loading…</p>}
-              {installed.isError && (
-                <p className="text-red-400 text-sm">{(installed.error as Error).message}</p>
+            <TabsContent
+              value="installed"
+              className="mt-4 space-y-3 outline-none"
+            >
+              {installed.isLoading && (
+                <p className="text-slate-400 text-sm">Loading…</p>
               )}
-              {typeof installed.data?.catalog_error === "string" && installed.data.catalog_error.length > 0 && (
-                <p className="text-amber-400/90 text-xs">
-                  Catalog fetch failed (descriptions may be empty): {installed.data.catalog_error}
+              {installed.isError && (
+                <p className="text-red-400 text-sm">
+                  {(installed.error as Error).message}
                 </p>
               )}
-              <ScrollArea className={`${scrollH} rounded-md border border-slate-800`}>
+              {typeof installed.data?.catalog_error === "string" &&
+                installed.data.catalog_error.length > 0 && (
+                  <p className="text-amber-400/90 text-xs">
+                    Catalog fetch failed (descriptions may be empty):{" "}
+                    {installed.data.catalog_error}
+                  </p>
+                )}
+              <ScrollArea
+                className={`${scrollH} rounded-md border border-slate-800`}
+              >
                 <table className="w-full text-sm min-w-[32rem]">
                   <thead className="sticky top-0 bg-slate-900/95 text-slate-300 z-10">
                     <tr>
@@ -121,10 +144,17 @@ export function Plugins() {
                   </thead>
                   <tbody>
                     {rows.map((p, i) => (
-                      <tr key={`${p.name}-${i}`} className="border-t border-slate-800/80">
-                        <td className="p-2 text-slate-200 align-top font-mono text-xs">{p.name}</td>
+                      <tr
+                        key={`${p.name}-${i}`}
+                        className="border-t border-slate-800/80"
+                      >
+                        <td className="p-2 text-slate-200 align-top font-mono text-xs">
+                          {p.name}
+                        </td>
                         <td className="p-2 text-slate-300 align-top text-xs">
-                          {p.catalog_display_name?.trim() ? p.catalog_display_name : "—"}
+                          {p.catalog_display_name?.trim()
+                            ? p.catalog_display_name
+                            : "—"}
                         </td>
                         <td className="p-2 text-slate-400 align-top text-xs">
                           {p.description_one_line?.trim()
@@ -138,12 +168,16 @@ export function Plugins() {
                   </tbody>
                 </table>
                 {rows.length === 0 && !installed.isLoading && (
-                  <p className="p-4 text-slate-500 text-sm">No DLLs found or bridge unavailable.</p>
+                  <p className="p-4 text-slate-500 text-sm">
+                    No DLLs found or bridge unavailable.
+                  </p>
                 )}
               </ScrollArea>
               <p className="text-xs text-slate-500">
                 DLLs:{" "}
-                {installed.data != null && "count" in installed.data && installed.data.count != null
+                {installed.data != null &&
+                "count" in installed.data &&
+                installed.data.count != null
                   ? String(installed.data.count)
                   : "—"}
                 {" · "}
@@ -156,7 +190,10 @@ export function Plugins() {
               </p>
             </TabsContent>
 
-            <TabsContent value="catalog" className="mt-4 space-y-3 outline-none">
+            <TabsContent
+              value="catalog"
+              className="mt-4 space-y-3 outline-none"
+            >
               <div className="flex flex-wrap gap-2 items-center">
                 <Input
                   placeholder="Search (min 2 chars)…"
@@ -175,18 +212,31 @@ export function Plugins() {
                 </Button>
               </div>
               {discoverQ.length < 2 && (
-                <p className="text-slate-500 text-sm">Type at least two characters and click Search.</p>
+                <p className="text-slate-500 text-sm">
+                  Type at least two characters and click Search.
+                </p>
               )}
-              {discover.isFetching && <p className="text-slate-400 text-sm">Searching…</p>}
+              {discover.isFetching && (
+                <p className="text-slate-400 text-sm">Searching…</p>
+              )}
               {discover.isError && (
-                <p className="text-red-400 text-sm">{(discover.error as Error).message}</p>
+                <p className="text-red-400 text-sm">
+                  {(discover.error as Error).message}
+                </p>
               )}
-              <ScrollArea className={`${scrollH} rounded-md border border-slate-800`}>
+              <ScrollArea
+                className={`${scrollH} rounded-md border border-slate-800`}
+              >
                 <ul className="divide-y divide-slate-800 min-w-0">
                   {catalog.map((pl, i) => (
-                    <li key={`${pl.name}-${i}`} className="p-4 flex flex-col gap-1">
+                    <li
+                      key={`${pl.name}-${i}`}
+                      className="p-4 flex flex-col gap-1"
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
-                        <span className="font-medium text-slate-100">{pl.name ?? "(unnamed)"}</span>
+                        <span className="font-medium text-slate-100">
+                          {pl.name ?? "(unnamed)"}
+                        </span>
                         <Button
                           size="sm"
                           variant="outline"
@@ -196,7 +246,7 @@ export function Plugins() {
                             if (!pl.name) return;
                             if (
                               !window.confirm(
-                                `Open Plugin Admin automation for "${pl.name}"? Notepad++ will be focused.`
+                                `Open Plugin Admin automation for "${pl.name}"? Notepad++ will be focused.`,
                               )
                             )
                               return;
@@ -207,14 +257,20 @@ export function Plugins() {
                           Install attempt
                         </Button>
                       </div>
-                      <p className="text-xs text-slate-500">{pl.category ?? ""}</p>
-                      <p className="text-sm text-slate-400">{pl.description ?? ""}</p>
+                      <p className="text-xs text-slate-500">
+                        {pl.category ?? ""}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {pl.description ?? ""}
+                      </p>
                     </li>
                   ))}
                 </ul>
-                {catalog.length === 0 && discoverQ.length >= 2 && !discover.isFetching && (
-                  <p className="p-4 text-slate-500 text-sm">No matches.</p>
-                )}
+                {catalog.length === 0 &&
+                  discoverQ.length >= 2 &&
+                  !discover.isFetching && (
+                    <p className="p-4 text-slate-500 text-sm">No matches.</p>
+                  )}
               </ScrollArea>
               {installMut.data && (
                 <pre className="text-xs p-3 rounded-md bg-slate-900/80 text-slate-300 overflow-x-auto whitespace-pre-wrap border border-slate-800 max-h-48 overflow-y-auto">
@@ -222,7 +278,9 @@ export function Plugins() {
                 </pre>
               )}
               {installMut.isError && (
-                <p className="text-red-400 text-sm">{(installMut.error as Error).message}</p>
+                <p className="text-red-400 text-sm">
+                  {(installMut.error as Error).message}
+                </p>
               )}
             </TabsContent>
           </Tabs>

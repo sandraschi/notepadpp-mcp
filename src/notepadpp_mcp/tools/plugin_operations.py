@@ -401,9 +401,7 @@ class PluginOperationsTool:
                     "error": f"Unknown operation: {operation}",
                     "operation": operation,
                     "summary": f"Plugin operation failed - unknown operation '{operation}'",
-                    "recovery_options": [
-                        "Use 'discover', 'install', 'list', or 'execute' operations"
-                    ],
+                    "recovery_options": ["Use 'discover', 'install', 'list', or 'execute' operations"],
                     "clarification_options": {
                         "operation": {
                             "description": "What plugin operation would you like to perform?",

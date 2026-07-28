@@ -99,9 +99,7 @@ def _mcp_tools_to_openai(tools: list[Tool] | None) -> list[dict[str, Any]] | Non
                 "function": {
                     "name": t.name,
                     "description": t.description or f"MCP tool {t.name}",
-                    "parameters": (
-                        t.inputSchema if isinstance(t.inputSchema, dict) else {"type": "object"}
-                    ),
+                    "parameters": (t.inputSchema if isinstance(t.inputSchema, dict) else {"type": "object"}),
                 },
             }
         )
@@ -233,9 +231,7 @@ class NotepadSamplingHandler:
         request_context: RequestContext[ServerSession, Any],
     ) -> CreateMessageResult | CreateMessageResultWithTools | str:
         _ = request_context
-        base_url = (
-            os.environ.get("NOTEPADPP_SAMPLING_BASE_URL") or "http://127.0.0.1:11434/v1"
-        ).rstrip("/")
+        base_url = (os.environ.get("NOTEPADPP_SAMPLING_BASE_URL") or "http://127.0.0.1:11434/v1").rstrip("/")
         default_model = os.environ.get("NOTEPADPP_SAMPLING_MODEL") or "llama3.2"
         api_key = os.environ.get("NOTEPADPP_SAMPLING_API_KEY")
         if os.environ.get("NOTEPADPP_SAMPLING_USE_OPENAI_KEY", "").lower() in (

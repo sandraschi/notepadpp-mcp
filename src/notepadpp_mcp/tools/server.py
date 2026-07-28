@@ -46,7 +46,7 @@ except ImportError:
     win32con = None
     win32gui = None
 
-# Import the Notepad++ controller
+# Import the Notepad++ controller and error classes/decorators
 from .controller import NotepadPPController
 
 # Global controller instance
@@ -177,7 +177,7 @@ def register_agentic_tools(app: FastMCP) -> None:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to execute agentic workflow: {str(e)}",
+                "error": f"Failed to execute agentic workflow: {e!s}",
                 "message": "An error occurred while setting up the agentic workflow.",
             }
 
@@ -240,7 +240,7 @@ def register_agentic_tools(app: FastMCP) -> None:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to initiate intelligent processing: {str(e)}",
+                "error": f"Failed to initiate intelligent processing: {e!s}",
                 "message": "An error occurred while setting up intelligent file processing.",
             }
 

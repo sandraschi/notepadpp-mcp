@@ -106,7 +106,7 @@ class NotepadPPController:
 
         if not self.hwnd and NOTEPADPP_AUTO_START:
             # Start Notepad++ (configured executable path only; not shell)
-            subprocess.Popen([self.notepadpp_exe], shell=False)  # noqa: S603
+            subprocess.Popen([self.notepadpp_exe], shell=False)
 
             # Wait for it to start
             for _ in range(50):  # 5 seconds max
@@ -139,3 +139,36 @@ class NotepadPPController:
             return win32gui.GetWindowText(hwnd) or ""
         except Exception as e:
             raise NotepadPPError(f"Failed to get window text: {e}") from e
+
+
+def handle_tool_errors(func):
+    """Decorator to handle Notepad++ errors in tools and return standard MCP response."""
+    import functools
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except NotepadPPNotFoundError as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "error_code": "NOTEPADPP_NOT_FOUND",
+                "message": f"Notepad++ is not running or could not be found: {e}",
+            }
+        except NotepadPPError as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "error_code": "NOTEPADPP_ERROR",
+                "message": f"An error occurred during Notepad++ automation: {e}",
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "error_code": "UNKNOWN_ERROR",
+                "message": f"An unexpected error occurred: {e}",
+            }
+
+    return wrapper

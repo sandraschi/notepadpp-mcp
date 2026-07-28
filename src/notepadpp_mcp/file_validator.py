@@ -25,7 +25,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 try:
     import yaml
@@ -82,7 +82,7 @@ class FileValidator:
     MIN_FILE_SIZE = 0  # Allow empty files but warn
 
     # Reserved Windows filenames
-    WINDOWS_RESERVED = {
+    WINDOWS_RESERVED: ClassVar[set[str]] = {
         "CON",
         "PRN",
         "AUX",
@@ -108,10 +108,10 @@ class FileValidator:
     }
 
     # Dangerous filename characters (beyond OS restrictions)
-    DANGEROUS_CHARS = set('<>:"|?*\x00')
+    DANGEROUS_CHARS: ClassVar[set[str]] = set('<>:"|?*\x00')
 
     # Encodings to try in order
-    ENCODINGS = ["utf-8", "utf-8-sig", "latin-1", "cp1252", "iso-8859-1"]
+    ENCODINGS: ClassVar[list[str]] = ["utf-8", "utf-8-sig", "latin-1", "cp1252", "iso-8859-1"]
 
     def __init__(
         self,
@@ -142,9 +142,7 @@ class FileValidator:
             ValidationResult with details
         """
         if file_path is None:
-            return ValidationResult(
-                is_valid=False, file_path="", errors=["File path cannot be None"]
-            )
+            return ValidationResult(is_valid=False, file_path="", errors=["File path cannot be None"])
 
         file_path = Path(file_path)
         result = ValidationResult(is_valid=True, file_path=str(file_path))
@@ -187,9 +185,7 @@ class FileValidator:
 
         # Check length
         if len(filename) > self.MAX_FILENAME_LENGTH:
-            result.add_error(
-                f"Filename too long ({len(filename)} > {self.MAX_FILENAME_LENGTH}): {filename}"
-            )
+            result.add_error(f"Filename too long ({len(filename)} > {self.MAX_FILENAME_LENGTH}): {filename}")
 
         # Check for dangerous characters
         dangerous = self.DANGEROUS_CHARS & set(filename)
@@ -215,9 +211,7 @@ class FileValidator:
 
         # Check extension
         if file_path.suffix.lower() not in [".md", ".markdown"]:
-            result.add_warning(
-                f"Unexpected extension: {file_path.suffix} (expected .md or .markdown)"
-            )
+            result.add_warning(f"Unexpected extension: {file_path.suffix} (expected .md or .markdown)")
 
     def _validate_accessibility(self, file_path: Path, result: ValidationResult):
         """Check if file can be accessed."""
@@ -285,9 +279,7 @@ class FileValidator:
                 if b"\x00" in raw:
                     result.add_error(f"Binary file detected (contains null bytes): {file_path}")
                 else:
-                    result.add_error(
-                        f"Encoding error (tried {', '.join(self.ENCODINGS)}): {file_path}: {last_error}"
-                    )
+                    result.add_error(f"Encoding error (tried {', '.join(self.ENCODINGS)}): {file_path}: {last_error}")
 
             except Exception as e:
                 result.add_error(f"Cannot read file at all: {file_path}: {e}")
@@ -357,9 +349,7 @@ class FileValidator:
         else:
             result.add_warning("Cannot validate frontmatter (PyYAML not installed)")
 
-    def validate_batch(
-        self, file_paths: list[str | Path], on_error: str = "continue"
-    ) -> dict[str, ValidationResult]:
+    def validate_batch(self, file_paths: list[str | Path], on_error: str = "continue") -> dict[str, ValidationResult]:
         """
         Validate multiple files.
 

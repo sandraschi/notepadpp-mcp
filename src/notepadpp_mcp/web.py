@@ -181,9 +181,7 @@ def setup_webapp(
                 "count": 0,
                 "plugins": [],
             }
-        merged = await asyncio.to_thread(
-            enrich_installed_plugins_disk, controller.notepadpp_exe
-        )
+        merged = await asyncio.to_thread(enrich_installed_plugins_disk, controller.notepadpp_exe)
         return {"success": True, **merged}
 
     class PluginInstallBody(BaseModel):

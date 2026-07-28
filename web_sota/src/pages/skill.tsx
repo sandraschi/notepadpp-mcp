@@ -1,7 +1,13 @@
-import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BookOpen, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 
 interface SkillEntry {
@@ -25,7 +31,7 @@ export function Skill() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [selected]);
 
   useEffect(() => {
     if (!selected) return;
@@ -44,7 +50,8 @@ export function Skill() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Skill</h2>
         <p className="text-slate-400">
-          Anthropic-style skill content (FastMCP 3.1 resources) so clients know how to use this server.
+          Anthropic-style skill content (FastMCP 3.1 resources) so clients know
+          how to use this server.
         </p>
       </div>
 
@@ -55,7 +62,8 @@ export function Skill() {
             <CardTitle className="text-white text-md">Skill content</CardTitle>
           </div>
           <CardDescription className="text-slate-400">
-            Select a skill to render SKILL.md. If none are listed, the server does not expose skills yet.
+            Select a skill to render SKILL.md. If none are listed, the server
+            does not expose skills yet.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -74,7 +82,9 @@ export function Skill() {
                     type="button"
                     onClick={() => setSelected(s.name)}
                     className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      selected === s.name ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      selected === s.name
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                     }`}
                   >
                     {s.name}

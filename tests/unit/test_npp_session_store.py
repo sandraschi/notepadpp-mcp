@@ -42,9 +42,7 @@ def test_minimal_session_xml_roundtrip() -> None:
     ET.fromstring(xml)  # noqa: S314 — test fixture
 
 
-def test_save_named_session_from_live(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_save_named_session_from_live(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     store = tmp_path / "store"
     live = tmp_path / "session.xml"
     live.write_bytes(SAMPLE_SESSION)
@@ -63,9 +61,7 @@ def test_save_named_session_from_live(
     ]
 
 
-def test_save_named_session_fallback(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_save_named_session_fallback(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     store = tmp_path / "store"
     f = tmp_path / "only.txt"
     f.write_text("x", encoding="utf-8")

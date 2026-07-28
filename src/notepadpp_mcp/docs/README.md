@@ -99,7 +99,7 @@ Add to your Claude Desktop config file (`~/.config/claude/claude_desktop_config.
 - **`save_file()`** - Save the current file
 - **`get_current_file_info()`** - Get current file information
 
-### Text Operations  
+### Text Operations
 - **`insert_text(text: str)`** - Insert text at cursor position
 - **`find_text(search: str, case_sensitive: bool = False)`** - Search for text
 
@@ -268,7 +268,7 @@ dxt pack src/notepadpp_mcp/dxt/dxt.toml
 
 This project uses:
 - **Black** for code formatting
-- **isort** for import sorting  
+- **isort** for import sorting
 - **mypy** for type checking
 - **pytest** for testing
 - **pre-commit** hooks for quality gates

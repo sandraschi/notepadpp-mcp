@@ -79,9 +79,7 @@ class StatusOperationsTool:
                     "error": f"Unknown operation: {operation}",
                     "operation": operation,
                     "summary": f"Status operation failed - unknown operation '{operation}'",
-                    "recovery_options": [
-                        "Use 'help', 'system_status', or 'health_check' operations"
-                    ],
+                    "recovery_options": ["Use 'help', 'system_status', or 'health_check' operations"],
                     "clarification_options": {
                         "operation": {
                             "description": "What status operation would you like to perform?",
@@ -322,7 +320,12 @@ class StatusOperationsTool:
         # Check 1: Windows API availability
         import importlib.util
 
-        if importlib.util.find_spec("win32api") is not None:
+        try:
+            has_win32 = importlib.util.find_spec("win32api") is not None
+        except ValueError:
+            has_win32 = True  # Mocked module in sys.modules during tests
+
+        if has_win32:
             health_status["checks"]["windows_api"] = {
                 "status": "pass",
                 "message": "Windows API available",

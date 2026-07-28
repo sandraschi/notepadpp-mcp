@@ -1,7 +1,7 @@
+import { Bot, Loader2, Send, User } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 
 export function Chat() {
@@ -22,7 +22,11 @@ export function Chat() {
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
-      setReply(typeof data.response === "string" ? data.response : JSON.stringify(data));
+      setReply(
+        typeof data.response === "string"
+          ? data.response
+          : JSON.stringify(data),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
       setReply(null);
@@ -35,8 +39,12 @@ export function Chat() {
     <div className="flex h-[calc(100vh-8rem)] flex-col space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">LLM Chat</h2>
-          <p className="text-slate-400">POST /api/chat (router stub; extend with local LLM as needed)</p>
+          <h2 className="text-2xl font-bold tracking-tight text-white">
+            LLM Chat
+          </h2>
+          <p className="text-slate-400">
+            POST /api/chat (router stub; extend with local LLM as needed)
+          </p>
         </div>
       </div>
 
@@ -47,7 +55,9 @@ export function Chat() {
               <User className="h-4 w-4 text-slate-400" />
             </div>
             <div className="flex-1 space-y-1">
-              <p className="text-sm text-slate-300">Ask in natural language; the bridge returns a routing hint.</p>
+              <p className="text-sm text-slate-300">
+                Ask in natural language; the bridge returns a routing hint.
+              </p>
             </div>
           </div>
 
@@ -85,7 +95,11 @@ export function Chat() {
               onClick={send}
               disabled={loading}
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>

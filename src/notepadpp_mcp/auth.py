@@ -10,7 +10,7 @@ security = HTTPBasic()
 
 
 def authenticate(
-    credentials: HTTPBasicCredentials = Security(security),  # noqa: B008
+    credentials: HTTPBasicCredentials = Security(security),
 ) -> str:
     """Authenticate dashboard API requests (override via MCP_WEB_USER / MCP_WEB_PASSWORD)."""
     current_username_bytes = credentials.username.encode("utf-8")

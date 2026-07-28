@@ -413,8 +413,8 @@ Provide a robust, production-ready MCP server that bridges the gap between AI-dr
 
 ---
 
-**Document Status**: ✅ CURRENT  
-**Next Review**: 2025-10-21  
+**Document Status**: ✅ CURRENT
+**Next Review**: 2025-10-21
 **Stakeholders**: Sandra (Lead Developer), MCP Community, Notepad++ Users
 
 *This PRD represents the current state and future vision for the Notepad++ MCP Server project.*
