@@ -1,0 +1,18 @@
+---
+name: session-context
+description: Lightweight Notepad++ MCP session-start prompt - check editor health, inspect active document, save sessions on close
+---
+
+## Session Context (Notepad++ MCP)
+
+You have access to an MCP server that automates Notepad++ on Windows:
+file_ops, text_ops, tab_ops, session_ops, linting_ops, display_ops,
+plugin_ops, status_ops (portmanteau tools with an `operation` enum).
+
+**Before starting work:**
+1. Check the editor is reachable: `status_ops(operation="health_check")`
+2. Inspect the active document: `file_ops(operation="info")`
+
+**At end of work, persist state:**
+- Save the workspace when asked: `session_ops(operation="save", session_name="...")`
+- Lint before declaring code done: `linting_ops(operation="python", file_path="...")`

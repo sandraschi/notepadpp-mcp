@@ -9,9 +9,10 @@ import os
 import re
 import shutil
 import subprocess
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 # Windows-specific imports
 try:
@@ -40,8 +41,18 @@ class LintingOperationsTool:
 
         @self.app.tool()
         async def linting_ops(
-            operation: Literal["python", "javascript", "json", "markdown", "tools"],
-            file_path: str | None = None,
+            operation: Annotated[
+                Literal["python", "javascript", "json", "markdown", "tools"],
+                Field(
+                    description="Operation: lint file_path with the python/javascript/json/markdown engine, or list available engines with tools."
+                ),
+            ],
+            file_path: Annotated[
+                str | None,
+                Field(
+                    description="Absolute path to the file to lint (required for file-based operations; omit for tools)."
+                ),
+            ] = None,
         ) -> dict[str, Any]:
             """LINTING_OPS — Run linters/validators on disk files or list available engines.
 
@@ -51,19 +62,15 @@ class LintingOperationsTool:
             - python | javascript | json | markdown: Lint/validate file_path.
             - tools: Report which backends are available (ruff, eslint, etc.).
 
-            Args:
-                operation (Literal, required): "python" | "javascript" | "json" | "markdown" | "tools".
-                file_path (str | None): Required for file-based operations; omit for tools.
+            ## Return Format
+            {"success": bool, "operation": str, "summary": str, "issues": [...], "result": {...}, "error": str | null}
 
-            Returns:
-                dict with success, issues[], linter metadata, and recovery_options on failure.
+            ## Examples
+            linting_ops(operation="python", file_path="C:/tmp/a.py")
+            linting_ops(operation="tools")
 
-            Examples:
-                await linting_ops("python", file_path="C:/tmp/a.py")
-                await linting_ops("tools")
-
-            Errors:
-                Missing file, wrong extension, or external linter not installed.
+            Notes:
+             - Missing file, wrong extension, or external linter not installed returns success=False with recovery_options.
             """
             if operation == "tools":
                 # Return information about available linting tools
@@ -322,17 +329,19 @@ class LintingOperationsTool:
                 }
 
         @self.app.tool()
-        async def lint_javascript_file(file_path: str) -> dict[str, Any]:
+        async def lint_javascript_file(
+            file_path: Annotated[str, Field(description="Absolute or relative .js path to lint.")],
+        ) -> dict[str, Any]:
             """LINT_JAVASCRIPT_FILE — ESLint JSON output, or a minimal heuristic fallback.
 
-            Args:
-                file_path (str, required): Absolute or relative .js path.
+            ## Return Format
+            {"success": bool, "issues": [...], "linter": str, "summary": str, "error": str | null}
 
-            Returns:
-                dict with success, issues[], linter name, summary.
+            ## Examples
+            lint_javascript_file(file_path="C:/tmp/app.js")
 
-            Errors:
-                File missing, eslint unavailable (falls back), or read errors.
+            Notes:
+             - File missing, eslint unavailable (heuristic fallback), or read errors return success=False.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}
@@ -461,17 +470,19 @@ class LintingOperationsTool:
                 }
 
         @self.app.tool()
-        async def lint_json_file(file_path: str) -> dict[str, Any]:
+        async def lint_json_file(
+            file_path: Annotated[str, Field(description="Path to a .json file to validate.")],
+        ) -> dict[str, Any]:
             """LINT_JSON_FILE — Parse JSON and report syntax or style nits (trailing commas, long lines).
 
-            Args:
-                file_path (str, required): Path to a .json file.
+            ## Return Format
+            {"success": bool, "valid_json": bool, "issues": [...], "summary": str, "error": str | null}
 
-            Returns:
-                dict with valid_json flag, issues[], summary.
+            ## Examples
+            lint_json_file(file_path="C:/tmp/config.json")
 
-            Errors:
-                JSONDecodeError surfaces as success=False with line/column.
+            Notes:
+             - JSONDecodeError surfaces as success=False with line/column in the error.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}
@@ -549,17 +560,19 @@ class LintingOperationsTool:
                 return {"success": False, "error": f"Failed to lint JSON file: {e}"}
 
         @self.app.tool()
-        async def lint_markdown_file(file_path: str) -> dict[str, Any]:
+        async def lint_markdown_file(
+            file_path: Annotated[str, Field(description="Path to a .md file to check.")],
+        ) -> dict[str, Any]:
             """LINT_MARKDOWN_FILE — Lightweight Markdown structure checks (headers, links, code fences).
 
-            Args:
-                file_path (str, required): Path to a .md file.
+            ## Return Format
+            {"success": bool, "issues": [...], "summary": str, "error": str | null}
 
-            Returns:
-                dict with issues[], summary.
+            ## Examples
+            lint_markdown_file(file_path="C:/tmp/README.md")
 
-            Errors:
-                File missing or unreadable.
+            Notes:
+             - File missing or unreadable returns success=False.
             """
             if not self.controller:
                 return {"error": "Windows API not available"}

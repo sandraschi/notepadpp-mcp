@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,12 @@ def register_agentic_notepad_workflow(app: FastMCP) -> None:
 
     @app.tool()
     async def agentic_notepad_workflow(
-        workflow_prompt: str,
-        available_tools: list[str],
-        max_iterations: int = 5,
+        workflow_prompt: Annotated[str, Field(description="What to accomplish in Notepad++ (natural language goal).")],
+        available_tools: Annotated[
+            list[str],
+            Field(description="MCP tool names the agent may call (e.g. file_ops, text_ops, tab_ops, linting_ops)."),
+        ],
+        max_iterations: Annotated[int, Field(description="Maximum sample_step rounds (default 5).", ge=1, le=50)] = 5,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
         """AGENTIC_NOTEPAD_WORKFLOW — Multi-step Notepad++ automation via sampling with tools (FastMCP 3.1).
@@ -46,13 +50,14 @@ def register_agentic_notepad_workflow(app: FastMCP) -> None:
         the model answers with text or max_iterations is reached. Requires a reachable sampling endpoint
         (server-side Ollama via NOTEPADPP_SAMPLING_* or client LLM with sampling).
 
-        Args:
-            workflow_prompt: What to accomplish in natural language.
-            available_tools: MCP tool names to allow (e.g. file_ops, text_ops, tab_ops, linting_ops).
-            max_iterations: Maximum sample_step rounds.
+        ## Return Format
+        {"success": bool, "final_output": str, "iterations": int, "executed_tools": [...], "error": str | null}
 
-        Returns:
-            Structured dict with final_output, iterations, executed_tools, or error.
+        ## Examples
+        agentic_notepad_workflow(workflow_prompt="Open README.md and insert a header", available_tools=["file_ops", "text_ops"])
+
+        Notes:
+         - ctx.sample_step required; returns success=False with recovery_options when sampling is unavailable or no tools match.
         """
         try:
             if not workflow_prompt.strip():

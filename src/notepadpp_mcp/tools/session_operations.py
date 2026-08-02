@@ -7,9 +7,10 @@ Persists named sessions as Notepad++-compatible session XML (see npp_session_sto
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from .. import npp_session_store
 from ..editor_bridge import normalize_title_filename, try_resolve_path_from_hint
@@ -28,8 +29,16 @@ class SessionOperationsTool:
 
         @self.app.tool()
         async def session_ops(
-            operation: Literal["save", "load", "list"],
-            session_name: str | None = None,
+            operation: Annotated[
+                Literal["save", "load", "list"],
+                Field(
+                    description="Operation: save persists the current session, load opens a saved one, list enumerates saved sessions."
+                ),
+            ],
+            session_name: Annotated[
+                str | None,
+                Field(description="Session stem name (required for save/load; .xml is appended automatically)."),
+            ] = None,
         ) -> dict[str, Any]:
             """SESSION_OPS — Save, load, or list persisted Notepad++ workspace sessions.
 
@@ -44,20 +53,16 @@ class SessionOperationsTool:
             - load: Run Notepad++ with -openSession on that saved file.
             - list: List saved session files with paths and file counts.
 
-            Args:
-                operation (Literal, required): "save" | "load" | "list".
-                session_name (str | None): Required for save and load (stem; .xml added automatically).
+            ## Return Format
+            {"success": bool, "operation": str, "message": str, "result": {"sessions": [...], "paths": [...], "counts": int}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, result (paths, sessions, counts).
+            ## Examples
+            session_ops(operation="save", session_name="morning_work")
+            session_ops(operation="list")
+            session_ops(operation="load", session_name="morning_work")
 
-            Examples:
-                await session_ops("save", session_name="morning_work")
-                await session_ops("list")
-                await session_ops("load", session_name="morning_work")
-
-            Errors:
-                Missing name, session not found, permissions, empty session, or Windows unavailable.
+            Notes:
+             - Missing name, session not found, permissions, empty session, or Windows unavailable returns success=False with recovery_options.
             """
             if not self.controller:
                 return {

@@ -5,9 +5,9 @@ Provides common development tasks.
 """
 
 import logging
+import os
 import subprocess
 import sys
-import os
 from pathlib import Path
 
 # Configure structured logging for development script
@@ -100,9 +100,7 @@ def test_install():
         python_path = venv_path / "bin" / "python"
 
     success &= run_command([str(pip_path), "install", "."])
-    success &= run_command(
-        [str(python_path), "-c", "import notepadpp_mcp; print('Import successful')"]
-    )
+    success &= run_command([str(python_path), "-c", "import notepadpp_mcp; print('Import successful')"])
 
     # Cleanup
     import shutil
@@ -117,7 +115,7 @@ def validate_mcpb():
     logger.info("Validating MCPB configuration...")
     # Use shell=True on Windows to find mcpb in PATH
     if os.name == "nt":
-        return run_command(["mcpb", "validate", "manifest.json"], shell=True)
+        return run_command(["mcpb", "validate", "manifest.json"], shell=True)  # noqa: S604 - cmd shim on PATH
     else:
         return run_command(["mcpb", "validate", "manifest.json"])
 

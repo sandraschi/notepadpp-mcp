@@ -7,9 +7,10 @@ Consolidates file operations (open, new, save, info) into a unified interface.
 import asyncio
 import os
 import subprocess
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 # Windows-specific imports
 try:
@@ -38,8 +39,15 @@ class FileOperationsTool:
 
         @self.app.tool()
         async def file_ops(
-            operation: Literal["open", "new", "save", "info"],
-            file_path: str | None = None,
+            operation: Annotated[
+                Literal["open", "new", "save", "info"],
+                Field(
+                    description="Operation: open loads file_path, new creates a buffer, save persists the active buffer, info returns file metadata."
+                ),
+            ],
+            file_path: Annotated[
+                str | None, Field(description="Absolute path to load into the editor (required for open).")
+            ] = None,
         ) -> dict[str, Any]:
             """FILE_OPS — Open, create, save, or inspect the active document in Notepad++.
 
@@ -51,19 +59,16 @@ class FileOperationsTool:
             - save: Persist the current buffer.
             - info: Metadata for the active file.
 
-            Args:
-                operation (Literal, required): One of "open", "new", "save", "info".
-                file_path (str | None): Required when operation is "open".
+            ## Return Format
+            {"success": bool, "operation": str, "message": str, "result": {...}, "error": str | null}
 
-            Returns:
-                dict with success, operation, message/summary, and optional result, next_steps, recovery_options.
+            ## Examples
+            file_ops(operation="open", file_path="C:/tmp/readme.txt")
+            file_ops(operation="save")
+            file_ops(operation="info")
 
-            Examples:
-                await file_ops("open", file_path="C:/tmp/readme.txt")
-                await file_ops("save")
-
-            Errors:
-                Windows/pywin32 unavailable, file not found, or permission denied; see success=False and error fields.
+            Notes:
+             - Windows/pywin32 required; file not found or permission denied returns success=False with error, recovery_options and diagnostic_info.
             """
             if not self.controller:
                 return {

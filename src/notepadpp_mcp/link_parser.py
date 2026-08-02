@@ -137,7 +137,7 @@ class LinkParser:
         Returns:
             LinkParseResult with extracted links or errors
         """
-        start_time = time.time()
+        start_time = time.perf_counter_ns()
         result = LinkParseResult(is_valid=True, content=content)
 
         # Check content size
@@ -169,7 +169,7 @@ class LinkParser:
                 result.add_warning(f"Large number of links ({len(result.links)}) may impact performance")
 
             # Calculate parse time
-            result.parse_time_ms = (time.time() - start_time) * 1000
+            result.parse_time_ms = (time.perf_counter_ns() - start_time) / 1_000_000
 
             logger.debug(
                 "link_parsing_complete",

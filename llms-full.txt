@@ -1,0 +1,105 @@
+# notepadpp-mcp — Full Server Documentation
+
+MCP server for **Notepad++ automation and control** on Windows, built on FastMCP 3.4+.
+Runs as stdio MCP (Claude Desktop, Cursor) or an HTTP bridge with a React web dashboard,
+plus a Tauri/NSIS desktop wrapper.
+
+## Architecture
+
+```
+stdio MCP client  ──► notepadpp_mcp.server:run  (FastMCP, stdio)
+HTTP bridge       ──► uvicorn notepadpp_mcp.server:app on 127.0.0.1:10815  (/mcp streamable, /api/* REST)
+Web dashboard     ──► Vite React on 127.0.0.1:10814 (proxies /api + /mcp to 10815)
+Tauri operator    ──► native/ (spawns frozen backend exe, NSIS installer)
+```
+
+- Backend: FastAPI + FastMCP streamable HTTP at `/mcp`; REST under `/api/*`
+- Dual transport: stdio by default; `MCP_TRANSPORT=http` (or run_server.py) for HTTP
+- The bridge authenticates REST calls with HTTP Basic (`MCP_WEB_USER` / `MCP_WEB_PASSWORD`)
+- Notepad++ is driven through the Win32/Scintilla controller (`tools/controller.py`, pywin32)
+
+## Tools (portmanteau pattern, `operation` enum)
+
+| Tool | Operations |
+|------|-----------|
+| `file_ops` | open, new, save, info |
+| `text_ops` | insert, find |
+| `tab_ops` | list, switch, close |
+| `session_ops` | save, load, list (session XML persistence) |
+| `linting_ops` | python, javascript, json, markdown, tools |
+| `display_ops` | fix_invisible_text, fix_display_issue, theme_status, set_dark_mode, set_editor_theme |
+| `plugin_ops` | discover, install, list, execute |
+| `status_ops` | help, system_status, health_check |
+| `lint_javascript_file` | ESLint or heuristic fallback |
+| `lint_json_file` | JSON parse + style nits |
+| `lint_markdown_file` | markdown structure checks |
+| `notepad_dashboard` | Prefab UI dashboard (status, tab, fleet) |
+| `suggest_notepad_plan` | sampling-based plan (requires LLM) |
+| `agentic_notepad_workflow` | multi-step sampling workflow with tools |
+| `notepadpp_shutdown` | graceful bridge shutdown (confirm=True) |
+
+All tools return `{"success": bool, "operation": str, "message"/"summary": str, ...}`
+with `error` + `recovery_options` on failure.
+
+## REST endpoints (bridge, 10815)
+
+- `GET /api/health`, `GET /api/v1/health` — liveness (no auth)
+- `GET /api/status`, `GET /api/mcp/meta` — status / tool list
+- `GET /api/tools` — tool list for Tools Hub
+- `POST /api/chat` — LLM chat (`{query, context?}`; Ollama-compatible)
+- `GET /api/llm/providers`, `GET /api/llm/discover` — local LLM probe (Ollama 11434 / LM Studio 1234 / vLLM 8000)
+- `GET /api/skills`, `GET /api/skills/{name}` — skill resources
+- `GET /api/diagnostics`, `GET /api/v1/diagnostics` — health + system status
+- `GET /api/v1/system/info` — CUA feature-route smoke target
+- `GET /api/logs`, `GET /api/logs/stats`, `GET /api/logs/export`, `DELETE /api/logs` — ring-buffer logs
+- `GET /api/editor`, `GET /api/file/stats`, `GET /api/fleet`
+- `GET /api/plugins/discover`, `GET /api/plugins/installed`, `POST /api/plugins/install`
+- `POST /api/mcp/invoke` — whitelisted tool invocation
+- `POST /api/shutdown` — graceful shutdown
+- `GET /docs` — FastAPI Swagger UI
+
+## Environment variables
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `MCP_WEB_USER` / `MCP_WEB_PASSWORD` | none (fail closed) | Dashboard Basic auth |
+| `AI_PROVIDER` / `AI_ENDPOINT` / `AI_MODEL` | ollama / http://127.0.0.1:11434/api/generate / llama3.1-8b | Chat LLM |
+| `NOTEPADPP_SAMPLING_BASE_URL` / `_MODEL` | http://127.0.0.1:11434/v1 | Sampling LLM |
+| `NOTEPADPP_SAMPLING_USE_CLIENT_LLM` | 0 | Let client host run LLM |
+| `NOTEPADPP_PATH` | auto-detect | Notepad++ exe path |
+| `NOTEPADPP_TIMEOUT` / `NOTEPADPP_AUTO_START` | 30 / true | Controller behavior |
+| `MCP_PORT` / `MCP_HOST` / `MCP_TRANSPORT` | 10815 / 127.0.0.1 / stdio | Transport |
+| `MCP_BRIDGE_URLS` | empty | Proxy other MCP servers |
+| `NOTEPADPP_FLEET_REGISTRY` | empty | Fleet registry path for Apps Hub |
+
+## Ports
+
+- Backend bridge: **10815** (REST + `/mcp`)
+- Frontend Vite dev: **10814**
+- (Registered in `mcp-central-docs/operations/WEBAPP_PORTS.md`)
+
+## Webapp pages
+
+Dashboard, Editor, Apps Hub, Tools Hub, Operations, Plugins, Diagnostics, Skill,
+LLM Chat, Status, Logging, Help, Settings. Chat persists history in localStorage
+(100-message cap), loads the server skill as context, and probes local LLM providers.
+
+## Development
+
+```powershell
+uv sync
+just serve        # backend 10815 + Vite 10814
+just test         # pytest (root tests/)
+just lint         # ruff + biome
+just certify      # ruff + pyright + pytest + tsc + biome
+just build-native # Tauri NSIS installer
+just cua-webapp-test / just cua-nsis-test
+```
+
+## Troubleshooting
+
+- **Dashboard 401s**: set `MCP_WEB_USER` / `MCP_WEB_PASSWORD` in `.env` (auth fails closed).
+- **Chat shows "LLM not reachable"**: start Ollama or set `AI_ENDPOINT`/`AI_MODEL`.
+- **Tools report Windows API unavailable**: pywin32 missing or running on non-Windows.
+- **Notepad++ not detected**: set `NOTEPADPP_PATH` to `notepad++.exe`.
+- **Ports in use**: kill listeners on 10814/10815 (`Get-NetTCPConnection`) or restart via start.ps1 (clears zombies).

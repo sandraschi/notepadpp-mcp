@@ -5,9 +5,10 @@ Consolidates tab operations (list, switch, close) into a unified interface.
 """
 
 import asyncio
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 # Windows-specific imports
 try:
@@ -36,8 +37,15 @@ class TabOperationsTool:
 
         @self.app.tool()
         async def tab_ops(
-            operation: Literal["list", "switch", "close"],
-            tab_index: int = -1,
+            operation: Annotated[
+                Literal["list", "switch", "close"],
+                Field(
+                    description="Operation: list enumerates tabs, switch activates tab_index, close closes tab_index (or the active tab when -1)."
+                ),
+            ],
+            tab_index: Annotated[
+                int, Field(description="0-based tab index for switch/close; -1 targets the active tab (default).")
+            ] = -1,
         ) -> dict[str, Any]:
             """TAB_OPS — List, switch, or close editor tabs.
 
@@ -48,19 +56,16 @@ class TabOperationsTool:
             - switch: Activate tab_index (0-based).
             - close: Close tab_index or current tab when index is -1.
 
-            Args:
-                operation (Literal, required): "list" | "switch" | "close".
-                tab_index (int): For switch/close; default -1.
+            ## Return Format
+            {"success": bool, "operation": str, "message": str, "result": {"tabs": [...], "count": int}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, result (tabs, count, etc.).
+            ## Examples
+            tab_ops(operation="list")
+            tab_ops(operation="switch", tab_index=1)
+            tab_ops(operation="close")
 
-            Examples:
-                await tab_ops("list")
-                await tab_ops("switch", tab_index=1)
-
-            Errors:
-                Invalid index, no tabs, or Windows API unavailable.
+            Notes:
+             - Invalid index, no tabs, or Windows API unavailable returns success=False with recovery_options.
             """
             if not self.controller:
                 return {

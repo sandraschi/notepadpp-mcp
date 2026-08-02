@@ -1,8 +1,8 @@
 # Notepad++ MCP Upgrade Summary
 
-**Date**: 2026-01-12  
-**Upgraded From**: FastMCP 3.4.2  
-**Upgraded To**: FastMCP 3.4.2  
+**Date**: 2026-01-12
+**Upgraded From**: FastMCP 3.4.2
+**Upgraded To**: FastMCP 3.4.2
 **Status**: ✅ Complete
 
 ## Upgrade Checklist
@@ -68,12 +68,12 @@
 
 ## Standards Compliance
 
-✅ **FastMCP 3.4.2**: Fully compliant  
-✅ **Structured Logging**: JSON output to stderr only  
-✅ **Server Lifespan**: Startup/shutdown lifecycle implemented  
-✅ **Enhanced Instructions**: Comprehensive server-level documentation  
-✅ **Code Quality**: All ruff linting issues resolved  
-✅ **Test Harness**: Enhanced pytest configuration and Makefile commands  
+✅ **FastMCP 3.4.2**: Fully compliant
+✅ **Structured Logging**: JSON output to stderr only
+✅ **Server Lifespan**: Startup/shutdown lifecycle implemented
+✅ **Enhanced Instructions**: Comprehensive server-level documentation
+✅ **Code Quality**: All ruff linting issues resolved
+✅ **Test Harness**: Enhanced pytest configuration and Makefile commands
 ✅ **Documentation**: Updated to reflect FastMCP 3.4.2
 
 ## Testing

@@ -22,7 +22,7 @@ Write-Host "=== notepadpp-mcp Industrial Startup ===" -ForegroundColor Cyan
 # 1. Kill stale
 $WebPort = 10814
 $BackendPort = 10815
-$FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
+$FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
 if (-not (Test-Path -LiteralPath $FleetStartPath)) {
     Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
     exit 1
@@ -70,9 +70,20 @@ if (Test-Path $FrontendDir) {
 
 Write-Host "Startup Complete." -ForegroundColor Green
 if (-not $NoBrowser) {
-    # Wait a bit for Vite
-    Start-Sleep -Seconds 2
-    Start-Process "http://localhost:$WebPort"
+    # Readiness poll: wait for the backend before opening the browser (no fixed sleep)
+    $ready = $false
+    for ($i = 0; $i -lt 60; $i++) {
+        try {
+            $r = Invoke-WebRequest -Uri "http://127.0.0.1:$BackendPort/api/health" -TimeoutSec 2 -UseBasicParsing -ErrorAction SilentlyContinue
+            if ($r.StatusCode -eq 200) { $ready = $true; break }
+        } catch {}
+        Start-Sleep -Seconds 1
+    }
+    if ($ready) {
+        Start-Process "http://localhost:$WebPort"
+    } else {
+        Write-Host "  Backend not reachable after 60s - open http://localhost:$WebPort manually" -ForegroundColor Yellow
+    }
 }
 
 # Keep alive

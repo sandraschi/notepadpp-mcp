@@ -10,6 +10,9 @@ Coverage: Core tools (35-45%)
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastmcp import FastMCP
+
+_MOCK_APP = FastMCP("megatest")
 
 
 @pytest.mark.megatest_standard
@@ -17,11 +20,11 @@ async def test_file_operations_basic(isolated_test_env, mock_notepadpp_controlle
     """Test: File operations work with mocked controller."""
     from notepadpp_mcp.tools.file_operations import FileOperationsTool
 
-    tool = FileOperationsTool(None, mock_notepadpp_controller)
+    tool = FileOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     # Tool should register without errors
-    assert tool.app is None  # Mock app
+    assert tool.app is not None  # FastMCP instance
     assert tool.controller == mock_notepadpp_controller
 
 
@@ -30,7 +33,7 @@ async def test_text_operations_basic(isolated_test_env, mock_notepadpp_controlle
     """Test: Text operations work with mocked controller."""
     from notepadpp_mcp.tools.text_operations import TextOperationsTool
 
-    tool = TextOperationsTool(None, mock_notepadpp_controller)
+    tool = TextOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -41,7 +44,7 @@ async def test_status_operations_basic(isolated_test_env, mock_notepadpp_control
     """Test: Status operations work with mocked controller."""
     from notepadpp_mcp.tools.status_operations import StatusOperationsTool
 
-    tool = StatusOperationsTool(None, mock_notepadpp_controller)
+    tool = StatusOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -52,7 +55,7 @@ async def test_tab_operations_basic(isolated_test_env, mock_notepadpp_controller
     """Test: Tab operations work with mocked controller."""
     from notepadpp_mcp.tools.tab_operations import TabOperationsTool
 
-    tool = TabOperationsTool(None, mock_notepadpp_controller)
+    tool = TabOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -63,7 +66,7 @@ async def test_session_operations_basic(isolated_test_env, mock_notepadpp_contro
     """Test: Session operations work with mocked controller."""
     from notepadpp_mcp.tools.session_operations import SessionOperationsTool
 
-    tool = SessionOperationsTool(None, mock_notepadpp_controller)
+    tool = SessionOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -74,7 +77,7 @@ async def test_linting_operations_basic(isolated_test_env, mock_notepadpp_contro
     """Test: Linting operations work with mocked controller."""
     from notepadpp_mcp.tools.linting_operations import LintingOperationsTool
 
-    tool = LintingOperationsTool(None, mock_notepadpp_controller)
+    tool = LintingOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -85,7 +88,7 @@ async def test_display_operations_basic(isolated_test_env, mock_notepadpp_contro
     """Test: Display operations work with mocked controller."""
     from notepadpp_mcp.tools.display_operations import DisplayOperationsTool
 
-    tool = DisplayOperationsTool(None, mock_notepadpp_controller)
+    tool = DisplayOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller
@@ -96,7 +99,7 @@ async def test_plugin_operations_basic(isolated_test_env, mock_notepadpp_control
     """Test: Plugin operations work with mocked controller."""
     from notepadpp_mcp.tools.plugin_operations import PluginOperationsTool
 
-    tool = PluginOperationsTool(None, mock_notepadpp_controller)
+    tool = PluginOperationsTool(_MOCK_APP, mock_notepadpp_controller)
     tool.register_tools()
 
     assert tool.controller == mock_notepadpp_controller

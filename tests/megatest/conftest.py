@@ -96,9 +96,14 @@ def compute_checksum(path: Path) -> str:
 # ============================================================================
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def mock_windows_api():
-    """Mock Windows API calls globally using sys.modules patching for CI environments."""
+    """Mock Windows API calls globally using sys.modules patching for CI environments.
+
+    Function-scoped (not session): a session-scoped sys.modules patch would leak
+    the win32 mocks into every other test suite running in the same pytest session
+    (e.g. src/notepadpp_mcp/tests), breaking their real-controller fixtures.
+    """
     mock_win32api = MagicMock()
     mock_win32con = MagicMock()
     mock_win32gui = MagicMock()
@@ -143,7 +148,7 @@ def mock_windows_api():
         }
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def mock_notepadpp_controller(mock_windows_api):
     """Mock Notepad++ controller for testing without real Notepad++."""
     with patch("notepadpp_mcp.tools.controller.NotepadPPController") as mock_controller_class:

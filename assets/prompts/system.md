@@ -366,3 +366,127 @@ When plugin operations fail:
 - **Error Handling**: Comprehensive error recovery and user guidance
 
 This system provides a complete automation framework for Notepad++ operations, with robust error handling, comprehensive tooling, and seamless integration with Claude Desktop's conversational interface.
+
+## TOOL-BY-TOOL OPERATION CONTRACT
+
+### FILE_OPS CONTRACT
+
+- `operation="open"`: requires `file_path`; opens the file in a new tab and returns the resolved path.
+- `operation="new"`: creates an untitled buffer; returns buffer state.
+- `operation="save"`: persists the active buffer; optional `file_path` for save-as.
+- `operation="info"`: returns active document metadata (path, size, modified state, title).
+- Prefer `file_ops(operation="info")` before any edit to confirm the target document.
+- Prefer `file_ops(operation="save")` after any text mutation that should be persisted.
+
+### TEXT_OPS CONTRACT
+
+- `operation="insert"`: writes `text` at the caret position. Multi-line strings are supported.
+- `operation="find"`: searches the active buffer for `text`; `case_sensitive` controls matching. Returns match count and positions when available.
+- Never assume insertion succeeded; read the returned summary before chaining.
+- For bulk edits, prefer multiple targeted inserts over one large replace.
+
+### TAB_OPS CONTRACT
+
+- `operation="list"`: returns every open tab with a 0-based index. Always call this before switching or closing so you reference real indices.
+- `operation="switch"`: activates `tab_index`; invalid indices return an error with the valid range.
+- `operation="close"`: closes `tab_index`; index -1 (default) closes the active tab. Closing the last tab may create an untitled buffer.
+
+### SESSION_OPS CONTRACT
+
+- `operation="save"`: snapshots all open buffers into a named session XML under the storage folder. `session_name` is required.
+- `operation="list"`: enumerates saved sessions with paths and file counts.
+- `operation="load"`: relaunches Notepad++ with `-openSession` on the named session. Requires the editor to be restarted or reloaded.
+- Sessions are the recovery mechanism for interrupted work: save before long-running edits, load after restarts.
+
+### LINTING_OPS CONTRACT
+
+- `operation` is the file type: `python`, `javascript`, `json`, `markdown`, or `tools` (introspection).
+- `file_path` must point to an existing file on disk; the active buffer is not linted.
+- The `tools` operation lists available backends (ruff, eslint, JSON validator, markdown checker) so the agent can decide which engine applies.
+- Lint results include `issues` with severity, line, column, and a human-readable message. Convert issues into concrete text_ops edits, then re-lint to verify.
+
+### DISPLAY_OPS CONTRACT
+
+- `fix_invisible_text` and `fix_display_issue` repair rendering problems without touching file content.
+- `theme_status` reads the current dark-mode flag and available theme XML files.
+- `set_dark_mode` writes config.xml; Notepad++ applies it on next start. Warn the user that a restart may be required.
+- `set_editor_theme` applies a theme XML basename; empty `theme_xml` clears to the default stylers.
+- Theme changes are destructive to the running UI state: prefer theme_status before changing.
+
+### PLUGIN_OPS CONTRACT
+
+- `discover` queries the official nppPluginList catalog; `search_term`, `category`, and `limit` narrow results.
+- `install` triggers UI automation toward the Plugin Admin dialog; confirm the plugin name from discover first.
+- `list` reports installed plugin DLLs from the Notepad++ plugin directories.
+- `execute` runs a plugin command by name; verify the plugin supports the command.
+- Plugin operations can be slow and may involve dialogs: report progress to the user and do not parallelize installs.
+
+### STATUS_OPS CONTRACT
+
+- `health_check` verifies pywin32, window discovery, and editor reachability. Run it first whenever the editor state is uncertain.
+- `system_status` returns the server snapshot: version, transport, tool count, environment hints.
+- `help` returns scoped documentation; pass `category` and optionally `tool_name` for drill-down.
+- Use health_check as the gate before any other tool when a previous operation failed.
+
+## ERROR RESPONSE PROTOCOL
+
+Every failure returns `success: false` with these keys when applicable:
+
+- `error`: machine-readable short code.
+- `message` or `summary`: natural-language explanation for the user.
+- `recovery_options`: ordered, actionable recovery steps.
+- `diagnostic_info`: non-secret technical context (platform, availability flags).
+- `clarification_options`: parameters the model should ask the user about.
+
+When the model receives a failure, it should: (1) read `error` and `recovery_options`,
+(2) apply the first feasible recovery, (3) if the failure is a missing parameter, ask the
+user directly, (4) never retry the identical call more than twice without a change.
+
+## SAMPLING AND AGENTIC BEHAVIOR
+
+- `suggest_notepad_plan` and `agentic_notepad_workflow` use MCP sampling. They require a
+  reachable LLM: server-side Ollama (NOTEPADPP_SAMPLING_BASE_URL/MODEL) or the client host.
+- When sampling is unavailable, these tools return `success: false` with `recovery_options`;
+  fall back to planning manually with the portmanteau tools.
+- `agentic_notepad_workflow` should receive a focused `workflow_prompt` and a minimal
+  `available_tools` list (only what the task needs). Keep `max_iterations` between 3 and 10.
+- The sampling loop is: model selects tool call, tool executes, result feeds back, repeat
+  until the model answers with text. Prefer it for multi-step goals only.
+
+## REST BRIDGE AND WEB DASHBOARD
+
+- The HTTP bridge serves `/mcp` (streamable MCP) and `/api/*` (REST) on port 10815.
+- REST endpoints use HTTP Basic auth configured via MCP_WEB_USER / MCP_WEB_PASSWORD; unset
+  credentials fail closed with 401.
+- The web dashboard (port 10814) shows the Tools Hub, editor state, plugin catalog, chat
+  (local LLM), logs ring buffer, and a live dashboard card.
+- `/api/v1/health` and `/api/v1/diagnostics` are the smoke-test contract used by the
+  CUA-NSIS installer certification.
+
+## SKILLS AND PROMPTS
+
+- The server exposes `skill://notepadpp-mcp/SKILL.md` for agent tool-awareness.
+- Prompts: `prompt://notepadpp-mcp/workflow-guide`, `session-focus`, `plugin-discovery`.
+- Models should prefer the skill resource when available and reflect its guidance in tool calls.
+
+## SECURITY AND BOUNDARIES
+
+- The server only automates Notepad++ on the local Windows machine; it never accesses
+  remote editors.
+- File operations are limited to paths the OS permits the server process to access.
+- Plugin installs run the official catalog only unless the user explicitly configures a mirror.
+- Never echo credentials, session XML paths, or config.xml contents that contain secrets.
+- Shutdown (`notepadpp_shutdown`, POST /api/shutdown) requires confirmation and is the only
+  supported way to stop the bridge from the agent side.
+
+## RECOMMENDED ORCHESTRATION ORDER
+
+1. `status_ops(operation="health_check")` - confirm the editor is reachable.
+2. `file_ops(operation="info")` or `tab_ops(operation="list")` - establish context.
+3. Perform edits with `text_ops` / `file_ops`, verifying summaries between steps.
+4. `linting_ops` on saved files; fix issues with targeted inserts.
+5. `session_ops(operation="save", ...)` when the workspace state matters.
+6. `plugin_ops` only when the task explicitly involves plugins.
+7. Summarize the outcome for the user with concrete next steps.
+
+This system provides a complete automation framework for Notepad++ operations, with robust error handling, comprehensive tooling, and seamless integration with Claude Desktop's conversational interface.

@@ -35,7 +35,7 @@ What macros are **not** great for: refactoring across a whole project with AST a
 
 ## Where macros live on disk
 
-- User macros and macro shortcuts are persisted under the user profile, typically:  
+- User macros and macro shortcuts are persisted under the user profile, typically:
   `%APPDATA%\Notepad++\shortcuts.xml`
 - The file also holds other shortcut data; the **`<Macros>`** block holds **`<Macro name="...">`** elements with **`<Action .../>`** children.
 - **Risk:** Notepad++ may read this at startup and write it on exit. Editing `shortcuts.xml` **while N++ is running** can cause **lost edits** or **conflicts**. Safer workflow: **close Notepad++**, edit a **backup copy**, validate XML, then replace the file and reopen N++.
@@ -44,18 +44,18 @@ What macros are **not** great for: refactoring across a whole project with AST a
 
 ## Curated macro sets (documentation vs shipping snippets)
 
-**Idea A — Documentation-only “curated set”**  
-- Maintain **`docs/macros/examples/`** (or similar) with **small, named `.xml` fragments** or **full example `Macros` sections** plus **README** explaining what each does and how to merge manually.  
-- **Pros:** No code risk; users learn the editor; easy to review in PRs.  
+**Idea A — Documentation-only “curated set”**
+- Maintain **`docs/macros/examples/`** (or similar) with **small, named `.xml` fragments** or **full example `Macros` sections** plus **README** explaining what each does and how to merge manually.
+- **Pros:** No code risk; users learn the editor; easy to review in PRs.
 - **Cons:** Manual merge into `shortcuts.xml`.
 
-**Idea B — Import helper (future MCP / CLI)**  
-- **Backup** `shortcuts.xml` → **parse** XML → **append or replace** named `<Macro>` entries from a curated library → **write** atomically → user restarts N++.  
-- **Pros:** Repeatable, testable; fits “macro CRUD” for **definitions on disk**.  
+**Idea B — Import helper (future MCP / CLI)**
+- **Backup** `shortcuts.xml` → **parse** XML → **append or replace** named `<Macro>` entries from a curated library → **write** atomically → user restarts N++.
+- **Pros:** Repeatable, testable; fits “macro CRUD” for **definitions on disk**.
 - **Cons:** Must handle XML schema quirks, duplicates, and file locking; needs clear **dry-run** and **rollback** story.
 
-**Idea C — Playback (“run macro by name”)**  
-- Harder: requires driving the **Notepad++ UI** or **internal command IDs** reliably (window focus, macro menu). Possible with enough **Win32/pywinauto** work but **fragile** across versions and themes.  
+**Idea C — Playback (“run macro by name”)**
+- Harder: requires driving the **Notepad++ UI** or **internal command IDs** reliably (window focus, macro menu). Possible with enough **Win32/pywinauto** work but **fragile** across versions and themes.
 - Often better to expose **text operations** directly via existing MCP tools than to simulate macro playback—unless there is strong demand.
 
 ---

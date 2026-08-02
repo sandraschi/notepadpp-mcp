@@ -5,9 +5,10 @@ Consolidates status operations (help, system_status, health_check) into a unifie
 """
 
 import time
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 # Windows-specific imports
 try:
@@ -36,9 +37,14 @@ class StatusOperationsTool:
 
         @self.app.tool()
         async def status_ops(
-            operation: Literal["help", "system_status", "health_check"],
-            category: str = "",
-            tool_name: str = "",
+            operation: Annotated[
+                Literal["help", "system_status", "health_check"],
+                Field(
+                    description="Operation: help returns scoped help text, system_status returns the server/config snapshot, health_check runs pywin32 + Notepad++ sanity checks."
+                ),
+            ],
+            category: Annotated[str, Field(description="Help category filter (for help operation).")] = "",
+            tool_name: Annotated[str, Field(description="Tool name for help drill-down (for help operation).")] = "",
         ) -> dict[str, Any]:
             """STATUS_OPS — Help text, server status, or connectivity health checks.
 
@@ -49,20 +55,16 @@ class StatusOperationsTool:
             - system_status: MCP server / config snapshot.
             - health_check: pywin32 + Notepad++ sanity checks.
 
-            Args:
-                operation (Literal, required): "help" | "system_status" | "health_check".
-                category (str): For help filtering; default "".
-                tool_name (str): For help drill-down; default "".
+            ## Return Format
+            {"success": bool, "operation": str, "summary": str, "result": {...}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, result (help payload, status, or health).
+            ## Examples
+            status_ops(operation="help", category="file_operations")
+            status_ops(operation="health_check")
+            status_ops(operation="system_status")
 
-            Examples:
-                await status_ops("help", category="file_operations")
-                await status_ops("health_check")
-
-            Errors:
-                Unknown category/tool for help, or failed health prerequisites.
+            Notes:
+             - Unknown category/tool for help, or failed health prerequisites return success=False with recovery_options.
             """
             if operation == "help":
                 return await self._handle_help(category, tool_name)

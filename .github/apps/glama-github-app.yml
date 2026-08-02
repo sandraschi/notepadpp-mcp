@@ -28,7 +28,7 @@ jobs:
           echo "🚀 Installing Glama.ai GitHub App..."
           echo "Repository: ${{ github.repository }}"
           echo "Owner: ${{ github.repository_owner }}"
-          
+
           # Instructions for manual installation
           echo "📋 Manual Installation Steps:"
           echo "1. Visit: https://github.com/apps/glama-ai"
@@ -39,12 +39,12 @@ jobs:
           echo "   - Webhook events"
           echo "   - Release notifications"
           echo "   - CI/CD status"
-          
+
       - name: Configure Glama.ai Integration
         if: github.event.inputs.action == 'configure'
         run: |
           echo "⚙️ Configuring Glama.ai Integration..."
-          
+
           # Create app configuration
           cat > .github/glama-app-config.json << EOF
           {
@@ -71,9 +71,9 @@ jobs:
             "auto_update": true
           }
           EOF
-          
+
           echo "✅ Configuration file created"
-          
+
       - name: Check Integration Status
         if: github.event.inputs.action == 'status'
         run: |
@@ -88,19 +88,19 @@ jobs:
           echo ""
           echo "🔍 Check your repository on: https://glama.ai"
           echo "Search for: ${{ github.repository }}"
-          
+
       - name: Update Repository Metadata
         if: github.event.inputs.action == 'update'
         run: |
           echo "🔄 Updating repository metadata for Glama.ai..."
-          
+
           # Update repository description
           echo "Repository metadata updated:"
           echo "- Gold Status: Confirmed"
           echo "- Quality Score: 85/100"
           echo "- Test Status: 64/64 passing"
           echo "- Last Update: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          
+
           # Notify Glama.ai of update
           curl -X POST \
             -H "Content-Type: application/json" \

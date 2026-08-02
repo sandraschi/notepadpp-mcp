@@ -17,7 +17,7 @@ compatibility:
     - "win32"
   python_versions:
     - ">=3.10"
-  
+
 # Quality Metrics (for Glama.ai ranking)
 quality:
   status: "gold"
@@ -26,7 +26,7 @@ quality:
   test_coverage: 77
   documentation_complete: true
   enterprise_ready: true
-  
+
 # Features and Capabilities
 features:
   - "File Operations (open, save, new, close)"
@@ -36,7 +36,7 @@ features:
   - "Structured Logging"
   - "Error Handling & Validation"
   - "Enterprise CI/CD Pipeline"
-  
+
 # Tools Available (for automatic cataloging)
 tools:
   - name: "open_file"
@@ -83,26 +83,26 @@ tools:
 installation:
   pip: "pip install notepadpp-mcp"
   mcpb: "mcpb pack ."
-  
+
 usage:
   quick_start: |
     1. Install: pip install notepadpp-mcp
     2. Configure in Claude Desktop
     3. Use with any MCP-compatible client
-    
+
 # Documentation Links
 documentation:
   readme: "https://github.com/sandraschi/notepadpp-mcp/blob/main/README.md"
   examples: "https://github.com/sandraschi/notepadpp-mcp/tree/main/src/notepadpp_mcp/docs/examples"
   changelog: "https://github.com/sandraschi/notepadpp-mcp/blob/main/CHANGELOG.md"
   security: "https://github.com/sandraschi/notepadpp-mcp/blob/main/SECURITY.md"
-  
+
 # Community and Support
 community:
   discord: "https://discord.gg/glama"
   issues: "https://github.com/sandraschi/notepadpp-mcp/issues"
   discussions: "https://github.com/sandraschi/notepadpp-mcp/discussions"
-  
+
 # Keywords for search optimization
 keywords:
   - "mcp-server"
@@ -117,14 +117,14 @@ keywords:
   - "code-quality"
   - "enterprise"
   - "claude-desktop"
-  
+
 # Performance Metrics
 performance:
   startup_time: "< 2 seconds"
   memory_usage: "< 50MB"
   response_time: "< 100ms"
   reliability: "99.9%"
-  
+
 # Security Information
 security:
   vulnerability_scanning: true

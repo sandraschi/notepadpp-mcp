@@ -5,12 +5,17 @@ These tests catch the type of silent failures that occurred with
 advanced-memory-mcp where the watchdog failed to start.
 """
 
+import os
 import tempfile
 import time
 from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+
+# Paths that are guaranteed not to exist (Windows resolves drive-root-relative
+# paths like "/nonexistent" against the current drive, which may exist).
+_NONEXISTENT = str(Path(tempfile.gettempdir()) / f"npp-no-such-dir-{os.getpid()}-{time.time_ns()}")
 
 
 class MockSyncManager:
@@ -29,7 +34,10 @@ class MockSyncManager:
         """Start synchronization."""
         try:
             # Simulate counting files
-            self.files_total = len(list(Path(self.project_path).rglob("*.md")))
+            root = Path(self.project_path)
+            if not root.exists():
+                raise FileNotFoundError(f"Path does not exist: {self.project_path}")
+            self.files_total = len(list(root.rglob("*.md")))
             self.sync_state = "SCANNING"
             return True
         except Exception as e:
@@ -118,7 +126,7 @@ class TestSyncInitialization:
 
     def test_sync_handles_nonexistent_path(self):
         """Test sync with non-existent path."""
-        sync = MockSyncManager("/nonexistent/path/12345")
+        sync = MockSyncManager(_NONEXISTENT)
         result = sync.start_sync()
 
         assert result is False
@@ -252,7 +260,7 @@ class TestSyncErrorHandling:
 
     def test_errors_are_logged(self):
         """Test that errors are captured in error list."""
-        sync = MockSyncManager("/invalid/path")
+        sync = MockSyncManager(_NONEXISTENT)
         sync.start_sync()
 
         assert len(sync.errors) > 0
@@ -278,7 +286,7 @@ class TestSyncRecovery:
     def test_sync_can_restart_after_error(self):
         """Test that sync can be restarted after failure."""
         # First attempt fails
-        sync = MockSyncManager("/nonexistent")
+        sync = MockSyncManager(_NONEXISTENT)
         result1 = sync.start_sync()
         assert result1 is False
 

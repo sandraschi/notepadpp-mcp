@@ -13,6 +13,7 @@ import {
   Settings,
   Stethoscope,
   Terminal,
+  TerminalSquare,
   Wrench,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -37,6 +38,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { href: "/skill", label: "Skill", icon: BookOpen },
     { href: "/chat", label: "LLM Chat", icon: Bot },
     { href: "/status", label: "Status", icon: ActivityIcon },
+    { href: "/logging", label: "Logging", icon: TerminalSquare },
     { href: "/help", label: "Help", icon: HelpCircle },
     { href: "/settings", label: "Settings", icon: Settings },
   ];

@@ -17,12 +17,10 @@ REPLACEMENTS = [
     ("FastMCP 2.12.0", "FastMCP 3.4.2"),
     ("fastmcp>=2.14.1", "fastmcp>=3.4.2"),
     ("fastmcp>=3.1.0", "fastmcp>=3.4.2"),
-    
     # Python version updates
     ("Python-3.13+", "Python-3.12+"),
     ("python-3.8+", "python-3.12+"),
     ("Python 3.10", "Python 3.12+"),
-    
     # Timeline/Date updates
     ("October 8, 2025", "January 12, 2026"),
     ("October 9, 2025", "January 12, 2026"),
@@ -36,7 +34,6 @@ REPLACEMENTS = [
     ("September 2025", "January 2026"),
     ("September 17-20, 2025", "January 2026"),
     ("September 20, 2025", "January 12, 2026"),
-
     # Cruft/Template replacements from Advanced Memory MCP
     ("Advanced Memory MCP", "Notepad++ MCP"),
     ("Advanced Memory", "Notepad++ MCP"),
@@ -45,18 +42,14 @@ REPLACEMENTS = [
     ("ADVANCED MEMORY", "NOTEPAD++ MCP"),
 ]
 
-ALLOWED_EXTENSIONS = {
-    ".md", ".py", ".txt", ".json", ".toml", ".ps1", ".just", ".spec", ".yml", ".yaml"
-}
+ALLOWED_EXTENSIONS = {".md", ".py", ".txt", ".json", ".toml", ".ps1", ".just", ".spec", ".yml", ".yaml"}
 
-EXCLUDED_DIRS = {
-    ".git", ".venv", "node_modules", "dist", "build", "target"
-}
+EXCLUDED_DIRS = {".git", ".venv", "node_modules", "dist", "build", "target"}
 
 
 def process_file(filepath: str) -> None:
     try:
-        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+        with open(filepath, encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         new_content = content
@@ -90,8 +83,13 @@ def main() -> None:
 
     # Process root documentation/markdown files
     root_files = [
-        "README.md", "INSTALL.md", "CHANGELOG.md", "CONTRIBUTING.md",
-        "SECURITY.md", "UPGRADE_SUMMARY.md", "AGENTS.md"
+        "README.md",
+        "INSTALL.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "UPGRADE_SUMMARY.md",
+        "AGENTS.md",
     ]
     for file in root_files:
         filepath = os.path.join(repo_root, file)
@@ -101,4 +99,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

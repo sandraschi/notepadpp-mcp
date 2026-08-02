@@ -27,10 +27,10 @@ Environment Variables:
     MEGATEST_CLEANUP=immediate|on-success|archive
 """
 
-import os
-import sys
 import argparse
+import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -58,11 +58,6 @@ class MegatestRunner:
         # Check if tests directory exists
         if not self.test_dir.exists():
             print("Error: Test directory not found")
-            return False
-
-        # Check Python version
-        if sys.version_info < (3, 10):
-            print("Error: Python 3.10+ required")
             return False
 
         print("Environment check passed")
@@ -97,9 +92,7 @@ class MegatestRunner:
         """Set environment variables for testing."""
         os.environ["MEGATEST_MODE"] = "local"
         os.environ["MEGATEST_LOCATION"] = "local"
-        os.environ["MEGATEST_CLEANUP"] = (
-            "on-success" if args.keep_results else "immediate"
-        )
+        os.environ["MEGATEST_CLEANUP"] = "on-success" if args.keep_results else "immediate"
 
         if args.with_notepadpp and self.check_notepadpp():
             os.environ["NOTEPADPP_AVAILABLE"] = "1"
@@ -136,9 +129,7 @@ class MegatestRunner:
         start_time = time.time()
 
         try:
-            result = subprocess.run(
-                cmd, cwd=self.root_dir, timeout=timeout, capture_output=False
-            )
+            result = subprocess.run(cmd, cwd=self.root_dir, timeout=timeout, capture_output=False)
 
             duration = time.time() - start_time
             print(f"Duration: {duration:.2f}s")
@@ -271,13 +262,9 @@ class MegatestRunner:
             help="Include tests that require Notepad++",
         )
 
-        parser.add_argument(
-            "--coverage", action="store_true", help="Generate coverage report"
-        )
+        parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
 
-        parser.add_argument(
-            "--verbose", "-v", action="store_true", help="Verbose output"
-        )
+        parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
 
         parser.add_argument(
             "--keep-results",

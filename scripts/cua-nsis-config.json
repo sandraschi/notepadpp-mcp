@@ -1,0 +1,29 @@
+{
+    "product_name": "NotepadPP MCP",
+    "install_dir": "%LOCALAPPDATA%\\NotepadPP MCP",
+    "operator_exe": "notepadpp-mcp-native.exe",
+    "backend_process_names": ["notepadpp-mcp-native", "notepadpp-mcp-backend"],
+    "backend_port": 10815,
+    "health_path": "/api/v1/health",
+    "diagnostics_path": "/api/v1/diagnostics",
+    "feature_smoke_path": "/api/v1/system/info",
+    "window_title_re": "NotepadPP MCP",
+    "nsis_glob": "native/target/release/bundle/nsis/NotepadPP MCP_*_x64-setup.exe",
+    "bridge_ok_text": "REST bridge reachable",
+    "uninstall_registry_filter": "*NotepadPP MCP*",
+    "nav_routes": [
+        ["Dashboard", "Dashboard"],
+        ["Editor", "Editor"],
+        ["Apps Hub", "Apps Hub"],
+        ["Tools Hub", "Tools Hub"],
+        ["Operations", "Operations"],
+        ["Plugins", "Plugins"],
+        ["Diagnostics", "Diagnostics"],
+        ["Skill", "Skill"],
+        ["LLM Chat", "LLM Chat"],
+        ["Status", "Status"],
+        ["Logging", "Logs"],
+        ["Help", "Help"],
+        ["Settings", "Settings"]
+    ]
+}

@@ -7,7 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Dashboard auth now fails closed: `MCP_WEB_USER` / `MCP_WEB_PASSWORD` must be set explicitly (no hardcoded default password). `.env.example` added.
+- Tauri bundle resources now ship `.env.example` instead of `.env`.
+
 ### Added
+- `notepadpp_shutdown` MCP tool + `POST /api/shutdown` (agent-initiated graceful stop).
+- `/api/v1/health`, `/api/v1/diagnostics`, `/api/v1/system/info` endpoints (CUA-NSIS contract).
+- `/api/llm/providers` + `/api/llm/discover` (Ollama/LM Studio/vLLM probe) - Settings page now shows real provider state.
+- Ring-buffer activity log on the bridge (`/api/logs*`); Logging page routed and reachable from the sidebar.
+- Fleet CORS standard on the bridge (tauri://localhost + LAN/Tailscale regex).
+- Chat page upgrade: localStorage history (100 cap), personalities, skill context, example prompts, export/clear, provider status, data-testid attributes.
+- `llms.txt`, `llms-full.txt`, `docs/CONFIGURATION.md`, `docs/DEVELOPMENT.md`, `docs/TOOLS.md`, `docs/TROUBLESHOOTING.md`.
+- Session context injection: `.claude-plugin/`, rewritten `.cursorrules`, `.windsurfrules`, `.opencode/skills/session-context/`, `.github/copilot-instructions.md`.
+- MCPB prompts expanded to the 3-4-100 gate (system.md 3002w, user.md 4112w, examples 100).
+- Justfile recipes: `serve`, `test`, `fmt`, `mcpb-pack`, `build-native`, `certify`.
+- `assets/icon.png` (256x256).
+
+### Fixed
+- `start.ps1` used undefined `$ProjectRoot` (always exited); now uses `$RepoRoot` + backend readiness poll before opening the browser.
+- `run_server.py` called `uvicorn.run` without importing uvicorn; now honors `PORT` too.
+- pytest collection errors: `timeout` marker declared in `pytest.ini`.
+- `web_sota/backend/server.py` removed (wildcard CORS + forbidden port 8000); logs moved to the bridge.
+- Root `tests/` suite green again: megatest mock-app fix, Windows-relative nonexistent paths, validator binary/line-ending detection, link-parser nanosecond timing.
+- Removed tracked junk: `coverage.xml`, root `Cargo.toml`/`Cargo.lock`/`extension.toml`/`Makefile`, `src/lib.rs`, placeholder icons, `.bak` dross.
+- README now references existing just recipes.
+
+### Changed
+- Tool docstrings follow the SOTA docstring protocol: `Annotated + Field` parameter docs (no `Args:`), `## Return Format`, `## Examples` on all registered tools.
+- `ai.py` chat router calls the local LLM for real (was a routing-hint stub); `POST /api/chat` accepts `{query, context?}`.
 - **Industrial Startup Script**: Root `start.ps1` with `-Headless`, `-BackendOnly`, and `-NoBrowser` support.
 - **Improved Port Handling**: Automatic TCP squatter termination and health-check polling.
 - Plugin ecosystem integration tools (4 new tools)

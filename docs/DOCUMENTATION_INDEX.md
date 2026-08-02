@@ -104,7 +104,7 @@ Complete strategy for protecting your repository while allowing AI to experiment
 
 ### **Documents**
 
-#### **1. Protection Hub** 
+#### **1. Protection Hub**
 📄 [README.md](repository-protection/README.md)
 
 **Central index for all protection documentation**
@@ -570,7 +570,7 @@ If you find errors or missing information:
 ### **Technical Issues**
 
 1. **Check**: Relevant troubleshooting section
-2. **Search**: GitHub issues for similar problems  
+2. **Search**: GitHub issues for similar problems
 3. **Debug**: Enable verbose logging
 4. **Report**: Create detailed issue
 
@@ -600,34 +600,33 @@ If you find errors or missing information:
 Based on what you need:
 
 ### **I'm New Here**
-→ Read [README.md](../README.md)  
-→ Setup [Branch Protection](repository-protection/BRANCH_PROTECTION_SETTINGS.md)  
+→ Read [README.md](../README.md)
+→ Setup [Branch Protection](repository-protection/BRANCH_PROTECTION_SETTINGS.md)
 → Run [Backup Script](../scripts/README.md)
 
 ### **I Want to Develop**
-→ Read [CONTRIBUTING.md](../CONTRIBUTING.md)  
-→ Review [Branch Strategy](repository-protection/BRANCH_STRATEGY_AND_AI_WORKFLOW.md)  
+→ Read [CONTRIBUTING.md](../CONTRIBUTING.md)
+→ Review [Branch Strategy](repository-protection/BRANCH_STRATEGY_AND_AI_WORKFLOW.md)
 → Check [API Docs](../src/notepadpp_mcp/docs/README.md)
 
 ### **I Want to Release**
-→ Read [MCPB Guide](MCPB_BUILDING_GUIDE.md)  
-→ Run [Build Script](../scripts/README.md)  
+→ Read [MCPB Guide](MCPB_BUILDING_GUIDE.md)
+→ Run [Build Script](../scripts/README.md)
 → Follow [CI/CD Guide](CI_CD_GLAMA_OPTIMIZATION_GUIDE.md)
 
 ### **I Need Help**
-→ Check [Repository Protection](repository-protection/README.md)  
-→ See [Backup Guide](repository-protection/BACKUP_AND_RECOVERY_GUIDE.md)  
+→ Check [Repository Protection](repository-protection/README.md)
+→ See [Backup Guide](repository-protection/BACKUP_AND_RECOVERY_GUIDE.md)
 → Create [GitHub Issue](https://github.com/sandraschi/notepadpp-mcp/issues)
 
 ---
 
-*Documentation Index*  
-*Created: January 12, 2026*  
-*Last Updated: January 12, 2026*  
-*Total Pages: 420+*  
-*Total Documents: 18*  
-*Status: Complete*  
+*Documentation Index*
+*Created: January 12, 2026*
+*Last Updated: January 12, 2026*
+*Total Pages: 420+*
+*Total Documents: 18*
+*Status: Complete*
 *Coverage: 100%*
 
 **Everything you need to know about notepadpp-mcp!** 📚✨
-

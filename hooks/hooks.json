@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "text",
+            "text": "## Session Context (Notepad++ MCP)\n\nYou can automate Notepad++ on Windows: open/edit/save files, manage tabs and sessions, lint code, control plugins.\n\n**Before starting work:**\n1. Check editor state: status_ops(operation=\"health_check\")\n2. Inspect the active document: file_ops(operation=\"info\")\n\n**At end of work, persist state:**\n- Save the workspace when asked: session_ops(operation=\"save\", session_name=\"...\")\n- Run linting before declaring code done: linting_ops(operation=\"python\", file_path=\"...\")"
+          }
+        ]
+      }
+    ]
+  }
+}

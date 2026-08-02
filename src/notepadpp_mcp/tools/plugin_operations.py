@@ -6,9 +6,10 @@ Consolidates plugin operations (discover, install, list, execute) into a unified
 
 import asyncio
 import logging
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from ..plugin_catalog import (
     enrich_installed_plugins_disk,
@@ -46,12 +47,17 @@ class PluginOperationsTool:
 
         @self.app.tool()
         async def plugin_ops(
-            operation: Literal["discover", "install", "list", "execute"],
-            plugin_name: str | None = None,
-            command: str | None = None,
-            category: str | None = None,
-            search_term: str | None = None,
-            limit: int = 20,
+            operation: Annotated[
+                Literal["discover", "install", "list", "execute"],
+                Field(
+                    description="Operation: discover searches the official plugin list, install installs plugin_name, list shows installed plugins, execute runs command on plugin_name."
+                ),
+            ],
+            plugin_name: Annotated[str | None, Field(description="Plugin name for install/execute.")] = None,
+            command: Annotated[str | None, Field(description="Command to run on the plugin for execute.")] = None,
+            category: Annotated[str | None, Field(description="Optional category filter for discover.")] = None,
+            search_term: Annotated[str | None, Field(description="Optional name filter for discover.")] = None,
+            limit: Annotated[int, Field(description="Max discover results (default 20).", ge=1, le=200)] = 20,
         ) -> dict[str, Any]:
             """PLUGIN_OPS — Discover, install, list, or invoke Notepad++ plugins.
 
@@ -63,23 +69,16 @@ class PluginOperationsTool:
             - list: Installed plugins.
             - execute: Run command on plugin_name.
 
-            Args:
-                operation (Literal, required): "discover" | "install" | "list" | "execute".
-                plugin_name (str | None): For install/execute.
-                command (str | None): For execute.
-                category (str | None): Optional discover filter.
-                search_term (str | None): Optional discover filter.
-                limit (int): Max discover results (default 20).
+            ## Return Format
+            {"success": bool, "operation": str, "summary": str, "result": {"plugins": [...]}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, result (plugins, install status, etc.).
+            ## Examples
+            plugin_ops(operation="discover", search_term="xml", limit=10)
+            plugin_ops(operation="install", plugin_name="XMLTools")
+            plugin_ops(operation="list")
 
-            Examples:
-                await plugin_ops("discover", search_term="xml", limit=10)
-                await plugin_ops("install", plugin_name="XMLTools")
-
-            Errors:
-                Network, permission, unknown plugin, or missing parameters; see error/summary fields.
+            Notes:
+             - Network, permission, unknown plugin, or missing parameters return success=False with error, summary and recovery_options.
             """
             if operation == "discover":
                 try:

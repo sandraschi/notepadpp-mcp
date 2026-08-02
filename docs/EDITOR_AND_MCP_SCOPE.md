@@ -15,34 +15,34 @@ Nothing here replaces the official Notepad++ documentation or release notes.
 
 ### Why people use it (editor-side strengths)
 
-- **Native Windows application**  
+- **Native Windows application**
   Runs as a normal Win32 program: typically **fast startup** and **low overhead** compared to heavyweight, web-technology IDEs. That matters for quick edits, large log files, and machines where a full IDE feels heavy.
 
-- **Scintilla-based editing**  
+- **Scintilla-based editing**
   The core editor provides **syntax highlighting**, **code folding**, **brace matching**, **bookmarking**, and related editing affordances across many languages. You get a serious editing surface—not a minimal Notepad clone.
 
-- **Multi-document workflow**  
+- **Multi-document workflow**
   **Tabbed documents**, **split views**, and **session** concepts support working with many files at once and returning to a prior layout. That fits real-world “many configs, many logs, many snippets” work.
 
-- **Search and replace**  
+- **Search and replace**
   **Find in files**, **regular expressions**, and multi-line operations are first-class for many users. For refactoring, data cleanup, or auditing codebases, this is often a reason people stay in Notepad++.
 
-- **Column / block editing**  
+- **Column / block editing**
   **Column mode** (block selection) and related multi-cursor-style workflows are widely used for aligned edits (CSV-like data, tables, repetitive line prefixes).
 
-- **Macros**  
+- **Macros**
   **Macro recording and playback** lets users automate repetitive edits **inside** the editor without writing a full plugin. That is distinct from external automation.
 
-- **Plugin ecosystem**  
+- **Plugin ecosystem**
   **Plugin Admin** (and the wider plugin catalog) extends the editor with comparators, spell-check, additional language support, tooling hooks, and more. Plugins are a major reason Notepad++ remains capable for specialized workflows.
 
-- **Customization**  
+- **Customization**
   **Shortcuts**, **themes**, **user-defined languages**, and extensive **preferences** let teams and individuals standardize how the editor behaves.
 
-- **Localization**  
+- **Localization**
   The UI is translated into many languages, which matters for global teams and contributors.
 
-- **Community and governance**  
+- **Community and governance**
   There is an active **user and contributor base** (forums, issue trackers, translations, plugins). The project’s **home site and repository** are the canonical sources for downloads, security notices, and feature changes.
 
 ### What Part 1 is not

@@ -6,9 +6,10 @@ Theme / dark mode: edits %APPDATA%\\Notepad++\\config.xml (GUIConfig DarkMode); 
 """
 
 import asyncio
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from ..npp_theme import patch_config_xml, read_theme_state, theme_status_payload
 
@@ -39,15 +40,27 @@ class DisplayOperationsTool:
 
         @self.app.tool()
         async def display_ops(
-            operation: Literal[
-                "fix_invisible_text",
-                "fix_display_issue",
-                "theme_status",
-                "set_dark_mode",
-                "set_editor_theme",
+            operation: Annotated[
+                Literal[
+                    "fix_invisible_text",
+                    "fix_display_issue",
+                    "theme_status",
+                    "set_dark_mode",
+                    "set_editor_theme",
+                ],
+                Field(
+                    description="Operation: fix_invisible_text/fix_display_issue repair rendering, theme_status reads dark mode + theme files, set_dark_mode toggles DarkMode, set_editor_theme sets the active theme XML."
+                ),
             ],
-            dark_mode: bool | None = None,
-            theme_xml: str | None = None,
+            dark_mode: Annotated[
+                bool | None, Field(description="Target dark-mode state for set_dark_mode (true/false).")
+            ] = None,
+            theme_xml: Annotated[
+                str | None,
+                Field(
+                    description="Theme file basename under the Notepad++ themes folder (e.g. Obsidian.xml), or empty for the light default."
+                ),
+            ] = None,
         ) -> dict[str, Any]:
             """DISPLAY_OPS — Mitigate invisible text, display glitches, or adjust Notepad++ theme / dark mode.
 
@@ -61,25 +74,17 @@ class DisplayOperationsTool:
             - set_editor_theme: Set darkThemeName (when dark mode on) or lightThemeName (when off). theme_xml basename
               e.g. Solarized.xml. For light mode, empty theme_xml clears to default stylers.
 
-            Args:
-                operation: One of the operations above.
-                dark_mode: For set_dark_mode only.
-                theme_xml: Theme file basename under the `themes` folder (e.g. Obsidian.xml), or empty for light default.
+            ## Return Format
+            {"success": bool, "operation": str, "summary": str, "result": {...}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, result.
+            ## Examples
+            display_ops(operation="theme_status")
+            display_ops(operation="set_dark_mode", dark_mode=True)
+            display_ops(operation="set_editor_theme", theme_xml="DarkModeDefault.xml")
 
             Notes:
-                Notepad++ reloads these settings on startup. If Notepad++ is running, close it before editing, or it may
-                overwrite config.xml on exit.
-
-            Examples:
-                await display_ops("theme_status")
-                await display_ops("set_dark_mode", dark_mode=True)
-                await display_ops("set_editor_theme", theme_xml="DarkModeDefault.xml")
-
-            Errors:
-                Window not found, API unavailable, or correction failed.
+             - Notepad++ reloads these settings on startup. If Notepad++ is running, close it before editing, or it may overwrite config.xml on exit.
+             - Window not found, API unavailable, or correction failed returns success=False with recovery_options.
             """
             if not self.controller:
                 return {

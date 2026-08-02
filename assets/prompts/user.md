@@ -507,3 +507,242 @@ def calculate_average(numbers):
 5. Archive processed logs
 
 This comprehensive guide covers the full spectrum of Notepad++ MCP Server capabilities, from basic file operations to advanced automation workflows. The server provides natural language control over Notepad++ while maintaining professional-grade reliability and performance.
+
+## DAILY WORKFLOW WALKTHROUGHS
+
+### Morning: Resume Yesterday's Workspace
+
+1. "Check that Notepad++ is running" - the server verifies reachability.
+2. "Show my saved sessions" - list persisted workspaces.
+3. "Load the session called 'yesterday'" - restores all open buffers.
+4. "Show the active file info" - confirms the editor is in the expected state.
+
+Why this matters: sessions are the safety net for long-running projects. Getting into the habit of saving a session before closing Notepad++ means you can always return to the same buffer set the next morning, even after a restart.
+
+### Mid-Day: Edit and Verify Code
+
+1. "Open src/parser.py" - loads the target file.
+2. "Find the function called parse_line" - locates the edit point.
+3. "Insert a docstring above it" - applies the change at the caret.
+4. "Save the file" - persists the edit.
+5. "Lint the python file src/parser.py" - runs ruff or the fallback checker.
+6. "Show me the issues" - review severity, line, and column, then fix each with text_ops.
+
+The verify loop is the core discipline: edit, save, lint, fix, re-lint. Never declare work finished on an un-linted file when the server exposes linting tools.
+
+### Afternoon: Multi-File Refactor
+
+1. "List my tabs" - see which files are open and their indices.
+2. "Switch to tab 2" - move to the next file.
+3. "Find 'TODO' in this file" - locate pending work.
+4. "Switch to tab 4" - continue through the workspace.
+5. "Save my workspace as 'refactor-2026'" - snapshot the state before risky edits.
+6. "Install the plugin Compare" - pull in a diff tool from the official catalog.
+7. "Execute Compare" - run the newly installed plugin command.
+
+Multi-file work is where tab_ops and session_ops earn their keep. Snapshot before, not after: a session saved after a mistake preserves the mistake.
+
+### Evening: Close Out Cleanly
+
+1. "Lint the python file in the active tab" - final quality gate.
+2. "Save my workspace as 'end-of-day'" - persist the state.
+3. "Check the theme status" - optional: switch to dark mode for late-night work.
+4. "Fix the invisible text" - recover from rendering glitches seen during the day.
+
+## WORKING WITH THE RESPONSE FORMAT
+
+Every tool response is structured. Read it like a receipt:
+
+- success: true means the operation completed; read the summary for what changed.
+- success: false means the operation did NOT complete; read the error and recovery options.
+- next_steps and suggestions tell you what to do next; follow them or ask the user.
+- diagnostic_info is technical context you can use to decide whether a retry makes sense.
+
+If a tool fails, do not silently retry. Read the error, apply the recovery option, and only then retry. If the error is a missing parameter, ask the user for the value directly.
+
+## COMMON TASKS AND THE EXACT TOOL CALLS
+
+| Task | Tool call |
+|------|-----------|
+| Open a file | file_ops(operation="open", file_path="C:/...") |
+| Insert text | text_ops(operation="insert", text="...") |
+| Find text | text_ops(operation="find", text="...", case_sensitive=False) |
+| List tabs | tab_ops(operation="list") |
+| Switch tab | tab_ops(operation="switch", tab_index=2) |
+| Close tab | tab_ops(operation="close", tab_index=2) |
+| Save session | session_ops(operation="save", session_name="name") |
+| Load session | session_ops(operation="load", session_name="name") |
+| Lint python | linting_ops(operation="python", file_path="C:/...") |
+| Check theme | display_ops(operation="theme_status") |
+| Set dark mode | display_ops(operation="set_dark_mode", dark_mode=True) |
+| Find plugin | plugin_ops(operation="discover", search_term="xml") |
+| Install plugin | plugin_ops(operation="install", plugin_name="XMLTools") |
+| Health check | status_ops(operation="health_check") |
+| Server status | status_ops(operation="system_status") |
+
+## FREQUENTLY ASKED QUESTIONS
+
+**Q: The server says Windows API unavailable. What now?**
+A: The server runs on Windows and needs pywin32. Re-run `uv sync` on the Windows machine and restart the server. If you are on another OS, Notepad++ automation is not supported.
+
+**Q: Notepad++ is not detected even though it is running.**
+A: Set NOTEPADPP_PATH to the exact path of notepad++.exe, or check the health_check output for the discovery failure reason.
+
+**Q: The chat page says no local LLM is detected.**
+A: Start Ollama (or LM Studio) and verify the Settings page shows a detected provider. The chat router uses AI_ENDPOINT and AI_MODEL from the environment.
+
+**Q: Can the server open files outside my projects?**
+A: It can open any path the OS lets the server process access. Use absolute paths when in doubt.
+
+**Q: Plugin install does nothing.**
+A: Install uses UI automation toward the Plugin Admin dialog. Run it once, watch the dialog, and do not start parallel installs. If the catalog is unreachable, set NOTEPADPP_PLUGIN_LIST_URL to a mirror.
+
+**Q: How do I stop the bridge?**
+A: Call notepadpp_shutdown(confirm=True) or POST /api/shutdown with valid credentials. Restart via start.ps1 or the Tauri operator.
+
+## ADVANCED PATTERNS
+
+### Pattern: Automated Test Loop
+1. Open the test file.
+2. Run linting on the implementation file.
+3. Fix each issue with targeted inserts.
+4. Save and re-lint until clean.
+5. Save the session so the loop state survives a restart.
+
+### Pattern: Plugin Research
+1. Discover plugins by keyword with a small limit.
+2. Read the top results and pick one.
+3. Install it and list installed plugins to confirm.
+4. Execute its main command to verify it works.
+
+### Pattern: Display Recovery
+1. Check theme_status to understand the current configuration.
+2. Apply fix_invisible_text for rendering issues.
+3. If the problem persists, fix_display_issue for a broader refresh.
+4. Optionally re-apply the active theme after the fix.
+
+### Pattern: Workspace Handoff
+1. List tabs and note the active file.
+2. Save the session with a descriptive name.
+3. Record the session name in your response to the user.
+4. On the next session, load it by name.
+
+## LIMITATIONS TO KNOW
+
+- The server controls one Notepad++ instance on the local machine.
+- Buffer-level text is edited through the caret: inserts land at the cursor, not at arbitrary offsets.
+- Linting operates on saved files, not unsaved buffers. Save before linting.
+- Theme changes apply on the next Notepad++ start.
+- Plugin installs are UI-driven and interactive; keep them one at a time.
+- The chat LLM is optional; without one, chat returns a routing hint explaining how to enable it.
+
+Use this guide as the reference for phrasing requests so the server maps them to the correct portmanteau operation every time.
+
+## RECOVERY NARRATIVES
+
+### Narrative: "The file was opened but the text is invisible"
+
+What the user sees: the tab exists, the title bar shows the file name, but the editing area appears blank.
+
+What to do:
+1. Call display_ops(operation="fix_invisible_text"). The server runs focus and refresh heuristics against the Scintilla window.
+2. If that does not help, call display_ops(operation="fix_display_issue") for the broader redraw path.
+3. If the problem is theme-related (for example after switching themes), check theme_status and re-apply the intended theme with set_editor_theme.
+4. Tell the user what was fixed and ask them to confirm the buffer renders.
+
+### Narrative: "Lint found issues I did not expect"
+
+What the user sees: linting_ops returns issues with severity, line, and column.
+
+What to do:
+1. Read the issue list sorted by severity.
+2. For each issue, switch to the right tab (tab_ops switch) or open the file (file_ops open).
+3. Apply the fix with text_ops insert at the reported location.
+4. Save the file (file_ops save) - linting runs on disk, so the file must be saved before re-linting.
+5. Re-run linting_ops and confirm the issue count dropped.
+6. Report the delta to the user: N issues found, M fixed, remaining K with reasons.
+
+### Narrative: "Session load did not restore my tabs"
+
+What the user sees: session_ops load reports success but the editor shows only one tab.
+
+What to do:
+1. Confirm the session file exists with session_ops list and check the file count reported.
+2. Verify the user ran load while Notepad++ was closed or after a restart; loading can require relaunching the editor with -openSession.
+3. If the session is empty, check whether live session.xml was present at save time; the server falls back to the active tab path when the live session is empty.
+4. Re-save the session with a fresh name and retry the load.
+
+### Narrative: "Plugin install appears to hang"
+
+What the user sees: plugin_ops install returned, but no dialog appeared.
+
+What to do:
+1. Check that the plugin name came from discover; names must match the official catalog exactly.
+2. Check the health of the catalog with a discover call; if it fails, set NOTEPADPP_PLUGIN_LIST_URL to a mirror and retry.
+3. Run the install once more and watch for the Plugin Admin UI; installs are UI-automation driven and must not run in parallel.
+4. Confirm with plugin_ops list that the DLL is now present.
+
+### Narrative: "Chat returned a routing hint instead of an answer"
+
+What the user sees: the chat page shows the fallback text about the LLM being unreachable.
+
+What to do:
+1. Check the Settings page provider status: it probes Ollama, LM Studio, and vLLM.
+2. Start the local LLM and confirm a model is listed in the model dropdown.
+3. If a provider is running on a non-default port, set AI_ENDPOINT and AI_MODEL in .env accordingly.
+4. Retry the chat message.
+
+## PROMPTING GUIDANCE FOR CLAUDE
+
+### Be specific about the target
+
+Weak: "Fix my file."
+Strong: "Open C:/Projects/app/parser.py, find the function parse_line, and insert a docstring above it."
+
+The stronger phrasing maps directly to file_ops, text_ops find, and text_ops insert - three deterministic calls instead of guesswork.
+
+### Confirm state before mutating
+
+Always query state first when you are not certain of it:
+- Not sure the editor is up? status_ops health_check.
+- Not sure which file is active? file_ops info.
+- Not sure which tabs exist? tab_ops list.
+
+State queries are cheap and make mutations safe.
+
+### One goal, one plan
+
+For a goal like "clean up this project", produce a numbered plan first:
+1. list tabs and identify the files involved
+2. lint each implementation file and collect issues
+3. fix issues by severity with targeted inserts
+4. re-lint to verify
+5. save the workspace session for continuity
+
+Then execute the plan step by step, reporting progress after each step. Prefer agentic_notepad_workflow when sampling is available and the goal spans more than three tool calls.
+
+## GLOSSARY
+
+- Active buffer: the document currently displayed in the focused tab.
+- Caret: the blinking insertion point; text_ops insert writes here.
+- Portmanteau tool: a consolidated tool that takes an operation enum (file_ops, text_ops, tab_ops, session_ops, linting_ops, display_ops, plugin_ops, status_ops).
+- Named session: a saved snapshot of all open buffers stored as session XML.
+- Live session: Notepad++'s own session.xml that records what was open at exit.
+- Plugin catalog: the official nppPluginList JSON with 1,400+ plugins.
+- Scintilla window: the low-level editor control Notepad++ is built on; display fixes operate on it.
+- Sampling: the MCP mechanism that lets the server call back to an LLM for reasoning; used by suggest_notepad_plan and agentic_notepad_workflow.
+- HTTP bridge: the FastAPI server on port 10815 that serves /mcp and /api.
+- REST bridge auth: HTTP Basic credentials from MCP_WEB_USER and MCP_WEB_PASSWORD; unset means the API is locked.
+- Ring buffer: the in-memory activity log exposed at /api/logs used by the Logging page.
+- CUA smoke test: the installer certification flow (install, launch, health, nav walk, uninstall) driven by scripts/cua-smoke.py.
+- CORS: browser cross-origin policy; the bridge allows tauri://localhost and LAN/Tailscale origins per the fleet standard.
+
+## FINAL REMINDERS
+
+- Save before linting: linting reads files from disk.
+- Snapshot sessions before risky work, not after.
+- Ask for clarification when a parameter is missing; the server tells you which parameter and why.
+- When an operation fails twice in a row, stop retrying and change approach or ask the user.
+- The server is local-first: everything runs on your machine against your Notepad++.
+
+This guide, used together with the system prompt and the example catalog, is everything the model needs to operate Notepad++ reliably and conversationally.

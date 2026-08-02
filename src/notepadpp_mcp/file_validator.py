@@ -251,6 +251,26 @@ class FileValidator:
 
     def _validate_content(self, file_path: Path, result: ValidationResult):
         """Try to read file content with multiple encodings."""
+        # Raw-bytes pre-check: NUL bytes mark a binary file regardless of how the
+        # decoders behave (latin-1 decodes any byte sequence, so this must run first).
+        try:
+            with open(file_path, "rb") as raw:
+                raw_data = raw.read()
+        except OSError as e:
+            result.add_error(f"Cannot read file: {file_path}: {type(e).__name__}: {e}")
+            return
+
+        if b"\x00" in raw_data[:1024]:
+            result.add_error(f"Binary file detected (contains null bytes): {file_path}")
+            return
+
+        # Mixed line endings: some lines end with CRLF and some with bare LF.
+        # Analyzed on raw bytes because text-mode reads normalize line endings.
+        crlf = raw_data.count(b"\r\n")
+        lf_only = raw_data.count(b"\n") - crlf
+        if crlf and lf_only:
+            result.add_warning(f"Mixed line endings detected: {file_path}")
+
         content = None
         last_error = None
 
@@ -288,10 +308,6 @@ class FileValidator:
 
         # Successfully read content
         result.content = content
-
-        # Warn if content has weird line endings
-        if "\r\n" in content and "\n" in content.replace("\r\n", ""):
-            result.add_warning(f"Mixed line endings detected: {file_path}")
 
         # Warn if very long lines (might be minified/corrupted)
         lines = content.split("\n")

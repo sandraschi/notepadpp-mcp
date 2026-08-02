@@ -11,6 +11,7 @@ import { Dashboard } from "@/pages/dashboard";
 import { Diagnostics } from "@/pages/diagnostics";
 import { Editor } from "@/pages/editor";
 import { Help } from "@/pages/help";
+import Logging from "@/pages/Logging";
 import { Operations } from "@/pages/operations";
 import { Plugins } from "@/pages/plugins";
 import { Settings } from "@/pages/settings";
@@ -33,6 +34,7 @@ function App() {
           <Route path="/skill" element={<Skill />} />
           <Route path="/apps" element={<Apps />} />
           <Route path="/status" element={<Status />} />
+          <Route path="/logging" element={<Logging />} />
           <Route path="/help" element={<Help />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

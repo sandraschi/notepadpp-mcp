@@ -1,0 +1,12 @@
+# notepadpp-mcp
+
+MCP server for Notepad++ automation and control on Windows: open/edit/save files, tab and session management, code linting, display fixes, and plugin management. FastMCP 3.4 with portmanteau tools, HTTP bridge (10815) + stdio, web dashboard (10814), Tauri/NSIS desktop wrapper.
+
+## Key resources
+
+- [llms-full.txt](llms-full.txt) — full server documentation (tools, env, architecture)
+- [README.md](README.md) — user documentation and quick start
+- [INSTALL.md](INSTALL.md) — installation guide
+- [docs/NOTEPADPP_MACROS.md](docs/NOTEPADPP_MACROS.md) — Notepad++ macro reference
+- [docs/EDITOR_AND_MCP_SCOPE.md](docs/EDITOR_AND_MCP_SCOPE.md) — editor vs MCP scope split
+- [CHANGELOG.md](CHANGELOG.md) — release history

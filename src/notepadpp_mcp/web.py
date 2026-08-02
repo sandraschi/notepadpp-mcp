@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import os
+import time
+from collections import deque
 from typing import Annotated, Any
+from uuid import uuid4
 
-from fastapi import Body, Depends, FastAPI, HTTPException, Query
+import httpx
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
@@ -46,6 +54,125 @@ class ToolInvokeBody(BaseModel):
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 
+class ActivityLog:
+    """In-memory ring-buffer activity log (fleet pattern: /api/logs*)."""
+
+    def __init__(self, max_entries: int = 2000) -> None:
+        self.max_entries = max_entries
+        self._entries: deque[dict[str, Any]] = deque(maxlen=max_entries)
+
+    def add(self, level: str, kind: str, detail: str, meta: dict[str, Any] | None = None) -> str:
+        eid = f"{time.time():.6f}.{uuid4().hex[:6]}"
+        self._entries.append(
+            {
+                "id": eid,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
+                "level": level.upper(),
+                "kind": kind,
+                "detail": detail,
+                "meta": meta or {},
+            }
+        )
+        return eid
+
+    def info(self, kind: str, detail: str, **meta: Any) -> str:
+        return self.add("INFO", kind, detail, meta)
+
+    def warn(self, kind: str, detail: str, **meta: Any) -> str:
+        return self.add("WARNING", kind, detail, meta)
+
+    def error(self, kind: str, detail: str, **meta: Any) -> str:
+        return self.add("ERROR", kind, detail, meta)
+
+    def query(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        level: str | None = None,
+        kind: str | None = None,
+        search: str | None = None,
+        sort: str = "desc",
+    ) -> dict[str, Any]:
+        entries = list(self._entries)
+        if level:
+            order = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3}
+            minimum = order.get(level.upper(), 1)
+            entries = [e for e in entries if order.get(e["level"], 1) >= minimum]
+        if kind:
+            entries = [e for e in entries if e["kind"] == kind]
+        if search:
+            q = search.lower()
+            entries = [e for e in entries if q in e["detail"].lower()]
+        entries.sort(key=lambda e: e["id"], reverse=(sort == "desc"))
+        total = len(entries)
+        page = entries[offset : offset + limit]
+        return {
+            "entries": page,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "max_entries": self.max_entries,
+            "sort": sort,
+        }
+
+    def stats(self) -> dict[str, Any]:
+        levels: dict[str, int] = {}
+        kinds: dict[str, int] = {}
+        for e in self._entries:
+            levels[e["level"]] = levels.get(e["level"], 0) + 1
+            kinds[e["kind"]] = kinds.get(e["kind"], 0) + 1
+        return {
+            "total": len(self._entries),
+            "max_entries": self.max_entries,
+            "levels": levels,
+            "kinds": kinds,
+        }
+
+    def export(self, format: str = "json", **filters: Any) -> str:
+        result = self.query(limit=self.max_entries, **filters)
+        if format == "csv":
+            import csv
+            import io
+
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(["id", "timestamp", "level", "kind", "detail", "meta"])
+            for e in result["entries"]:
+                writer.writerow([e["id"], e["timestamp"], e["level"], e["kind"], e["detail"], json.dumps(e["meta"])])
+            return buf.getvalue()
+        return json.dumps(result["entries"], indent=2)
+
+    def clear(self) -> None:
+        self._entries.clear()
+
+
+LLM_PROVIDER_PORTS: dict[str, int] = {"ollama": 11434, "lm_studio": 1234, "vllm": 8000}
+
+
+async def _probe_llm_providers() -> dict[str, Any]:
+    """Probe local LLM endpoints (Ollama / LM Studio / vLLM) - fleet glom-on pattern."""
+    providers: dict[str, Any] = {}
+    async with httpx.AsyncClient(timeout=3.0) as client:
+        for name, port in LLM_PROVIDER_PORTS.items():
+            try:
+                if name == "ollama":
+                    r = await client.get(f"http://127.0.0.1:{port}/api/tags")
+                    r.raise_for_status()
+                    models = [{"name": m.get("name", "")} for m in r.json().get("models", [])]
+                else:
+                    r = await client.get(f"http://127.0.0.1:{port}/v1/models")
+                    r.raise_for_status()
+                    models = [{"name": m.get("id", "")} for m in r.json().get("data", [])]
+                providers[name] = {
+                    "base": f"http://127.0.0.1:{port}",
+                    "port": port,
+                    "models": [m for m in models if m.get("name")],
+                }
+            except Exception:
+                providers[name] = {"base": f"http://127.0.0.1:{port}", "port": port, "models": []}
+    return providers
+
+
 def setup_webapp(
     app: FastAPI,
     mcp_app: FastMCP,
@@ -54,9 +181,84 @@ def setup_webapp(
     """Register standard SOTA web endpoints for the Notepad++ MCP dashboard."""
     ai_router = AIRouter(mcp_app)
 
+    # Fleet CORS standard (tauri_nsis_building.md / CORS_STANDARD.md):
+    # explicit Tauri origins + unconditional LAN/Tailscale/localhost regex.
+    _tauri = os.environ.get("NOTEPADPP_MCP_TAURI", "").lower() in ("1", "true", "yes")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:10814",
+            "http://127.0.0.1:10814",
+            "http://localhost:10815",
+            "http://127.0.0.1:10815",
+            "http://tauri.localhost",
+            "https://tauri.localhost",
+            "tauri://localhost",
+        ],
+        allow_origin_regex=(
+            r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost"
+            r"|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+            r"|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$"
+        ),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    _ = _tauri
+
+    activity_log = ActivityLog()
+    app.state.activity_log = activity_log
+
+    def _log_endpoints() -> None:
+        """Register /api/logs* ring-buffer endpoints on the bridge app."""
+
+        @app.get("/api/logs")
+        async def get_logs(
+            request: Request,
+            limit: int = 50,
+            offset: int = 0,
+            level: str | None = None,
+            kind: str | None = None,
+            search: str | None = None,
+            sort: str = "desc",
+        ) -> dict[str, Any]:
+            log: ActivityLog = request.app.state.activity_log
+            return log.query(limit=limit, offset=offset, level=level, kind=kind, search=search, sort=sort)
+
+        @app.get("/api/logs/stats")
+        async def logs_stats(request: Request) -> dict[str, Any]:
+            log: ActivityLog = request.app.state.activity_log
+            return log.stats()
+
+        @app.get("/api/logs/export")
+        async def logs_export(
+            request: Request,
+            format: str = "json",
+            level: str | None = None,
+            kind: str | None = None,
+            search: str | None = None,
+        ) -> Response:
+            log: ActivityLog = request.app.state.activity_log
+            content = log.export(format=format, level=level, kind=kind, search=search)
+            media = "text/csv" if format == "csv" else "application/json"
+            return Response(
+                content=content,
+                media_type=media,
+                headers={"Content-Disposition": f'attachment; filename="logs.{format}"'},
+            )
+
+        @app.delete("/api/logs")
+        async def clear_logs(request: Request) -> dict[str, Any]:
+            log: ActivityLog = request.app.state.activity_log
+            log.clear()
+            return {"success": True, "message": "Logs cleared."}
+
+    _log_endpoints()
+
     @app.get("/api/health")
     async def health() -> dict:
         """Public liveness probe (no auth) for fleet scanners and the Vite dev proxy."""
+        activity_log.info("health", "liveness probe")
         return {
             "ok": True,
             "service": "notepadpp-mcp",
@@ -205,9 +407,16 @@ def setup_webapp(
         tools = await ai_router.get_tools_list()
         return {"tools": tools}
 
+    class ChatBody(BaseModel):
+        query: str = Field(..., min_length=1, max_length=8000)
+        context: str | None = Field(None, max_length=4000)
+
     @app.post("/api/chat")
-    async def chat(query: str = Body(..., embed=True), user: str = Depends(authenticate)) -> dict:
-        response = await ai_router.route_query(query)
+    async def chat(
+        body: Annotated[ChatBody, Body()],
+        user: str = Depends(authenticate),
+    ) -> dict:
+        response = await ai_router.route_query(body.query, context=body.context)
         return {"response": response}
 
     @app.get("/api/skills")
@@ -245,3 +454,73 @@ def setup_webapp(
         """Probe registered fleet ports for /api/health (Apps Hub)."""
         entries, fleet_meta = await probe_fleet()
         return {"fleet": entries, "fleet_meta": fleet_meta}
+
+    # ---- CUA-NSIS v1 aliases (cua_nsis_smoke_testing.md / tauri_nsis_building.md) ----
+
+    @app.get("/api/v1/health")
+    async def health_v1() -> dict:
+        """CUA-NSIS smoke-test health endpoint."""
+        return await health()
+
+    @app.get("/api/v1/diagnostics")
+    async def diagnostics_v1(user: str = Depends(authenticate)) -> dict[str, Any]:
+        """Full diagnostics: tool list, system info, errors (CUA-NSIS standard shape)."""
+        _ = user
+        hc = await mcp_app.call_tool("status_ops", {"operation": "health_check"})
+        ss = await mcp_app.call_tool("status_ops", {"operation": "system_status"})
+        tools = await ai_router.get_tools_list()
+        return {
+            "status": "ok",
+            "server": "notepadpp-mcp",
+            "version": getattr(mcp_app, "version", "0.2.0"),
+            "uptime_seconds": round(time.time() - _start_ts),
+            "tool_count": len(tools),
+            "tools": [{"name": t["name"]} for t in tools],
+            "system": {"windows": True},
+            "errors": [],
+            "health_check": _tool_result_to_dict(hc),
+            "system_status": _tool_result_to_dict(ss),
+        }
+
+    @app.get("/api/v1/system/info")
+    async def system_info_v1(user: str = Depends(authenticate)) -> dict[str, Any]:
+        """CUA feature-route smoke target."""
+        _ = user
+        ss = await mcp_app.call_tool("status_ops", {"operation": "system_status"})
+        return _tool_result_to_dict(ss)
+
+    # ---- Local LLM discovery (glom-on) ----
+
+    @app.get("/api/llm/providers")
+    async def llm_providers(user: str = Depends(authenticate)) -> dict[str, Any]:
+        """Probe Ollama / LM Studio / vLLM and return detected providers with models."""
+        _ = user
+        providers = await _probe_llm_providers()
+        return {"providers": providers}
+
+    @app.get("/api/llm/discover")
+    async def llm_discover(user: str = Depends(authenticate)) -> dict[str, Any]:
+        """Alias of /api/llm/providers for the Chat page provider status indicator."""
+        _ = user
+        providers = await _probe_llm_providers()
+        detected = {k: v for k, v in providers.items() if v["models"]}
+        return {"providers": providers, "detected": detected}
+
+    # ---- Self-termination (agentic_macros.md: shutdown tool/endpoint) ----
+
+    @app.post("/api/shutdown")
+    async def shutdown(user: str = Depends(authenticate)) -> dict[str, Any]:
+        """Graceful shutdown of the bridge process (restart via launcher/operator)."""
+        _ = user
+        activity_log.warn("shutdown", "Bridge shutdown requested via /api/shutdown")
+
+        async def _do_exit() -> None:
+            await asyncio.sleep(0.8)
+            os._exit(0)
+
+        _shutdown_task = asyncio.create_task(_do_exit())
+        _ = _shutdown_task
+        return {"success": True, "message": "Bridge shutting down."}
+
+
+_start_ts = time.time()

@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { apiFetch } from "@/lib/api";
 
 function LLMSettings() {
   const [providers, setProviders] = useState<
@@ -13,24 +14,50 @@ function LLMSettings() {
   >({});
   const [selectedProvider, setSelectedProvider] = useState("ollama");
   const [selectedModel, setSelectedModel] = useState("");
+  const [status, setStatus] = useState<"probing" | "detected" | "not_found">(
+    "probing",
+  );
   useEffect(() => {
-    fetch("/api/llm/providers")
-      .then((r) => r.json())
-      .then((d) => {
-        setProviders(d);
-        const savedP = localStorage.getItem("llm_provider") || "ollama";
-        const savedM = localStorage.getItem("llm_model") || "";
-        setSelectedProvider(savedP);
-        const models = d[savedP === "ollama" ? "ollama" : "lm_studio"] || [];
-        setSelectedModel(
-          savedM && models.some((m: { name: string }) => m.name === savedM)
-            ? savedM
-            : models[0]?.name || "",
-        );
-      })
+    apiFetch("/api/llm/providers")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (
+          d: {
+            providers?: Record<string, { models: { name: string }[] }>;
+          } | null,
+        ) => {
+          if (!d?.providers) {
+            setStatus("not_found");
+            setProviders({});
+            return;
+          }
+          const byName: Record<string, { name: string }[]> = {};
+          for (const [key, value] of Object.entries(d.providers)) {
+            byName[key === "ollama" ? "ollama" : "lm_studio"] = (
+              value.models ?? []
+            ).map((m) => ({
+              name: m.name,
+            }));
+          }
+          setProviders(byName);
+          const hasAny = Object.values(byName).some((list) => list.length > 0);
+          setStatus(hasAny ? "detected" : "not_found");
+          const savedP = localStorage.getItem("llm_provider") || "ollama";
+          const savedM = localStorage.getItem("llm_model") || "";
+          setSelectedProvider(savedP);
+          const models =
+            byName[savedP === "ollama" ? "ollama" : "lm_studio"] || [];
+          setSelectedModel(
+            savedM && models.some((m) => m.name === savedM)
+              ? savedM
+              : models[0]?.name || "",
+          );
+        },
+      )
       .catch(() => {
-        setProviders({ ollama: [{ name: "llama3.2:3b" }] });
-        setSelectedModel(localStorage.getItem("llm_model") || "llama3.2:3b");
+        setStatus("not_found");
+        setProviders({});
+        setSelectedModel("");
       });
   }, []);
   const save = (p: string, m: string) => {
@@ -48,9 +75,17 @@ function LLMSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <p className="text-sm text-slate-300" data-testid="llm-provider-status">
+          {status === "probing" && "Probing local LLM providers..."}
+          {status === "detected" &&
+            "Provider detected (Ollama / LM Studio / vLLM)"}
+          {status === "not_found" &&
+            "No local LLM detected - start Ollama or LM Studio to enable AI features"}
+        </p>
         <div className="grid gap-2">
           <label className="text-sm font-medium text-slate-300">Provider</label>
           <select
+            data-testid="llm-provider-select"
             className="h-9 w-full rounded-md border border-slate-700 bg-slate-900 px-3 text-sm text-slate-200"
             value={selectedProvider}
             onChange={(e) => {
@@ -65,6 +100,7 @@ function LLMSettings() {
         <div className="grid gap-2">
           <label className="text-sm font-medium text-slate-300">Model</label>
           <select
+            data-testid="llm-model-select"
             className="h-9 w-full rounded-md border border-slate-700 bg-slate-900 px-3 text-sm text-slate-200"
             value={selectedModel}
             onChange={(e) => {
@@ -72,6 +108,9 @@ function LLMSettings() {
               save(selectedProvider, e.target.value);
             }}
           >
+            {models.length === 0 && (
+              <option value="">No models detected</option>
+            )}
             {models.map((m) => (
               <option key={m.name} value={m.name}>
                 {m.name}

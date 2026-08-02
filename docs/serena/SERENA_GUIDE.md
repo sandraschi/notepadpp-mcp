@@ -1,8 +1,8 @@
 # Serena MCP - Complete Installation & Usage Guide
 
-**Date:** 2026-01-12  
-**Status:** Production-ready FOSS project  
-**GitHub:** https://github.com/oraios/serena  
+**Date:** 2026-01-12
+**Status:** Production-ready FOSS project
+**GitHub:** https://github.com/oraios/serena
 **Stars:** 9.8k+ (very active!)
 
 ---
@@ -623,8 +623,8 @@ http://localhost:24282/dashboard/index.html
 
 ---
 
-**Built by:** Oraios AI  
-**License:** MIT (Free Open Source)  
+**Built by:** Oraios AI
+**License:** MIT (Free Open Source)
 **Status:** Active development, 9.8k+ stars, production-ready
 
 ---

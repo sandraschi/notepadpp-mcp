@@ -5,9 +5,10 @@ Consolidates text operations (insert, find) into a unified interface.
 """
 
 import asyncio
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 # Windows-specific imports
 try:
@@ -36,9 +37,16 @@ class TextOperationsTool:
 
         @self.app.tool()
         async def text_ops(
-            operation: Literal["insert", "find"],
-            text: str | None = None,
-            case_sensitive: bool = False,
+            operation: Annotated[
+                Literal["insert", "find"],
+                Field(description="Operation: insert writes text at the caret, find searches the active buffer."),
+            ],
+            text: Annotated[
+                str | None, Field(description="Text to insert or search for (required for both operations).")
+            ] = None,
+            case_sensitive: Annotated[
+                bool, Field(description="Case-sensitive matching for find (default False).")
+            ] = False,
         ) -> dict[str, Any]:
             """TEXT_OPS — Insert text at the caret or find text in the active buffer.
 
@@ -48,20 +56,15 @@ class TextOperationsTool:
             - insert: Insert `text` at the current caret.
             - find: Search for `text`; use case_sensitive for matching.
 
-            Args:
-                operation (Literal, required): "insert" or "find".
-                text (str | None): Required for both operations.
-                case_sensitive (bool): Applies to find; default False.
+            ## Return Format
+            {"success": bool, "operation": str, "message": str, "result": {...}, "error": str | null}
 
-            Returns:
-                dict with success, operation, summary, optional result and recovery_options.
+            ## Examples
+            text_ops(operation="insert", text="hello")
+            text_ops(operation="find", text="TODO", case_sensitive=False)
 
-            Examples:
-                await text_ops("insert", text="hello")
-                await text_ops("find", text="TODO", case_sensitive=False)
-
-            Errors:
-                Missing text, no active document, or Windows API unavailable.
+            Notes:
+             - Missing text, no active document, or Windows API unavailable returns success=False with recovery_options.
             """
             if not self.controller:
                 return {

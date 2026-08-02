@@ -127,7 +127,8 @@ class TestFileValidator:
         try:
             result = validator.validate_file(test_file)
             assert isinstance(result, ValidationResult)
-            assert result.is_valid is True
+            assert result.is_valid is False
+            assert any("Binary" in e or "null bytes" in e.lower() for e in result.errors)
 
         finally:
             if os.path.exists(test_file):

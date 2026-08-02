@@ -22,9 +22,7 @@ import os
 import sys
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Add src to path so we can import the server
@@ -33,10 +31,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 # Import the actual Notepad++ controller and tools
 try:
     from notepadpp_mcp.tools.server import (
+        WINDOWS_AVAILABLE,
         NotepadPPController,
         NotepadPPError,
         NotepadPPNotFoundError,
-        WINDOWS_AVAILABLE,
     )
 
     IMPORT_SUCCESS = True
@@ -85,17 +83,11 @@ def check_notepadpp_installation():
             logger.info("✅ SUCCESS: Notepad++ executable is accessible")
             logger.info(f"   Path: {controller.notepadpp_exe}")
         else:
-            logger.info(
-                f"❌ FAILED: Notepad++ executable not found at {controller.notepadpp_exe}"
-            )
+            logger.info(f"❌ FAILED: Notepad++ executable not found at {controller.notepadpp_exe}")
             logger.info("\n📋 TROUBLESHOOTING:")
             logger.info("=" * 40)
-            logger.info(
-                "1. Install Notepad++ from: https://notepad-plus-plus.org/downloads/"
-            )
-            logger.info(
-                "2. Or set NOTEPADPP_PATH environment variable to the correct path"
-            )
+            logger.info("1. Install Notepad++ from: https://notepad-plus-plus.org/downloads/")
+            logger.info("2. Or set NOTEPADPP_PATH environment variable to the correct path")
             logger.info("3. Run this test again after installation")
             logger.info("Test completed successfully")
             return False
@@ -137,9 +129,7 @@ def check_notepadpp_installation():
         logger.info("=" * 40)
         logger.info("1. Check Python environment")
         logger.info("2. Verify Windows API access")
-        logger.info(
-            "3. Try reinstalling pywin32: pip uninstall pywin32 && pip install pywin32"
-        )
+        logger.info("3. Try reinstalling pywin32: pip uninstall pywin32 && pip install pywin32")
         logger.info("Test completed successfully")
         return False
 
@@ -299,9 +289,7 @@ async def demonstrate_real_tools():
             # Get process ID using Windows API
             import win32process
 
-            thread_id, process_id = win32process.GetWindowThreadProcessId(
-                controller.hwnd
-            )
+            thread_id, process_id = win32process.GetWindowThreadProcessId(controller.hwnd)
             logger.info(f"✅ Process info: PID={process_id}, ThreadID={thread_id}")
         except Exception as e:
             logger.info(f"❌ FAILED: Cannot get window info: {e}")

@@ -13,11 +13,12 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import FastAPI
 from fastmcp import Context, FastMCP
 from prefab_ui.components import Card, CardContent, CardHeader, Column, DataTable, DataTableColumn, Text
+from pydantic import Field
 
 from .fleet import probe_fleet
 from .sampling import NotepadSamplingHandler
@@ -196,14 +197,20 @@ except OSError as e:
 
 
 @mcp.tool()
-async def suggest_notepad_plan(goal: str, ctx: Context) -> dict[str, Any]:
+async def suggest_notepad_plan(
+    goal: Annotated[str, Field(description="What to achieve in Notepad++ (natural language goal).")],
+    ctx: Context,
+) -> dict[str, Any]:
     """SUGGEST_NOTEPAD_PLAN — Short plan via MCP sampling (requires reachable LLM).
 
-    Args:
-        goal: What to achieve in Notepad++.
+    ## Return Format
+    {"success": bool, "plan": str, "goal": str}
 
-    Returns:
-        dict with success, plan text, and goal echo.
+    ## Examples
+    suggest_notepad_plan(goal="Set up a Python linting workflow for my scripts")
+
+    Notes:
+     - Requires MCP sampling (client LLM or server-side Ollama via NOTEPADPP_SAMPLING_*); returns error dict when sampling is unavailable.
     """
     result = await ctx.sample(
         messages=(
@@ -224,8 +231,11 @@ async def notepad_dashboard() -> Column:
 
     PORTMANTEAU PATTERN RATIONALE: Integrates editor metrics, tab details, and fleet health into a unified interface (TOOL_DESIGN_STANDARDS.md §1).
 
-    Returns:
-        Column: A prefab-ui layout containing Card and DataTable elements.
+    ## Return Format
+    Prefab Column: Cards for bridge status, active editor tab, and fleet table (plain-text fallback lists the same data).
+
+    ## Examples
+    notepad_dashboard()
     """
     # 1. Notepad++ running status
     status_details = []
@@ -319,6 +329,40 @@ async def notepad_dashboard() -> Column:
 
 # —— Agentic workflow (register after portmanteau tools) ——
 register_agentic_notepad_workflow(mcp)
+
+
+@mcp.tool(annotations={"destructive": True})
+async def notepadpp_shutdown(confirm: bool = False) -> dict[str, Any]:
+    """NOTEPADPP_SHUTDOWN — Stop the Notepad++ MCP bridge process (agent-initiated exit).
+
+    [RATIONALE] Agents that manage server lifecycle need a way to stop the bridge
+    cleanly (same pattern as filesystem-mcp server_shutdown).
+
+    ## Return Format
+    {"success": bool, "message": str}
+
+    ## Examples
+    notepadpp_shutdown(confirm=True)
+
+    Notes:
+     - confirm=True is required; a false call returns a hint.
+     - HTTP mode exits the uvicorn process after a short delay; stdio mode exits the MCP server.
+    """
+    if not confirm:
+        return {
+            "success": False,
+            "message": "Shutdown requires confirm=True.",
+            "suggestions": ["Call notepadpp_shutdown(confirm=True) to stop the server."],
+        }
+    logger.warning("Shutdown requested via MCP tool")
+
+    async def _do_exit() -> None:
+        await asyncio.sleep(0.8)
+        os._exit(0)
+
+    _shutdown_task = asyncio.create_task(_do_exit())
+    _ = _shutdown_task
+    return {"success": True, "message": "Notepad++ MCP bridge shutting down."}
 
 
 # ASGI app: FastAPI bridge + MCP streamable HTTP at /mcp

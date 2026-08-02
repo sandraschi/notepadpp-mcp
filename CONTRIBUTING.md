@@ -172,6 +172,7 @@ docs(readme): update installation instructions
 
 ```python
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Use appropriate log levels

@@ -25,7 +25,7 @@ jobs:
           echo "Event: ${{ github.event_name }}"
           echo "Ref: ${{ github.ref }}"
           echo "Repository: ${{ github.repository }}"
-          
+
           # Create webhook payload for Glama.ai
           curl -X POST \
             -H "Content-Type: application/json" \
@@ -43,7 +43,7 @@ jobs:
               "test_count": 64
             }' \
             https://api.glama.ai/webhooks/repository-update || echo "Webhook notification sent (non-blocking)"
-            
+
       - name: Update Repository Metadata
         run: |
           echo "Updating repository metadata for Glama.ai indexing"

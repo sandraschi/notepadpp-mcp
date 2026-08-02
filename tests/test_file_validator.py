@@ -172,8 +172,9 @@ class TestEncodingIssues:
 
     def test_mixed_line_endings(self, temp_dir):
         """Test mixed line endings."""
+        # write_bytes: write_text() normalizes line endings on Windows
         file_path = temp_dir / "mixed.md"
-        file_path.write_text("Line 1\nLine 2\r\nLine 3\n")
+        file_path.write_bytes(b"Line 1\nLine 2\r\nLine 3\n")
 
         result = validate_markdown_file(file_path)
 
@@ -355,7 +356,7 @@ class TestBatchValidation:
         summary = validator.get_summary(results)
 
         assert "File Validation Summary" in summary
-        assert "Total Files: 3" in summary
+        assert "**Total Files:** 3" in summary
         assert "Invalid:" in summary
 
 

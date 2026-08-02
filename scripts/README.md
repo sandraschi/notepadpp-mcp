@@ -112,7 +112,6 @@ Includes:
 
 ---
 
-*Scripts Documentation*  
-*Updated: October 8, 2025*  
+*Scripts Documentation*
+*Updated: October 8, 2025*
 *Location: `scripts/`*
-
