@@ -9,28 +9,36 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 logger = logging.getLogger(__name__)
 
-security = HTTPBasic()
+# auto_error=False: a missing Authorization header yields None instead of an
+# automatic 401, so auth can be fully deactivated when no credentials are set.
+security = HTTPBasic(auto_error=False)
 
-# Fail closed: credentials must come from the environment (see .env.example).
-# No hardcoded defaults — a missing password means the dashboard API stays locked.
+# Optional auth: credentials come from the environment (see .env.example).
+# When MCP_WEB_USER / MCP_WEB_PASSWORD are NOT set, the dashboard API is open
+# (localhost-only service). Setting them turns auth on. No hardcoded defaults.
 _WEB_USER = os.getenv("MCP_WEB_USER", "").strip()
 _WEB_PASSWORD = os.getenv("MCP_WEB_PASSWORD", "")
 
-if not _WEB_USER or not _WEB_PASSWORD:
+_AUTH_DISABLED = not _WEB_USER or not _WEB_PASSWORD
+
+if _AUTH_DISABLED:
     logger.warning(
-        "MCP_WEB_USER / MCP_WEB_PASSWORD not set - dashboard API is locked (401). "
-        "Copy .env.example to .env and configure credentials."
+        "MCP_WEB_USER / MCP_WEB_PASSWORD not set - dashboard API is OPEN (no auth). "
+        "Copy .env.example to .env and configure credentials to lock it down."
     )
 
 
 def authenticate(
-    credentials: HTTPBasicCredentials = Security(security),
+    credentials: HTTPBasicCredentials | None = Security(security),
 ) -> str:
     """Authenticate dashboard API requests (configure via MCP_WEB_USER / MCP_WEB_PASSWORD)."""
-    if not _WEB_USER or not _WEB_PASSWORD:
+    if _AUTH_DISABLED:
+        # Auth deactivated: allow anonymous access (localhost-only service).
+        return "anonymous"
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Dashboard auth is not configured - set MCP_WEB_USER and MCP_WEB_PASSWORD",
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Basic"},
         )
     current_username_bytes = credentials.username.encode("utf-8")

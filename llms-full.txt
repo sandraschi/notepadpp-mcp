@@ -15,21 +15,22 @@ Tauri operator    ──► native/ (spawns frozen backend exe, NSIS installer)
 
 - Backend: FastAPI + FastMCP streamable HTTP at `/mcp`; REST under `/api/*`
 - Dual transport: stdio by default; `MCP_TRANSPORT=http` (or run_server.py) for HTTP
-- The bridge authenticates REST calls with HTTP Basic (`MCP_WEB_USER` / `MCP_WEB_PASSWORD`)
+- The bridge has optional HTTP Basic auth on REST calls (`MCP_WEB_USER` / `MCP_WEB_PASSWORD`; open by default)
 - Notepad++ is driven through the Win32/Scintilla controller (`tools/controller.py`, pywin32)
 
 ## Tools (portmanteau pattern, `operation` enum)
 
 | Tool | Operations |
 |------|-----------|
-| `file_ops` | open, new, save, info |
-| `text_ops` | insert, find |
+| `file_ops` | open, new, save, save_as, info, is_dirty, reload_from_disk, find_in_files, diff_buffer |
+| `text_ops` | insert, find, write, replace_all, goto_line, copy_selection, comment_uncomment, case, trim, line_ops, count |
 | `tab_ops` | list, switch, close |
 | `session_ops` | save, load, list (session XML persistence) |
 | `linting_ops` | python, javascript, json, markdown, tools |
 | `display_ops` | fix_invisible_text, fix_display_issue, theme_status, set_dark_mode, set_editor_theme |
 | `plugin_ops` | discover, install, list, execute |
-| `status_ops` | help, system_status, health_check |
+| `status_ops` | help, system_status (editor KPIs), health_check |
+| `automation_ops` | macro_list, macro_play |
 | `lint_javascript_file` | ESLint or heuristic fallback |
 | `lint_json_file` | JSON parse + style nits |
 | `lint_markdown_file` | markdown structure checks |
@@ -37,6 +38,22 @@ Tauri operator    ──► native/ (spawns frozen backend exe, NSIS installer)
 | `suggest_notepad_plan` | sampling-based plan (requires LLM) |
 | `agentic_notepad_workflow` | multi-step sampling workflow with tools |
 | `notepadpp_shutdown` | graceful bridge shutdown (confirm=True) |
+
+### Overwrite safety
+
+- `text_ops write` refuses to replace a non-empty named file unless `force=true` - use `file_ops new` for generation tasks ("write a poem" flow)
+- `text_ops insert` refuses to edit a non-empty named file unless `edit_ok=true`
+- `file_ops save_as` refuses to overwrite an existing path unless `overwrite=true`
+- `file_ops save` writes a timestamped `.bak` of the on-disk file first (backup=true default)
+- `file_ops reload_from_disk` refuses to discard unsaved changes unless `force=true`
+- Transforms are verified after writing; failed verification returns success=False (no fake green)
+
+### Transport note (NPP 8.x)
+
+External Scintilla pointer messages (GETTEXT/SETTEXT/SETSEL) and NPPM menu commands are
+not serviced by modern Notepad++ builds. Text transport therefore uses the clipboard +
+keystrokes (requires the editor foreground) with verify-after; named files are read from
+disk; navigation/state uses int-only Scintilla messages (verified working).
 
 All tools return `{"success": bool, "operation": str, "message"/"summary": str, ...}`
 with `error` + `recovery_options` on failure.
@@ -62,7 +79,7 @@ with `error` + `recovery_options` on failure.
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `MCP_WEB_USER` / `MCP_WEB_PASSWORD` | none (fail closed) | Dashboard Basic auth |
+| `MCP_WEB_USER` / `MCP_WEB_PASSWORD` | none (auth off by default) | Optional Dashboard Basic auth |
 | `AI_PROVIDER` / `AI_ENDPOINT` / `AI_MODEL` | ollama / http://127.0.0.1:11434/api/generate / llama3.1-8b | Chat LLM |
 | `NOTEPADPP_SAMPLING_BASE_URL` / `_MODEL` | http://127.0.0.1:11434/v1 | Sampling LLM |
 | `NOTEPADPP_SAMPLING_USE_CLIENT_LLM` | 0 | Let client host run LLM |
@@ -98,7 +115,7 @@ just cua-webapp-test / just cua-nsis-test
 
 ## Troubleshooting
 
-- **Dashboard 401s**: set `MCP_WEB_USER` / `MCP_WEB_PASSWORD` in `.env` (auth fails closed).
+- **Dashboard 401s**: `MCP_WEB_USER` / `MCP_WEB_PASSWORD` are set in `.env` but the request doesn't match. Clear both to run open, or fix the credentials.
 - **Chat shows "LLM not reachable"**: start Ollama or set `AI_ENDPOINT`/`AI_MODEL`.
 - **Tools report Windows API unavailable**: pywin32 missing or running on non-Windows.
 - **Notepad++ not detected**: set `NOTEPADPP_PATH` to `notepad++.exe`.

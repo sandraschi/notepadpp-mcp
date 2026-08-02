@@ -84,7 +84,7 @@ class TabOperationsTool:
 
                 if operation == "list":
                     # Get window title which usually contains filename
-                    window_text = await self.controller.get_window_text(self.controller.hwnd)
+                    window_text = self.controller.get_window_text(self.controller.hwnd)
 
                     # Parse filename from window title
                     # Notepad++ title format: "filename - Notepad++"

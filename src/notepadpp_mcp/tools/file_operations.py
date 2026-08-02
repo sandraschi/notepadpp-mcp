@@ -5,8 +5,12 @@ Consolidates file operations (open, new, save, info) into a unified interface.
 """
 
 import asyncio
+import datetime
+import difflib
 import os
+import re
 import subprocess
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
@@ -40,24 +44,70 @@ class FileOperationsTool:
         @self.app.tool()
         async def file_ops(
             operation: Annotated[
-                Literal["open", "new", "save", "info"],
+                Literal[
+                    "open",
+                    "new",
+                    "save",
+                    "save_as",
+                    "info",
+                    "is_dirty",
+                    "reload_from_disk",
+                    "find_in_files",
+                    "diff_buffer",
+                ],
                 Field(
-                    description="Operation: open loads file_path, new creates a buffer, save persists the active buffer, info returns file metadata."
+                    description=(
+                        "Operation: open loads file_path, new creates a buffer, save persists the active buffer "
+                        "(with optional timestamped backup), save_as writes the buffer to file_path, info returns file metadata, "
+                        "is_dirty reports the active tab state (untitled/dirty), reload_from_disk discards buffer changes, "
+                        "find_in_files searches a directory, diff_buffer compares the buffer to the file on disk."
+                    )
                 ),
             ],
             file_path: Annotated[
-                str | None, Field(description="Absolute path to load into the editor (required for open).")
+                str | None,
+                Field(
+                    description="Absolute path (required for open/save_as/reload_from_disk; the disk file for diff_buffer)."
+                ),
             ] = None,
+            backup: Annotated[bool, Field(description="Create a timestamped .bak before save (default True).")] = True,
+            overwrite: Annotated[
+                bool, Field(description="Allow save_as to overwrite an existing file (default False).")
+            ] = False,
+            force: Annotated[
+                bool, Field(description="Allow reload_from_disk to discard unsaved changes (default False).")
+            ] = False,
+            search: Annotated[str | None, Field(description="Search pattern for find_in_files (regex).")] = None,
+            glob_filter: Annotated[str, Field(description="File glob filter for find_in_files (default *).")] = "*",
+            limit: Annotated[
+                int, Field(description="Max results for find_in_files (default 100).", ge=1, le=500)
+            ] = 100,
+            case_sensitive: Annotated[
+                bool, Field(description="Case-sensitive matching for find_in_files (default False).")
+            ] = False,
+            max_lines: Annotated[
+                int, Field(description="Max diff lines for diff_buffer (default 200).", ge=10, le=2000)
+            ] = 200,
         ) -> dict[str, Any]:
-            """FILE_OPS — Open, create, save, or inspect the active document in Notepad++.
+            """FILE_OPS — Open, create, save, inspect, and analyze documents in Notepad++.
 
-            PORTMANTEAU PATTERN RATIONALE: Consolidates open/new/save/info into one tool (see TOOL_DESIGN_STANDARDS.md §1).
+            PORTMANTEAU PATTERN RATIONALE: Consolidates file lifecycle + analysis into one tool (see TOOL_DESIGN_STANDARDS.md §1).
+
+            Safety: `save` backs up the on-disk file before persisting (backup=true by default);
+            `save_as` refuses to overwrite an existing path unless overwrite=true;
+            `reload_from_disk` refuses to discard unsaved changes unless force=true.
+            For generation tasks, create a fresh tab with `new` before writing content.
 
             Operations:
             - open: Load file_path into the editor.
             - new: New empty buffer.
-            - save: Persist the current buffer.
+            - save: Persist the current buffer (optional timestamped .bak backup first).
+            - save_as: Write the buffer to file_path and open it in Notepad++.
             - info: Metadata for the active file.
+            - is_dirty: Active tab state (untitled? dirty? filename?).
+            - reload_from_disk: Replace the buffer with the file on disk (guarded).
+            - find_in_files: Regex search across a directory (server-side, returns matches).
+            - diff_buffer: Unified diff between the active buffer and the file on disk.
 
             ## Return Format
             {"success": bool, "operation": str, "message": str, "result": {...}, "error": str | null}
@@ -65,7 +115,11 @@ class FileOperationsTool:
             ## Examples
             file_ops(operation="open", file_path="C:/tmp/readme.txt")
             file_ops(operation="save")
-            file_ops(operation="info")
+            file_ops(operation="save_as", file_path="C:/tmp/poem.txt")
+            file_ops(operation="is_dirty")
+            file_ops(operation="reload_from_disk", file_path="C:/tmp/readme.txt", force=True)
+            file_ops(operation="find_in_files", search="TODO", directory="C:/tmp", glob_filter="*.py")
+            file_ops(operation="diff_buffer", file_path="C:/tmp/readme.txt")
 
             Notes:
              - Windows/pywin32 required; file not found or permission denied returns success=False with error, recovery_options and diagnostic_info.
@@ -203,18 +257,16 @@ class FileOperationsTool:
                     }
 
                 elif operation == "new":
-                    # Send Ctrl+N to create new file
-                    win32gui.SetForegroundWindow(self.controller.hwnd)
-                    await asyncio.sleep(0.1)
-
-                    # Simulate Ctrl+N
-                    keybd_event = win32api.keybd_event
-                    keybd_event(win32con.VK_CONTROL, 0, 0, 0)
-                    keybd_event(ord("N"), 0, 0, 0)
-                    keybd_event(ord("N"), 0, win32con.KEYEVENTF_KEYUP, 0)
-                    keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
-
-                    await asyncio.sleep(0.2)
+                    # File > New (Ctrl+N) - creates an untitled tab
+                    if not self.controller.new_document():
+                        return {
+                            "success": False,
+                            "error": "foreground_unavailable",
+                            "operation": operation,
+                            "summary": "Could not bring the editor to the foreground - new tab aborted",
+                            "recovery_options": ["Bring Notepad++ to the foreground and retry"],
+                        }
+                    await asyncio.sleep(0.3)
 
                     return {
                         "success": True,
@@ -249,27 +301,39 @@ class FileOperationsTool:
                     }
 
                 elif operation == "save":
-                    # Send Ctrl+S to save file
-                    win32gui.SetForegroundWindow(self.controller.hwnd)
-                    await asyncio.sleep(0.1)
-
-                    # Simulate Ctrl+S
-                    keybd_event = win32api.keybd_event
-                    keybd_event(win32con.VK_CONTROL, 0, 0, 0)
-                    keybd_event(ord("S"), 0, 0, 0)
-                    keybd_event(ord("S"), 0, win32con.KEYEVENTF_KEYUP, 0)
-                    keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
-
+                    tab_state = self.controller.get_active_tab_state()
+                    backup_path = None
+                    disk_path = tab_state.get("path") or ""
+                    if backup and disk_path and os.path.exists(disk_path) and not tab_state["untitled"]:
+                        # Timestamped backup of the on-disk file BEFORE the app's Ctrl+S overwrites it
+                        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        backup_path = f"{disk_path}.{ts}.bak"
+                        try:
+                            with open(disk_path, "rb") as src, open(backup_path, "wb") as dst:
+                                dst.write(src.read())
+                        except OSError:
+                            backup_path = None
+                    # Save via File > Save (Ctrl+S)
+                    if not self.controller.save_current():
+                        return {
+                            "success": False,
+                            "error": "foreground_unavailable",
+                            "operation": operation,
+                            "summary": "Could not bring the editor to the foreground - save aborted",
+                            "recovery_options": ["Bring Notepad++ to the foreground and retry"],
+                        }
                     await asyncio.sleep(0.3)
 
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": "Successfully saved the current document in Notepad++",
+                        "summary": "Successfully saved the current document in Notepad++"
+                        + (f" (backup: {backup_path})" if backup_path else ""),
                         "result": {
                             "saved": True,
                             "action_taken": "file_saved",
-                            "save_timestamp": "current_time",  # Would be actual timestamp
+                            "backup_path": backup_path,
+                            "target_tab": tab_state,
                         },
                         "next_steps": [
                             "Continue editing your document",
@@ -295,26 +359,32 @@ class FileOperationsTool:
                     }
 
                 elif operation == "info":
-                    # Get window title which usually contains filename
-                    window_text = await self.controller.get_window_text(self.controller.hwnd)
-
-                    # Parse filename from window title
-                    # Notepad++ title format: "filename - Notepad++"
-                    filename = "Untitled"
-                    if " - Notepad++" in window_text:
-                        filename = window_text.split(" - Notepad++")[0]
-
-                    # Check if file is modified (usually indicated by *)
-                    is_modified = "*" in window_text
+                    tab_state = self.controller.get_active_tab_state()
+                    filename = tab_state["filename"] or "Untitled"
+                    is_modified = tab_state["dirty"]
+                    disk_path = tab_state.get("path") or ""
+                    disk_mtime = None
+                    disk_size = None
+                    if disk_path and os.path.exists(disk_path):
+                        try:
+                            st = os.stat(disk_path)
+                            disk_mtime = datetime.datetime.fromtimestamp(st.st_mtime).isoformat()
+                            disk_size = st.st_size
+                        except OSError:
+                            pass
 
                     return {
                         "success": True,
                         "operation": operation,
                         "summary": f"Current active file is '{filename}'{' (modified)' if is_modified else ''}",
                         "result": {
-                            "window_title": window_text,
+                            "window_title": tab_state["title"],
                             "filename": filename,
+                            "path": disk_path,
                             "is_modified": is_modified,
+                            "is_untitled": tab_state["untitled"],
+                            "disk_modified": disk_mtime,
+                            "disk_size": disk_size,
                             "file_status": "modified" if is_modified else "saved",
                             "action_taken": "file_info_retrieved",
                         },
@@ -334,7 +404,7 @@ class FileOperationsTool:
                         "context": {
                             "has_unsaved_changes": is_modified,
                             "file_name": filename,
-                            "window_title": window_text,
+                            "window_title": tab_state["title"],
                             "modification_status": "modified" if is_modified else "clean",
                         },
                         "suggestions": [
@@ -353,17 +423,278 @@ class FileOperationsTool:
                         ],
                     }
 
+                elif operation == "is_dirty":
+                    tab_state = self.controller.get_active_tab_state()
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": (
+                            f"Tab '{tab_state['filename'] or 'Untitled'}' is "
+                            f"{'dirty (unsaved changes)' if tab_state['dirty'] else 'clean'}"
+                            f"{' (untitled)' if tab_state['untitled'] else ''}"
+                        ),
+                        "result": tab_state,
+                        "next_steps": [
+                            "Use file_ops save to persist changes" if tab_state["dirty"] else "No action needed",
+                            "Use file_ops save_as to write to a path" if tab_state["untitled"] else "Tab has a path",
+                        ],
+                    }
+
+                elif operation == "save_as":
+                    if not file_path:
+                        return {
+                            "success": False,
+                            "error": "file_path required for save_as",
+                            "operation": operation,
+                            "summary": "save_as requires a target path",
+                            "recovery_options": ["Provide file_path to write the buffer to"],
+                        }
+                    abs_path = os.path.abspath(file_path)
+                    parent = os.path.dirname(abs_path)
+                    if not os.path.isdir(parent):
+                        return {
+                            "success": False,
+                            "error": "directory_missing",
+                            "operation": operation,
+                            "summary": f"Target directory does not exist: {parent}",
+                            "recovery_options": ["Create the directory first", "Use an existing directory"],
+                        }
+                    if os.path.exists(abs_path) and not overwrite:
+                        return {
+                            "success": False,
+                            "error": "file_exists",
+                            "operation": operation,
+                            "summary": f"Refusing to overwrite existing file: {abs_path}",
+                            "recovery_options": [
+                                "file_ops(operation='save_as', file_path=..., overwrite=true) to replace it",
+                                "Choose a different file_path",
+                            ],
+                        }
+                    buffer_text, _source = self.controller.get_buffer_text()
+                    with open(abs_path, "w", encoding="utf-8", newline="") as f:
+                        f.write(buffer_text)
+                    # Open the saved file in Notepad++ so the app switches to it
+                    subprocess.Popen(
+                        [self.controller.notepadpp_exe, abs_path],
+                        shell=False,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    await asyncio.sleep(0.5)
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": f"Saved buffer to {abs_path} ({len(buffer_text)} chars)",
+                        "result": {"file_path": abs_path, "written_chars": len(buffer_text), "opened_in_editor": True},
+                        "next_steps": [
+                            "Close the old untitled tab if it is still open: tab_ops(operation='close')",
+                            "Continue editing in the newly opened tab",
+                        ],
+                    }
+
+                elif operation == "reload_from_disk":
+                    if not file_path:
+                        return {
+                            "success": False,
+                            "error": "file_path required for reload_from_disk",
+                            "operation": operation,
+                            "summary": "reload_from_disk requires the file path to reload",
+                            "recovery_options": ["Provide file_path of the file to reload"],
+                        }
+                    abs_path = os.path.abspath(file_path)
+                    if not os.path.exists(abs_path):
+                        return {
+                            "success": False,
+                            "error": "file_not_found",
+                            "operation": operation,
+                            "summary": f"File not found: {abs_path}",
+                            "recovery_options": ["Check the path", "Use file_ops open to create/load it"],
+                        }
+                    tab_state = self.controller.get_active_tab_state()
+                    if tab_state["dirty"] and not force:
+                        return {
+                            "success": False,
+                            "error": "unsaved_changes",
+                            "operation": operation,
+                            "summary": "Refusing to discard unsaved changes in the active tab",
+                            "recovery_options": [
+                                "file_ops(operation='reload_from_disk', file_path=..., force=true) to discard changes",
+                                "file_ops(operation='save') first to keep them",
+                            ],
+                            "context": tab_state,
+                        }
+                    with open(abs_path, encoding="utf-8", errors="replace") as f:
+                        disk_text = f.read()
+                    if not self.controller.set_buffer_text(disk_text):
+                        return {
+                            "success": False,
+                            "error": "foreground_unavailable",
+                            "operation": operation,
+                            "summary": "Could not bring the editor to the foreground - reload aborted",
+                            "recovery_options": ["Bring Notepad++ to the foreground and retry"],
+                        }
+                    if not self.controller.verify_buffer(disk_text):
+                        return {
+                            "success": False,
+                            "error": "verification_failed",
+                            "operation": operation,
+                            "summary": "Reload ran but verification failed",
+                            "recovery_options": ["Retry once"],
+                        }
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": f"Reloaded buffer from {abs_path} ({len(disk_text)} chars) - verified",
+                        "result": {
+                            "file_path": abs_path,
+                            "loaded_chars": len(disk_text),
+                            "discarded_changes": tab_state["dirty"],
+                        },
+                    }
+
+                elif operation == "find_in_files":
+                    if not search or not file_path:
+                        return {
+                            "success": False,
+                            "error": "missing_parameters",
+                            "operation": operation,
+                            "summary": "find_in_files requires a search pattern and a directory",
+                            "recovery_options": ["Provide search (regex) and file_path (directory)"],
+                        }
+                    root = os.path.abspath(file_path)
+                    if not os.path.isdir(root):
+                        return {
+                            "success": False,
+                            "error": "directory_missing",
+                            "operation": operation,
+                            "summary": f"Not a directory: {root}",
+                            "recovery_options": ["Provide an existing directory path"],
+                        }
+                    try:
+                        flags = 0 if case_sensitive else re.IGNORECASE
+                        pattern = re.compile(search, flags)
+                    except re.error as e:
+                        return {
+                            "success": False,
+                            "error": "invalid_regex",
+                            "operation": operation,
+                            "summary": f"Invalid regular expression: {e}",
+                        }
+                    hits: list[dict[str, Any]] = []
+                    total_files = 0
+                    for p in Path(root).rglob(glob_filter):
+                        if not p.is_file():
+                            continue
+                        total_files += 1
+                        try:
+                            if p.stat().st_size > 2 * 1024 * 1024:
+                                continue
+                            with open(p, encoding="utf-8", errors="replace") as f:
+                                for lineno, line in enumerate(f, start=1):
+                                    if len(hits) >= limit:
+                                        break
+                                    if pattern.search(line):
+                                        hits.append(
+                                            {
+                                                "file": str(p),
+                                                "line": lineno,
+                                                "text": line.rstrip()[:300],
+                                            }
+                                        )
+                                if len(hits) >= limit:
+                                    break
+                        except OSError:
+                            continue
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": f"Found {len(hits)} match(es) across {total_files} file(s)",
+                        "result": {
+                            "matches": hits,
+                            "match_count": len(hits),
+                            "files_scanned": total_files,
+                            "truncated": len(hits) >= limit,
+                        },
+                        "next_steps": [
+                            "Use file_ops open to open a matched file",
+                            "Narrow the glob_filter to reduce noise",
+                        ],
+                    }
+
+                elif operation == "diff_buffer":
+                    if not file_path:
+                        return {
+                            "success": False,
+                            "error": "file_path required for diff_buffer",
+                            "operation": operation,
+                            "summary": "diff_buffer requires the disk file path to compare against",
+                            "recovery_options": ["Provide file_path of the file on disk"],
+                        }
+                    abs_path = os.path.abspath(file_path)
+                    if not os.path.exists(abs_path):
+                        return {
+                            "success": False,
+                            "error": "file_not_found",
+                            "operation": operation,
+                            "summary": f"File not found: {abs_path}",
+                        }
+                    buffer_text, _source = self.controller.get_buffer_text()
+                    with open(abs_path, encoding="utf-8", errors="replace") as f:
+                        disk_text = f.read()
+                    if buffer_text == disk_text:
+                        return {
+                            "success": True,
+                            "operation": operation,
+                            "summary": "Buffer matches the file on disk - no differences",
+                            "result": {"identical": True, "diff_lines": 0},
+                        }
+                    diff = list(
+                        difflib.unified_diff(
+                            disk_text.splitlines(),
+                            buffer_text.splitlines(),
+                            fromfile=os.path.basename(abs_path) + " (disk)",
+                            tofile=os.path.basename(abs_path) + " (buffer)",
+                            lineterm="",
+                            n=2,
+                        )
+                    )
+                    truncated = len(diff) > max_lines
+                    return {
+                        "success": True,
+                        "operation": operation,
+                        "summary": f"Buffer differs from disk ({len(diff)} diff lines)"
+                        + (" - truncated" if truncated else ""),
+                        "result": {
+                            "identical": False,
+                            "diff": diff[:max_lines],
+                            "diff_lines": len(diff),
+                            "truncated": truncated,
+                        },
+                    }
+
                 else:
                     return {
                         "success": False,
                         "error": f"Unknown operation: {operation}",
                         "operation": operation,
                         "summary": f"File operation failed - unknown operation '{operation}'",
-                        "recovery_options": ["Use 'open', 'new', 'save', or 'info' operations"],
+                        "recovery_options": [
+                            "Use 'open', 'new', 'save', 'save_as', 'info', 'is_dirty', 'reload_from_disk', 'find_in_files', or 'diff_buffer' operations"
+                        ],
                         "clarification_options": {
                             "operation": {
                                 "description": "What file operation would you like to perform?",
-                                "options": ["open", "new", "save", "info"],
+                                "options": [
+                                    "open",
+                                    "new",
+                                    "save",
+                                    "save_as",
+                                    "info",
+                                    "is_dirty",
+                                    "reload_from_disk",
+                                    "find_in_files",
+                                    "diff_buffer",
+                                ],
                             }
                         },
                     }

@@ -139,7 +139,7 @@ class TestTextOperations:
             mock_controller.ensure_notepadpp_running = AsyncMock(return_value=True)
             result = await text_ops(operation="find", text="test")
             assert result["success"] is True, f"Failed: {result}"
-            assert "searched" in result["summary"].lower()
+            assert "found" in result["summary"].lower()
 
 
 class TestTabManagement:

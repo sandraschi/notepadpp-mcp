@@ -23,6 +23,7 @@ from pydantic import Field
 from .fleet import probe_fleet
 from .sampling import NotepadSamplingHandler
 from .tools.agentic_notepad_workflow import register_agentic_notepad_workflow
+from .tools.automation_operations import AutomationOperationsTool
 from .tools.display_operations import DisplayOperationsTool
 
 # Tool imports from modular subpackage
@@ -117,6 +118,7 @@ session_tool = SessionOperationsTool(mcp, controller)
 linting_tool = LintingOperationsTool(mcp, controller)
 display_tool = DisplayOperationsTool(mcp, controller)
 plugin_tool = PluginOperationsTool(mcp, controller)
+automation_tool = AutomationOperationsTool(mcp, controller)
 
 # Register all tools
 file_tool.register_tools()
@@ -127,6 +129,7 @@ session_tool.register_tools()
 linting_tool.register_tools()
 display_tool.register_tools()
 plugin_tool.register_tools()
+automation_tool.register_tools()
 
 
 # —— Resources (FastMCP 3.1) ——
@@ -260,7 +263,7 @@ async def notepad_dashboard() -> Column:
     tab_details = []
     if controller and getattr(controller, "hwnd", None):
         try:
-            window_text = await controller.get_window_text(controller.hwnd)
+            window_text = controller.get_window_text(controller.hwnd)
             filename = "Untitled"
             if " - Notepad++" in window_text:
                 filename = window_text.split(" - Notepad++")[0]

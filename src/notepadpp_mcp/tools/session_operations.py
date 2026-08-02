@@ -94,7 +94,7 @@ class SessionOperationsTool:
                             },
                         }
 
-                    window_text = await self.controller.get_window_text(self.controller.hwnd)
+                    window_text = self.controller.get_window_text(self.controller.hwnd)
                     fallback: list[str] = []
                     if " - Notepad++" in window_text:
                         fn = normalize_title_filename(

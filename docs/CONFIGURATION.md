@@ -4,12 +4,14 @@ All configuration is environment-variable driven. Copy `.env.example` to `.env`
 (repo root) and adjust. There is no settings file; the webapp reads its own
 `VITE_MCP_WEB_USER` / `VITE_MCP_WEB_PASSWORD` values from `web_sota/.env.local`.
 
-## Dashboard auth (required)
+## Dashboard auth (optional)
 
 | Var | Purpose |
 |-----|---------|
 | `MCP_WEB_USER` | Basic auth user for `/api/*` (bridge) |
-| `MCP_WEB_PASSWORD` | Basic auth password. **Fail-closed**: if unset, the dashboard API returns 401 |
+| `MCP_WEB_PASSWORD` | Basic auth password. **Optional**: leave both empty to run the dashboard open (localhost-only); setting them enables HTTP Basic auth |
+
+The webapp mirrors these as `VITE_MCP_WEB_USER` / `VITE_MCP_WEB_PASSWORD` in `web_sota/.env.local` when auth is enabled.
 
 ## Local LLM (Chat page)
 

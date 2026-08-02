@@ -58,7 +58,7 @@ class TestNotepadPPControllerCore:
         """Test sending Windows messages."""
         controller = NotepadPPController()
 
-        with patch("notepadpp_mcp.tools.controller.win32gui.SendMessage", return_value=123) as mock_send:
+        with patch("notepadpp_mcp.tools.controller._send_message_w", return_value=123) as mock_send:
             result = await controller.send_message(12345, 0x000E, 0, 0)
             assert result == 123
             mock_send.assert_called_once_with(12345, 0x000E, 0, 0)
@@ -69,7 +69,7 @@ class TestNotepadPPControllerCore:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.controller.win32gui.SendMessage",
+            "notepadpp_mcp.tools.controller._send_message_w",
             side_effect=Exception("SendMessage failed"),
         ):
             with pytest.raises(NotepadPPError):
@@ -84,7 +84,7 @@ class TestNotepadPPControllerCore:
             "notepadpp_mcp.tools.controller.win32gui.GetWindowText",
             return_value="Test Window",
         ):
-            result = await controller.get_window_text(12345)
+            result = controller.get_window_text(12345)
             assert result == "Test Window"
 
     @pytest.mark.asyncio
@@ -261,7 +261,7 @@ class TestEdgeCases:
         controller = NotepadPPController()
         controller.hwnd = 0  # Invalid handle
 
-        with patch("notepadpp_mcp.tools.controller.win32gui.SendMessage", side_effect=Exception("Invalid hwnd")):
+        with patch("notepadpp_mcp.tools.controller._send_message_w", side_effect=Exception("Invalid hwnd")):
             with pytest.raises(NotepadPPError):
                 await controller.send_message(0, 0x000E, 0, 0)
 
@@ -281,7 +281,7 @@ class TestEdgeCases:
         controller = NotepadPPController()
 
         with patch(
-            "notepadpp_mcp.tools.controller.win32gui.SendMessage",
+            "notepadpp_mcp.tools.controller._send_message_w",
             side_effect=Exception("Timeout"),
         ):
             with pytest.raises(NotepadPPError):

@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Overwrite-safe text operations: `text_ops write` (whole-buffer replace, guarded),
+  `replace_all` (regex/case options), `goto_line`, `copy_selection`, `comment_uncomment`,
+  `case`, `trim`, `line_ops` (sort/join/duplicate), `count`.
+- `file_ops save_as` (guarded overwrite), `is_dirty`, `reload_from_disk` (guarded),
+  `find_in_files`, `diff_buffer`; `save` now writes a timestamped `.bak` first.
+- `automation_ops` portmanteau: `macro_list`, `macro_play` (saved Notepad++ macros).
+- `status_ops system_status` now reports editor KPIs (running, tab state, line count, buffer length).
+- Verify-after writes: transformations confirm the buffer content before reporting success.
+
 ### Security
-- Dashboard auth now fails closed: `MCP_WEB_USER` / `MCP_WEB_PASSWORD` must be set explicitly (no hardcoded default password). `.env.example` added.
-- Tauri bundle resources now ship `.env.example` instead of `.env`.
+- Write/insert guards refuse to touch a non-empty named file unless explicitly authorized
+  (force/edit_ok) - generation tasks must create a fresh tab first (`file_ops new`).
 
 ### Added
 - `notepadpp_shutdown` MCP tool + `POST /api/shutdown` (agent-initiated graceful stop).

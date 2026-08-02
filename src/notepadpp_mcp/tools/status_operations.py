@@ -281,14 +281,24 @@ class StatusOperationsTool:
     async def _handle_system_status(self) -> dict[str, Any]:
         """Handle system status operation."""
         try:
-            # This would need access to file_ops and controller
-            # For now, return a placeholder
+            editor: dict[str, Any] = {"running": False}
+            if self.controller:
+                try:
+                    await self.controller.ensure_notepadpp_running()
+                    editor["running"] = True
+                    editor.update(self.controller.get_active_tab_state())
+                    editor["line_count"] = self.controller.get_line_count()
+                    editor["buffer_length"] = self.controller.get_buffer_length()
+                except Exception as e:
+                    editor["running"] = False
+                    editor["error"] = str(e)
             return {
                 "success": True,
                 "operation": "system_status",
                 "summary": "System status check completed",
                 "result": {
-                    "note": "Full system status requires integration with controller",
+                    "editor": editor,
+                    "server_version": "0.2.0",
                     "timestamp": time.time(),
                 },
                 "next_steps": ["Use health_check for system diagnostics"],

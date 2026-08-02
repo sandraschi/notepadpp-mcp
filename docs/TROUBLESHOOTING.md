@@ -2,9 +2,10 @@
 
 ## Dashboard API returns 401 everywhere
 
-Auth fails closed. Set `MCP_WEB_USER` and `MCP_WEB_PASSWORD` in `.env` (repo root),
-and mirror them in `web_sota/.env.local` as `VITE_MCP_WEB_USER` / `VITE_MCP_WEB_PASSWORD`.
-Restart the bridge.
+Auth is off by default (open localhost). A 401 means `MCP_WEB_USER` / `MCP_WEB_PASSWORD`
+are set in `.env` and the request doesn't match. Either fix the credentials, or clear
+both values (and the `VITE_MCP_WEB_*` mirrors in `web_sota/.env.local`) to run open.
+Restart the bridge after changes.
 
 ## Chat says "Local LLM is not reachable"
 
