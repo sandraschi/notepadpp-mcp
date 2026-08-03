@@ -236,8 +236,69 @@ class NotepadPPController:
         self._sci(SCI_GOTOLINE, max(1, line) - 1, 0)
 
     # ------------------------------------------------------------------
-    # Foreground + keystroke engine (clipboard-based text transport)
+    # Modal dialog handling (Notepad++ Save/Confirm dialogs)
     # ------------------------------------------------------------------
+
+    def _find_modal_dialog(self) -> int | None:
+        """Find a modal #32770 dialog owned by the Notepad++ process."""
+        if not self.hwnd:
+            return None
+        try:
+            import win32process
+
+            _, npp_pid = win32process.GetWindowThreadProcessId(self.hwnd)
+        except Exception:
+            return None
+        found: list[int] = []
+
+        def cb(hwnd: int, _lparam) -> bool:
+            try:
+                if win32gui.GetClassName(hwnd) == "#32770":
+                    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+                    if pid == npp_pid:
+                        found.append(hwnd)
+            except Exception:
+                pass
+            return True
+
+        win32gui.EnumWindows(cb, None)
+        return found[0] if found else None
+
+    def has_modal_dialog(self) -> bool:
+        """True when a Notepad++ modal dialog (e.g. Save file?) is open."""
+        return self._find_modal_dialog() is not None
+
+    def dismiss_save_dialog(self, choice: str = "no") -> bool:
+        """Click a button on the NPP modal dialog (No/Cancel/Yes) via BM_CLICK.
+
+        Deterministic - no foreground required. Returns True when a button
+        was clicked. 'no' = close without saving (discard), 'yes' = save.
+        """
+        dlg = self._find_modal_dialog()
+        if not dlg:
+            return False
+        buttons: list[tuple[int, str]] = []
+
+        def cb(hwnd: int, _lparam) -> bool:
+            try:
+                if win32gui.GetClassName(hwnd) == "Button":
+                    buttons.append((hwnd, win32gui.GetWindowText(hwnd)))
+            except Exception:
+                pass
+            return True
+
+        win32gui.EnumChildWindows(dlg, cb, None)
+        for hwnd, text in buttons:
+            # Buttons carry accelerator prefixes: "&No" -> "No"
+            if text.replace("&", "").strip().lower() == choice.lower():
+                _send_message_w(hwnd, 0x00F5, 0, 0)  # BM_CLICK
+                return True
+        # Fallback: Cancel (safe default - aborts the dialog)
+        for hwnd, text in buttons:
+            if text.replace("&", "").strip().lower() == "cancel":
+                _send_message_w(hwnd, 0x00F5, 0, 0)
+                return True
+        return False
 
     def _bring_to_foreground(self) -> bool:
         """Bring Notepad++ to the foreground (with thread-attach fallback)."""

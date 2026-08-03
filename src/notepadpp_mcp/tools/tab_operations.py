@@ -46,10 +46,19 @@ class TabOperationsTool:
             tab_index: Annotated[
                 int, Field(description="0-based tab index for switch/close; -1 targets the active tab (default).")
             ] = -1,
+            discard: Annotated[
+                bool,
+                Field(
+                    description="Allow close to discard unsaved changes (default False - close refuses on dirty tabs)."
+                ),
+            ] = False,
         ) -> dict[str, Any]:
             """TAB_OPS — List, switch, or close editor tabs.
 
             PORTMANTEAU PATTERN RATIONALE: One tool for list/switch/close (TOOL_DESIGN_STANDARDS.md §1).
+
+            Safety: close REFUSES on a tab with unsaved changes unless discard=true
+            (avoids Notepad++'s modal Save dialog and silent no-op closes).
 
             Operations:
             - list: Enumerate open tabs.
@@ -63,6 +72,7 @@ class TabOperationsTool:
             tab_ops(operation="list")
             tab_ops(operation="switch", tab_index=1)
             tab_ops(operation="close")
+            tab_ops(operation="close", discard=true)
 
             Notes:
              - Invalid index, no tabs, or Windows API unavailable returns success=False with recovery_options.
@@ -168,6 +178,26 @@ class TabOperationsTool:
                     }
 
                 elif operation == "close":
+                    # Guard: closing a dirty tab pops NPP's "Save file?" dialog and
+                    # silently blocks the close unless the user allows discarding.
+                    tab_state = self.controller.get_active_tab_state()
+                    if tab_state["dirty"] and not discard:
+                        return {
+                            "success": False,
+                            "error": "unsaved_changes",
+                            "operation": operation,
+                            "summary": "Refusing to close a tab with unsaved changes",
+                            "message": (
+                                f"Tab '{tab_state['filename'] or 'Untitled'}' has unsaved changes. "
+                                "Closing it would pop Notepad++'s Save dialog. "
+                                "Save first (file_ops save / save_as), or pass discard=true to close without saving."
+                            ),
+                            "recovery_options": [
+                                "file_ops(operation='save') then tab_ops(operation='close')",
+                                "tab_ops(operation='close', discard=true) to discard changes",
+                            ],
+                            "context": tab_state,
+                        }
                     # Focus on Notepad++ window
                     win32gui.SetForegroundWindow(self.controller.hwnd)
                     await asyncio.sleep(0.1)
@@ -179,14 +209,21 @@ class TabOperationsTool:
                     keybd_event(ord("W"), 0, win32con.KEYEVENTF_KEYUP, 0)
                     keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
 
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.4)
+
+                    # If NPP popped the Save dialog, dismiss it deterministically (no = discard)
+                    dismissed = False
+                    if self.controller.has_modal_dialog():
+                        dismissed = self.controller.dismiss_save_dialog("no")
+                        await asyncio.sleep(0.4)
 
                     tab_description = "current tab" if tab_index == -1 else f"tab {tab_index}"
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": f"Successfully closed {tab_description}",
-                        "result": {"closed_tab": tab_index},
+                        "summary": f"Successfully closed {tab_description}"
+                        + (" (discarded unsaved changes)" if dismissed else ""),
+                        "result": {"closed_tab": tab_index, "dialog_dismissed": dismissed},
                         "next_steps": [
                             "Use tab_ops list to see remaining tabs",
                             "Use file_ops new to open a new file if needed",
