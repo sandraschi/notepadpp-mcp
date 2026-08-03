@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `plugin_ops install` now uses **direct download+extract** by default (method='direct'):
+  catalog lookup by folder/display name, ZIP download (200 MB cap), safe extraction
+  with path-traversal protection, DLL verification, APPDATA plugins-dir fallback when
+  the install dir is not writable. The old UI-automation path is deprecated.
+- `linting_ops(operation="ahk")`: AutoHotkey v2 linting - uses the fleet `ahk-lint`
+  CLI when on PATH, otherwise a structural checker (bracket/brace/quote/block-comment
+  balance). Scripts are never executed.
+- `text_ops comment_uncomment` now uses `;` for `.ahk`/`.ahkl` files (was `//`).
+
+### Fixed
+- `plugin_ops install` no longer fakes success via Plugin Admin keystrokes - installs
+  are verified by DLL presence or return an honest error.
 - Overwrite-safe text operations: `text_ops write` (whole-buffer replace, guarded),
   `replace_all` (regex/case options), `goto_line`, `copy_selection`, `comment_uncomment`,
   `case`, `trim`, `line_ops` (sort/join/duplicate), `count`.

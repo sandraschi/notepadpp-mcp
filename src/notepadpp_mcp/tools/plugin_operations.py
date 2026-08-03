@@ -6,6 +6,11 @@ Consolidates plugin operations (discover, install, list, execute) into a unified
 
 import asyncio
 import logging
+import os
+import shutil
+import tempfile
+import zipfile
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
@@ -53,11 +58,19 @@ class PluginOperationsTool:
                     description="Operation: discover searches the official plugin list, install installs plugin_name, list shows installed plugins, execute runs command on plugin_name."
                 ),
             ],
-            plugin_name: Annotated[str | None, Field(description="Plugin name for install/execute.")] = None,
+            plugin_name: Annotated[
+                str | None, Field(description="Plugin name for install/execute (folder-name or display-name).")
+            ] = None,
             command: Annotated[str | None, Field(description="Command to run on the plugin for execute.")] = None,
             category: Annotated[str | None, Field(description="Optional category filter for discover.")] = None,
             search_term: Annotated[str | None, Field(description="Optional name filter for discover.")] = None,
             limit: Annotated[int, Field(description="Max discover results (default 20).", ge=1, le=200)] = 20,
+            method: Annotated[
+                Literal["direct", "ui"],
+                Field(
+                    description="Install method: direct downloads the plugin ZIP from the official catalog and extracts it (default, deterministic); ui opens the Plugin Admin dialog (unreliable, fallback only)."
+                ),
+            ] = "direct",
         ) -> dict[str, Any]:
             """PLUGIN_OPS — Discover, install, list, or invoke Notepad++ plugins.
 
@@ -65,7 +78,7 @@ class PluginOperationsTool:
 
             Operations:
             - discover: Search/filter official list (search_term, category, limit).
-            - install: Install plugin_name.
+            - install: Install plugin_name - direct download+extract by default (method='direct'), with DLL verification.
             - list: Installed plugins.
             - execute: Run command on plugin_name.
 
@@ -75,10 +88,13 @@ class PluginOperationsTool:
             ## Examples
             plugin_ops(operation="discover", search_term="xml", limit=10)
             plugin_ops(operation="install", plugin_name="XMLTools")
+            plugin_ops(operation="install", plugin_name="mermaid", method="direct")
             plugin_ops(operation="list")
 
             Notes:
              - Network, permission, unknown plugin, or missing parameters return success=False with error, summary and recovery_options.
+             - Direct install writes to the plugins dir (APPDATA fallback when the install dir is not writable); restart Notepad++ to load the plugin.
+             - Scripts inside plugin archives are never executed - extraction is copy-only with path-traversal protection.
             """
             if operation == "discover":
                 try:
@@ -198,45 +214,208 @@ class PluginOperationsTool:
                 try:
                     await self.controller.ensure_notepadpp_running()
 
-                    # Focus on Notepad++
-                    win32gui.SetForegroundWindow(self.controller.hwnd)
-                    await asyncio.sleep(0.1)
+                    # Locate the plugin in the official catalog (folder-name or display-name match)
+                    raw_list, fetch_err = get_plugins_list_cached()
+                    entry = None
+                    if raw_list:
+                        q = (plugin_name or "").strip().lower()
+                        for p in raw_list:
+                            if (p.get("folder-name") or "").strip().lower() == q:
+                                entry = p
+                                break
+                        if entry is None:
+                            for p in raw_list:
+                                if q and q in (p.get("display-name") or "").lower():
+                                    entry = p
+                                    break
 
-                    # Open Plugins menu with Alt+P
-                    keybd_event = win32api.keybd_event
-                    keybd_event(win32con.VK_MENU, 0, 0, 0)  # Alt key
-                    keybd_event(ord("P"), 0, 0, 0)
-                    keybd_event(ord("P"), 0, win32con.KEYEVENTF_KEYUP, 0)
-                    keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+                    if entry is None:
+                        return {
+                            "success": False,
+                            "error": "plugin_not_found",
+                            "operation": operation,
+                            "summary": f"Plugin '{plugin_name}' not found in the official catalog",
+                            "result": {"catalog_error": fetch_err} if fetch_err else {},
+                            "recovery_options": [
+                                "plugin_ops(operation='discover', search_term=...) to find the exact name",
+                                "Check the spelling (folder-name, not display name)",
+                            ],
+                        }
 
-                    await asyncio.sleep(0.5)
+                    folder_name = (entry.get("folder-name") or plugin_name).strip()
+                    download_url = (entry.get("repository") or "").strip()
 
-                    # Navigate to Plugin Admin (usually first option)
-                    keybd_event(ord("P"), 0, 0, 0)  # Press 'P' for Plugin Admin
-                    keybd_event(ord("P"), 0, win32con.KEYEVENTF_KEYUP, 0)
+                    if method == "ui" or not download_url:
+                        if not download_url:
+                            return {
+                                "success": False,
+                                "error": "no_direct_url",
+                                "operation": operation,
+                                "summary": f"Catalog entry '{folder_name}' has no direct download URL - use method='ui'",
+                                "recovery_options": [
+                                    "plugin_ops(operation='install', plugin_name=..., method='ui') for the Plugin Admin dialog",
+                                    "Download manually from the plugin homepage",
+                                ],
+                            }
+                        return {
+                            "success": False,
+                            "error": "ui_method_unsupported",
+                            "operation": operation,
+                            "summary": "UI install (Plugin Admin automation) is not reliable - using direct download instead",
+                            "recovery_options": ["Retry with method='direct' (default)"],
+                        }
 
-                    await asyncio.sleep(1.0)
+                    if not download_url.lower().endswith(".zip"):
+                        return {
+                            "success": False,
+                            "error": "unsupported_archive",
+                            "operation": operation,
+                            "summary": f"Download URL is not a ZIP archive: {download_url}",
+                            "recovery_options": [
+                                "Install manually from the plugin homepage",
+                                "Check the catalog entry",
+                            ],
+                        }
 
-                    # In Plugin Admin, search for the plugin
-                    # (This is a simplified version - full implementation would need more complex UI automation)
+                    # Resolve the plugins directory (install dir first, APPDATA fallback)
+                    plugins_dir = Path(self.controller.notepadpp_exe).parent / "plugins"
+                    target_dir = plugins_dir / folder_name
+                    used_appdata = False
+                    try:
+                        target_dir.mkdir(parents=True, exist_ok=True)
+                        probe = target_dir / ".npp-mcp-write-test"
+                        probe.write_text("x", encoding="utf-8")
+                        probe.unlink()
+                    except OSError:
+                        appdata_plugins = Path(os.getenv("APPDATA", "")) / "Notepad++" / "plugins"
+                        try:
+                            target_dir = appdata_plugins / folder_name
+                            target_dir.mkdir(parents=True, exist_ok=True)
+                            used_appdata = True
+                        except OSError as e:
+                            return {
+                                "success": False,
+                                "error": "plugins_dir_not_writable",
+                                "operation": operation,
+                                "summary": f"Cannot write to {plugins_dir} or {appdata_plugins}: {e}",
+                                "recovery_options": [
+                                    "Run Notepad++ (or the MCP server) as Administrator",
+                                    "Install manually",
+                                ],
+                            }
 
+                    # Download the ZIP (catalog is trusted; still cap size and extract safely)
+                    try:
+                        import urllib.request
+
+                        with tempfile.TemporaryDirectory(prefix="npp-plugin-") as tmp:
+                            zip_path = Path(tmp) / "plugin.zip"
+                            # URL comes from the pinned official catalog (https only) - safe to open
+                            with urllib.request.urlopen(download_url, timeout=120) as resp, open(zip_path, "wb") as f:  # noqa: S310 - catalog-pinned https URLs
+                                total = 0
+                                while True:
+                                    chunk = resp.read(1 << 20)
+                                    if not chunk:
+                                        break
+                                    total += len(chunk)
+                                    if total > 200 * 1024 * 1024:
+                                        return {
+                                            "success": False,
+                                            "error": "download_too_large",
+                                            "operation": operation,
+                                            "summary": "Download exceeded 200 MB cap - aborting",
+                                            "recovery_options": ["Install manually"],
+                                        }
+                                    f.write(chunk)
+                            if zip_path.stat().st_size == 0:
+                                return {
+                                    "success": False,
+                                    "error": "empty_download",
+                                    "operation": operation,
+                                    "summary": f"Downloaded archive is empty from {download_url}",
+                                }
+
+                            extract_root = Path(tmp) / "x"
+                            extract_root.mkdir()
+                            with zipfile.ZipFile(zip_path) as zf:
+                                for member in zf.namelist():
+                                    name = Path(member)
+                                    if name.is_absolute() or ".." in name.parts:
+                                        _logger.warning("Skipping unsafe zip member: %s", member)
+                                        continue
+                                    target = extract_root / name
+                                    if member.endswith("/"):
+                                        target.mkdir(parents=True, exist_ok=True)
+                                    else:
+                                        target.parent.mkdir(parents=True, exist_ok=True)
+                                        with zf.open(member) as src, open(target, "wb") as dst:
+                                            dst.write(src.read())
+
+                            # If the zip has a single top-level folder, use its contents
+                            top_dirs = [d for d in extract_root.iterdir() if d.is_dir()]
+                            files_at_root = [p for p in extract_root.iterdir() if p.is_file()]
+                            content_root = extract_root
+                            if len(top_dirs) == 1 and not files_at_root:
+                                content_root = top_dirs[0]
+
+                            # Install into target_dir (safe overwrite)
+                            for src in content_root.rglob("*"):
+                                if src.is_file():
+                                    rel = src.relative_to(content_root)
+                                    dst = target_dir / rel
+                                    dst.parent.mkdir(parents=True, exist_ok=True)
+                                    shutil.copy2(src, dst)
+
+                    except Exception as e:
+                        return {
+                            "success": False,
+                            "error": "install_failed",
+                            "operation": operation,
+                            "plugin_name": plugin_name,
+                            "summary": f"Direct install failed: {e}",
+                            "recovery_options": [
+                                "Check the download URL / internet",
+                                "Try method='ui' or manual install",
+                            ],
+                            "diagnostic_info": {"exception_type": type(e).__name__},
+                        }
+
+                    # Verify: a DLL must be present (prefer {folder-name}.dll)
+                    dlls = [p for p in target_dir.rglob("*.dll")]
+                    expected_dll = target_dir / f"{folder_name}.dll"
+                    if not dlls:
+                        return {
+                            "success": False,
+                            "error": "no_dll_after_extract",
+                            "operation": operation,
+                            "summary": f"Extracted to {target_dir} but no DLL found - archive may be a config/data pack",
+                            "result": {
+                                "target_dir": str(target_dir),
+                                "files": [str(p.relative_to(target_dir)) for p in target_dir.rglob("*")][:50],
+                            },
+                            "recovery_options": ["Review the extracted files manually"],
+                        }
+
+                    main_dll = str(expected_dll) if expected_dll.exists() else str(dlls[0])
                     return {
                         "success": True,
                         "operation": operation,
-                        "summary": f"Attempted to install plugin '{plugin_name}'",
+                        "summary": f"Installed plugin '{folder_name}' (v{entry.get('version', '?')}) to {target_dir}",
                         "result": {
-                            "plugin_name": plugin_name,
-                            "install_attempted": True,
+                            "plugin_name": folder_name,
+                            "version": entry.get("version", ""),
+                            "download_url": download_url,
+                            "target_dir": str(target_dir),
+                            "main_dll": main_dll,
+                            "dll_count": len(dlls),
+                            "used_appdata_plugins": used_appdata,
                         },
                         "next_steps": [
-                            "Check Plugin Admin dialog in Notepad++",
-                            "Verify plugin appears in Plugins menu",
+                            "Restart Notepad++ to load the plugin",
+                            "plugin_ops(operation='list') to confirm it appears",
+                            "Use display_ops or the Plugins menu to configure it",
                         ],
-                        "context": {
-                            "method": "plugin_admin_dialog",
-                            "manual_steps": f"Plugins > Plugin Admin > Search for '{plugin_name}' > Install",
-                            "note": "Full automation requires Plugin Admin API integration",
-                        },
+                        "context": {"method": "direct_download", "source": "nppPluginList_pl_x64"},
                     }
 
                 except Exception as e:

@@ -29,16 +29,21 @@ except ImportError:
     win32con = None
     win32gui = None
 
-_PY_EXTENSIONS = {".py", ".pyw"}
+_COMMENT_MAP = {
+    ".py": "#",
+    ".pyw": "#",
+    ".ahk": ";",
+    ".ahkl": ";",
+}
 
 
 def _comment_char_for(filename: str) -> str:
-    """Pick a line-comment marker for the active filename (python -> #, else //)."""
+    """Pick a line-comment marker for the active filename (python #, ahk ;, else //)."""
     import os
 
     ext = os.path.splitext(filename or "")[1].lower()
-    if ext in _PY_EXTENSIONS:
-        return "#"
+    if ext in _COMMENT_MAP:
+        return _COMMENT_MAP[ext]
     return "//"
 
 

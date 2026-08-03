@@ -26,9 +26,9 @@ Tauri operator    ──► native/ (spawns frozen backend exe, NSIS installer)
 | `text_ops` | insert, find, write, replace_all, goto_line, copy_selection, comment_uncomment, case, trim, line_ops, count |
 | `tab_ops` | list, switch, close |
 | `session_ops` | save, load, list (session XML persistence) |
-| `linting_ops` | python, javascript, json, markdown, tools |
+| `linting_ops` | python, javascript, json, markdown, ahk, tools |
 | `display_ops` | fix_invisible_text, fix_display_issue, theme_status, set_dark_mode, set_editor_theme |
-| `plugin_ops` | discover, install, list, execute |
+| `plugin_ops` | discover, install (direct download+extract, DLL-verified), list, execute |
 | `status_ops` | help, system_status (editor KPIs), health_check |
 | `automation_ops` | macro_list, macro_play |
 | `lint_javascript_file` | ESLint or heuristic fallback |

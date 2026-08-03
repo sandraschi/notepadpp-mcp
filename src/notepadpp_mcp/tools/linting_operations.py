@@ -1,7 +1,7 @@
 """
 Linting Operations Portmanteau Tool
 
-Consolidates linting operations (python, javascript, json, markdown, tools) and individual lint functions into a unified interface.
+Consolidates linting operations (python, javascript, json, markdown, ahk, tools) and individual lint functions into a unified interface.
 """
 
 import json
@@ -28,6 +28,86 @@ except ImportError:
     win32gui = None
 
 
+def _lint_ahk(file_path: str) -> dict[str, Any]:
+    """Lint an AutoHotkey v2 file: ahk-lint CLI when available, else structural checks.
+
+    NEVER executes the script (AutoHotkey.exe would run it) - static analysis only.
+    """
+    issues: list[dict[str, Any]] = []
+    linter = "structural_checker"
+
+    try:
+        ahk_lint_exe = shutil.which("ahk-lint")
+        if ahk_lint_exe:
+            for args in (["check", file_path], [file_path]):
+                try:
+                    result = subprocess.run(
+                        [ahk_lint_exe, *args],
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
+                    )
+                    if result.returncode in (0, 1) and (result.stdout or result.stderr):
+                        linter = "ahk-lint"
+                        text_out = (result.stdout or result.stderr).strip()
+                        if text_out:
+                            for line in text_out.splitlines():
+                                line = line.strip()
+                                if not line:
+                                    continue
+                                issues.append({"message": line, "type": "error" if result.returncode else "warning"})
+                        break
+                except (subprocess.TimeoutExpired, OSError):
+                    continue
+    except Exception as e:
+        issues.append({"message": f"ahk-lint invocation failed: {e}", "type": "warning"})
+
+    # Structural fallback checks (always run - catches what CLIs miss)
+    stack: list[tuple[str, int]] = []
+    pairs = {")": "(", "]": "[", "}": "{"}
+    in_block_comment = False
+    block_start = 0
+    with open(file_path, encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+    for lineno, raw in enumerate(lines, start=1):
+        line = raw.rstrip("\n")
+        if in_block_comment:
+            if "*/" in line:
+                in_block_comment = False
+            continue
+        if "/*" in line:
+            in_block_comment = True
+            block_start = lineno
+            continue
+        # Strip string literals to avoid false positives on quotes/brackets inside strings
+        stripped = re.sub(r'"[^"\n]*"', '""', line)
+        for ch in stripped:
+            if ch in "([{":
+                stack.append((ch, lineno))
+            elif ch in ")]}":
+                if stack and stack[-1][0] == pairs[ch]:
+                    stack.pop()
+                else:
+                    issues.append(
+                        {"line": lineno, "message": f"Unbalanced '{ch}' - expected '{pairs[ch]}'", "type": "error"}
+                    )
+    if in_block_comment:
+        issues.append({"line": block_start, "message": "Unterminated block comment (missing */)", "type": "error"})
+    for ch, lineno in stack:
+        issues.append({"line": lineno, "message": f"Unbalanced '{ch}' - missing closing bracket", "type": "error"})
+
+    return {
+        "success": True,
+        "operation": "ahk",
+        "file_path": file_path,
+        "linter": linter,
+        "summary": f"AHK lint found {len(issues)} issue(s) using {linter}",
+        "result": {"issues": issues, "total_issues": len(issues)},
+        "next_steps": ["Fix issues and re-lint", "Install ahk-lint for AST-based analysis"],
+        "context": {"engine": linter, "note": "Static analysis only - scripts are never executed"},
+    }
+
+
 class LintingOperationsTool:
     """Portmanteau tool for linting operations in Notepad++."""
 
@@ -42,7 +122,7 @@ class LintingOperationsTool:
         @self.app.tool()
         async def linting_ops(
             operation: Annotated[
-                Literal["python", "javascript", "json", "markdown", "tools"],
+                Literal["python", "javascript", "json", "markdown", "ahk", "tools"],
                 Field(
                     description="Operation: lint file_path with the python/javascript/json/markdown engine, or list available engines with tools."
                 ),
@@ -59,7 +139,7 @@ class LintingOperationsTool:
             PORTMANTEAU PATTERN RATIONALE: One tool for python/js/json/md + introspection (TOOL_DESIGN_STANDARDS.md §1).
 
             Operations:
-            - python | javascript | json | markdown: Lint/validate file_path.
+            - python | javascript | json | markdown | ahk: Lint/validate file_path.
             - tools: Report which backends are available (ruff, eslint, etc.).
 
             ## Return Format
@@ -99,6 +179,11 @@ class LintingOperationsTool:
                                 "supported": True,
                                 "linters": ["markdown_validator"],
                                 "description": "Markdown syntax and style checking",
+                            },
+                            "ahk": {
+                                "supported": True,
+                                "linters": ["ahk-lint", "structural_checker"],
+                                "description": "AutoHotkey v2 linting (ahk-lint CLI when available; structural fallback otherwise)",
                             },
                         },
                         "total_supported_types": 4,
@@ -269,6 +354,9 @@ class LintingOperationsTool:
                             },
                         }
 
+                elif operation == "ahk":
+                    return _lint_ahk(abs_path)
+
                 elif operation in ["javascript", "markdown"]:
                     # Placeholder implementations for JS and Markdown
                     return {
@@ -295,7 +383,9 @@ class LintingOperationsTool:
                         "error": f"Unknown linting operation: {operation}",
                         "operation": operation,
                         "summary": f"Linting operation failed - unknown operation '{operation}'",
-                        "recovery_options": ["Use 'python', 'javascript', 'json', 'markdown', or 'tools' operations"],
+                        "recovery_options": [
+                            "Use 'python', 'javascript', 'json', 'markdown', 'ahk', or 'tools' operations"
+                        ],
                         "clarification_options": {
                             "operation": {
                                 "description": "What type of file would you like to lint?",
