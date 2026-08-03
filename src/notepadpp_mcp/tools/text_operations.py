@@ -217,9 +217,9 @@ class TextOperationsTool:
                                 "Run the MCP client from your interactive desktop session",
                             ],
                         }
-                    # Verify: the caret insertion should be present in the buffer.
-                    buffer_text, _source = self.controller.get_buffer_text()
-                    if text not in buffer_text:
+                    # Verify: the caret insertion should be present in the LIVE buffer.
+                    live = self.controller.get_live_buffer_text().replace("\r\n", "\n").replace("\r", "\n")
+                    if text not in live:
                         return {
                             "success": False,
                             "error": "verification_failed",

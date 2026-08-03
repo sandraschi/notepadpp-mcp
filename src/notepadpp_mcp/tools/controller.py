@@ -321,9 +321,9 @@ class NotepadPPController:
             return False
         time.sleep(0.15)
         self._clipboard_set(text)
-        time.sleep(0.1)
+        time.sleep(0.15)
         self._key_chord(["ctrl", "v"])
-        time.sleep(0.2)
+        time.sleep(0.3)
         return True
 
     def select_all(self) -> bool:
@@ -421,9 +421,17 @@ class NotepadPPController:
     def get_buffer_text(self) -> tuple[str, str]:
         """Read the active buffer.
 
-        Returns (text, source) where source is 'disk' (named file) or
-        'clipboard' (untitled buffer via select-all + copy) or '' on failure.
+        Returns (text, source) where source is 'disk' (clean named file),
+        'clipboard' (live buffer - dirty tab or untitled) or '' on failure.
+
+        A dirty tab (unsaved changes) MUST be read from the live buffer -
+        reading disk would return stale content and overwrite edits.
         """
+        state = self.get_active_tab_state()
+        if state["dirty"] or state["untitled"]:
+            text = self.get_live_buffer_text()
+            if text or self.get_buffer_length() == 0:
+                return text, "clipboard"
         path = self.get_current_file_path()
         if path and os.path.exists(path):
             try:
@@ -431,32 +439,47 @@ class NotepadPPController:
                     return f.read(), "disk"
             except OSError:
                 return "", ""
-        # Untitled buffer: select all + copy + read clipboard
-        if self.select_all() and self.copy_selection_to_clipboard():
-            text = self._clipboard_get()
-            return text, "clipboard"
         return "", ""
 
     def set_buffer_text(self, text: str) -> bool:
-        """Replace the whole buffer (select-all + paste). Returns success (verify-after)."""
-        if not self.select_all():
+        """Replace the whole buffer. Clipboard is set FIRST so the paste cannot
+        race with a stale clipboard left by a previous verify/copy step."""
+        if not self._bring_to_foreground():
             return False
-        ok = self.paste_text(text)
-        time.sleep(0.4)  # let the paste land before verification
-        return ok
+        self._clipboard_set(text)
+        time.sleep(0.15)
+        self._key_chord(["ctrl", "a"])
+        time.sleep(0.2)
+        self._key_chord(["ctrl", "v"])
+        time.sleep(0.5)  # let the paste land before verification
+        return True
 
     def insert_at_caret(self, text: str) -> bool:
         """Paste text at the caret (replaces any selection). Returns success."""
         return self.paste_text(text)
 
+    def get_live_buffer_text(self) -> str:
+        """Read the LIVE buffer (clipboard round-trip) - sees unsaved changes.
+
+        Use for post-edit verification; get_buffer_text() reads disk for named files.
+        """
+        if self.select_all() and self.copy_selection_to_clipboard():
+            return self._clipboard_get()
+        return ""
+
     def verify_buffer(self, expected: str) -> bool:
         """Verify the buffer now holds `expected` (clipboard round-trip: select-all + copy).
 
+        Line endings are normalized (Notepad++ stores CRLF; expected text may use LF).
         Retries twice to absorb editor/foreground timing jitter.
         """
+
+        def _norm(s: str) -> str:
+            return s.replace("\r\n", "\n").replace("\r", "\n")
+
         for _ in range(3):
             if self.select_all() and self.copy_selection_to_clipboard():
-                if self._clipboard_get() == expected:
+                if _norm(self._clipboard_get()) == _norm(expected):
                     return True
             time.sleep(0.3)
         return False
