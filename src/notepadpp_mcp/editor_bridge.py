@@ -158,7 +158,7 @@ async def build_editor_snapshot(
             "executable": controller.notepadpp_exe,
         }
 
-    window_title = await controller.get_window_text(controller.hwnd)
+    window_title = controller.get_window_text(controller.hwnd or 0)
     filename = "Untitled"
     is_modified = False
     if " - Notepad++" in window_title:

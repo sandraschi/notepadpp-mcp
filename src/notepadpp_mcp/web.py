@@ -444,7 +444,7 @@ def setup_webapp(
                     if hasattr(p, "text"):
                         text += getattr(p, "text", "") or ""
                     elif isinstance(p, dict) and "text" in p:
-                        text += str(p["text"])
+                        text += str(p.get("text", ""))
             return {"name": name, "uri": uri, "content": text or "(empty)"}
         except Exception as e:
             raise HTTPException(status_code=404, detail=f"Skill not found: {name}") from e

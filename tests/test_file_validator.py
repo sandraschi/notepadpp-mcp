@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from src.notepadpp_mcp.file_validator import FileValidator, validate_markdown_file
+from notepadpp_mcp.file_validator import FileValidator, validate_markdown_file
 
 
 @pytest.fixture

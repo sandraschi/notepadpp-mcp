@@ -19,6 +19,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from typing import Any
 
 # Windows-specific imports
 try:
@@ -29,9 +30,9 @@ try:
     WINDOWS_AVAILABLE = True
 except ImportError:
     WINDOWS_AVAILABLE = False
-    win32api = None
-    win32con = None
-    win32gui = None
+    win32api: Any = None
+    win32con: Any = None
+    win32gui: Any = None
 
 # Scintilla message codes that work externally (int-only, verified)
 SCI_GETCURRENTPOS = 2008
@@ -432,7 +433,7 @@ class NotepadPPController:
         try:
             size = 512
             buf = ctypes.create_string_buffer(size)
-            result = _send_message_w(self.hwnd, NPPM_GETFULLCURRENTPATH, size, ctypes.cast(buf, ctypes.c_char_p))
+            result = _send_message_w(self.hwnd or 0, NPPM_GETFULLCURRENTPATH, size, ctypes.cast(buf, ctypes.c_char_p))
             if result and result < size:
                 path = buf.value.decode("utf-8", errors="replace")
                 if path and os.path.exists(path):

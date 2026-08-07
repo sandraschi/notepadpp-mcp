@@ -23,9 +23,9 @@ try:
     WINDOWS_AVAILABLE = True
 except ImportError:
     WINDOWS_AVAILABLE = False
-    win32api = None
-    win32con = None
-    win32gui = None
+    win32api: Any = None
+    win32con: Any = None
+    win32gui: Any = None
 
 
 def _lint_ahk(file_path: str) -> dict[str, Any]:
@@ -421,7 +421,7 @@ class LintingOperationsTool:
         @self.app.tool()
         async def lint_javascript_file(
             file_path: Annotated[str, Field(description="Absolute or relative .js path to lint.")],
-        ) -> dict[str, Any]:
+        ) -> dict[str, Any]:  # type: ignore[reportReturnType]
             """LINT_JAVASCRIPT_FILE — ESLint JSON output, or a minimal heuristic fallback.
 
             ## Return Format

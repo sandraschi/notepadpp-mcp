@@ -37,7 +37,7 @@ def list_theme_files(notepad_exe: str) -> list[str]:
     return names
 
 
-def _load_tree(path: Path) -> ET.ElementTree:
+def _load_tree(path: Path) -> ET.ElementTree[ET.Element]:
     if not path.is_file():
         raise FileNotFoundError(f"config.xml not found: {path}")
     try:
@@ -71,6 +71,7 @@ def read_theme_state(config_path: Path | None = None) -> dict[str, Any]:
     path = config_path or config_xml_path()
     tree = _load_tree(path)
     root = tree.getroot()
+    assert root is not None
     gui = root.find("GUIConfigs")
     dark: ET.Element | None = None
     if gui is not None:
@@ -140,6 +141,7 @@ def patch_config_xml(
     path = config_path or config_xml_path()
     tree = _load_tree(path)
     root = tree.getroot()
+    assert root is not None
     node = _get_or_create_dark_node(root)
 
     before = {k: node.get(k) for k in node.keys()}
@@ -171,7 +173,7 @@ def patch_config_xml(
     }
 
 
-def _atomic_write_tree(tree: ET.ElementTree, path: Path) -> None:
+def _atomic_write_tree(tree: ET.ElementTree[ET.Element], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix="npp_config_", suffix=".xml", dir=str(path.parent), text=False)
     tmp_path = Path(tmp)

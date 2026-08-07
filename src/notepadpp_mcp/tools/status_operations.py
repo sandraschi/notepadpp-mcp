@@ -17,6 +17,7 @@ try:
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
+    psutil: Any = None
 
 # Constants (should be imported from main module)
 NOTEPADPP_TIMEOUT = 10

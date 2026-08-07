@@ -171,15 +171,11 @@ class LinkParser:
             # Calculate parse time
             result.parse_time_ms = (time.perf_counter_ns() - start_time) / 1_000_000
 
-            logger.debug(
-                "link_parsing_complete",
-                link_count=len(result.links),
-                parse_time_ms=result.parse_time_ms,
-            )
+            logger.debug("link_parsing_complete count=%s parse_time_ms=%s", len(result.links), result.parse_time_ms)
 
         except Exception as e:
             result.add_error(f"Link parsing failed: {type(e).__name__}: {e}")
-            logger.error("link_parsing_exception", error=str(e), error_type=type(e).__name__)
+            logger.error("link_parsing_exception error=%s type=%s", e, type(e).__name__)
 
         return result
 
@@ -377,11 +373,7 @@ def parse_links_safe(content: str) -> LinkParseResult:
     except Exception as e:
         result = LinkParseResult(is_valid=False, content=content)
         result.add_error(f"Catastrophic link parsing failure: {e}")
-        logger.error(
-            "link_parsing_catastrophic_failure",
-            error=str(e),
-            error_type=type(e).__name__,
-        )
+        logger.error("link_parsing_catastrophic_failure error=%s type=%s", e, type(e).__name__)
         return result
 
 

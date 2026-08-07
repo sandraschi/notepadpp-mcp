@@ -25,9 +25,9 @@ try:
     WINDOWS_AVAILABLE = True
 except ImportError:
     WINDOWS_AVAILABLE = False
-    win32api = None
-    win32con = None
-    win32gui = None
+    win32api: Any = None
+    win32con: Any = None
+    win32gui: Any = None
 
 _COMMENT_MAP = {
     ".py": "#",

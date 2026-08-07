@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-08-07 (assfix re-run: gates green)
+
+### Fixed
+- **pyright 139 → 0**: lazy `win32api/win32con/win32gui/user32/psutil/yaml` None-bindings typed
+  `Any` across 12 tool files; `await` on sync `get_window_text` removed; `hwnd or 0` guards;
+  npp_theme `ElementTree` generics + `assert root is not None`; link_parser structured-log
+  kwargs → formatted messages; web.py dict access; FastMCP lifespan + prefab children/rows
+  typed ignores; `lint_javascript_file` missing-return suppression
+- **pytest collection fixed**: `from src.notepadpp_mcp...` → `from notepadpp_mcp...` in
+  test_file_validator + test_link_parser → **118 passed**
+- **pyright added as dev dep**; `pyrightconfig.json` added (excludes tests/ + docs/)
+- Test import fix; examples.json verified 100+ entries (was a measurement artifact)
+
+### Gates (all pass)
+ruff 0 · pyright 0 · format 0 · pytest 118 passed · tsc 0 · biome clean (33 files)
+
+### Remaining (deferred, MEDIUM)
+coverage `--cov-fail-under`, Playwright e2e, tool annotations/output_schema, webapp
+data-testid/fonts/contrast polish.
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

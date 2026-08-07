@@ -83,7 +83,7 @@ Skills: skill://notepadpp-mcp/SKILL.md. Prompts: prompt://notepadpp-mcp/*.
 )
 
 
-@mcp.lifespan()
+@mcp.lifespan()  # type: ignore[reportArgumentType]
 async def server_lifespan(server: FastMCP):
     """FastMCP native lifespan for server-level lifecycle tasks."""
     logger.info("Notepad++ MCP native lifespan starting")
@@ -263,7 +263,7 @@ async def notepad_dashboard() -> Column:
     tab_details = []
     if controller and getattr(controller, "hwnd", None):
         try:
-            window_text = controller.get_window_text(controller.hwnd)
+            window_text = controller.get_window_text(controller.hwnd or 0)
             filename = "Untitled"
             if " - Notepad++" in window_text:
                 filename = window_text.split(" - Notepad++")[0]
@@ -295,7 +295,7 @@ async def notepad_dashboard() -> Column:
 
     # Combine into prefab-ui components
     return Column(
-        children=[
+        children=[  # type: ignore[reportArgumentType]
             Card(
                 children=[
                     CardHeader(children=[Text("Notepad++ MCP Bridge Status")]),
@@ -309,17 +309,17 @@ async def notepad_dashboard() -> Column:
                 ]
             ),
             Card(
-                children=[
+                children=[  # type: ignore[reportArgumentType]
                     CardHeader(children=[Text("Fleet Status")]),
                     CardContent(
-                        children=[
+                        children=[  # type: ignore[reportArgumentType]
                             DataTable(
                                 columns=[
                                     DataTableColumn(key="port", header="Port", sortable=True),
                                     DataTableColumn(key="url", header="URL"),
                                     DataTableColumn(key="status", header="Status"),
                                 ],
-                                rows=fleet_rows,
+                                rows=fleet_rows,  # type: ignore[reportArgumentType]
                                 search=True,
                             )
                         ]

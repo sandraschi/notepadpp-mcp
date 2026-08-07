@@ -114,7 +114,7 @@ def register_agentic_notepad_workflow(app: FastMCP) -> None:
                 step = await ctx.sample_step(
                     messages,
                     system_prompt=system_prompt,
-                    tools=tools_for_sampling,
+                    tools=tools_for_sampling,  # type: ignore[reportArgumentType]
                     execute_tools=True,
                     max_tokens=4096,
                 )

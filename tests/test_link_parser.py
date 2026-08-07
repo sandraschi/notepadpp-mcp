@@ -13,7 +13,7 @@ import time
 
 import pytest
 
-from src.notepadpp_mcp.link_parser import LinkParser, parse_links_safe
+from notepadpp_mcp.link_parser import LinkParser, parse_links_safe
 
 
 class TestBasicLinkParsing:

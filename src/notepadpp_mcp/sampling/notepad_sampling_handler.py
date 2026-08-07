@@ -338,7 +338,7 @@ class NotepadSamplingHandler:
             return CreateMessageResultWithTools(
                 role="assistant",
                 model=str(data.get("model") or model),
-                content=blocks,
+                content=blocks,  # type: ignore[reportArgumentType]
                 stopReason="toolUse",
             )
 

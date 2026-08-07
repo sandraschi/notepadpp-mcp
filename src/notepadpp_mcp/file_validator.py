@@ -23,6 +23,7 @@ Usage:
 
 import logging
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, ClassVar
@@ -33,6 +34,7 @@ try:
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
+    yaml: Any = None
 
 logger = logging.getLogger(__name__)
 
@@ -365,7 +367,9 @@ class FileValidator:
         else:
             result.add_warning("Cannot validate frontmatter (PyYAML not installed)")
 
-    def validate_batch(self, file_paths: list[str | Path], on_error: str = "continue") -> dict[str, ValidationResult]:
+    def validate_batch(
+        self, file_paths: Sequence[str | Path], on_error: str = "continue"
+    ) -> dict[str, ValidationResult]:
         """
         Validate multiple files.
 
