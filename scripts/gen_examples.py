@@ -250,7 +250,7 @@ new = [
         "description": "Lint a python file using ruff",
         "user_input": "run ruff on my code",
         "tool_call": "linting_ops",
-        "parameters": {"operation": "python", "file_path": "C:/dev/module.py"},
+        "parameters": {"operation": "python", "file_path": "D:/projects/module.py"},
         "expected_output": "Ruff issues reported",
     },
     {
@@ -258,7 +258,7 @@ new = [
         "description": "Direct ESLint tool call",
         "user_input": "eslint this file",
         "tool_call": "lint_javascript_file",
-        "parameters": {"file_path": "C:/dev/main.js"},
+        "parameters": {"file_path": "D:/projects/main.js"},
         "expected_output": "ESLint JSON output",
     },
     {
@@ -266,7 +266,7 @@ new = [
         "description": "Direct JSON validation tool call",
         "user_input": "validate package.json",
         "tool_call": "lint_json_file",
-        "parameters": {"file_path": "C:/dev/package.json"},
+        "parameters": {"file_path": "D:/projects/package.json"},
         "expected_output": "JSON validation result",
     },
     {
@@ -274,7 +274,7 @@ new = [
         "description": "Direct markdown check tool call",
         "user_input": "check this doc",
         "tool_call": "lint_markdown_file",
-        "parameters": {"file_path": "C:/dev/CHANGELOG.md"},
+        "parameters": {"file_path": "D:/projects/CHANGELOG.md"},
         "expected_output": "Markdown issues reported",
     },
     # display_ops

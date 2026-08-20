@@ -732,7 +732,7 @@
       "tool_call": "linting_ops",
       "parameters": {
         "operation": "python",
-        "file_path": "C:/dev/module.py"
+        "file_path": "D:/projects/module.py"
       },
       "expected_output": "Ruff issues reported"
     },
@@ -742,7 +742,7 @@
       "user_input": "eslint this file",
       "tool_call": "lint_javascript_file",
       "parameters": {
-        "file_path": "C:/dev/main.js"
+        "file_path": "D:/projects/main.js"
       },
       "expected_output": "ESLint JSON output"
     },
@@ -752,7 +752,7 @@
       "user_input": "validate package.json",
       "tool_call": "lint_json_file",
       "parameters": {
-        "file_path": "C:/dev/package.json"
+        "file_path": "D:/projects/package.json"
       },
       "expected_output": "JSON validation result"
     },
@@ -762,7 +762,7 @@
       "user_input": "check this doc",
       "tool_call": "lint_markdown_file",
       "parameters": {
-        "file_path": "C:/dev/CHANGELOG.md"
+        "file_path": "D:/projects/CHANGELOG.md"
       },
       "expected_output": "Markdown issues reported"
     },
