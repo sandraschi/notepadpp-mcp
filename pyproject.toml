@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "notepadpp-mcp"
-version = "0.2.0"
+version = "0.2.1"
 description = "MCP Server for Notepad++ automation and control"
 authors = [
     {name = "Sandra", email = "sandraschipal@gmail.com"}
