@@ -4,6 +4,7 @@ Linting Operations Portmanteau Tool
 Consolidates linting operations (python, javascript, json, markdown, ahk, tools) and individual lint functions into a unified interface.
 """
 
+import asyncio
 import json
 import os
 import re
@@ -134,7 +135,7 @@ class LintingOperationsTool:
                 ),
             ] = None,
         ) -> dict[str, Any]:
-            """LINTING_OPS — Run linters/validators on disk files or list available engines.
+            """LINTING_OPS - Run linters/validators on disk files or list available engines.
 
             PORTMANTEAU PATTERN RATIONALE: One tool for python/js/json/md + introspection (TOOL_DESIGN_STANDARDS.md §1).
 
@@ -230,7 +231,8 @@ class LintingOperationsTool:
                         ruff_exe = shutil.which("ruff")
                         if not ruff_exe:
                             raise FileNotFoundError("ruff not on PATH")
-                        result = subprocess.run(
+                        result = await asyncio.to_thread(
+                            subprocess.run,
                             [ruff_exe, "check", abs_path, "--output-format=json"],
                             capture_output=True,
                             text=True,
@@ -355,7 +357,8 @@ class LintingOperationsTool:
                         }
 
                 elif operation == "ahk":
-                    return _lint_ahk(abs_path)
+                    # Sync helper spawning ahk-lint (up to 60s) — off the loop.
+                    return await asyncio.to_thread(_lint_ahk, abs_path)
 
                 elif operation in ["javascript", "markdown"]:
                     # Placeholder implementations for JS and Markdown
@@ -422,7 +425,7 @@ class LintingOperationsTool:
         async def lint_javascript_file(
             file_path: Annotated[str, Field(description="Absolute or relative .js path to lint.")],
         ) -> dict[str, Any]:  # type: ignore[reportReturnType]
-            """LINT_JAVASCRIPT_FILE — ESLint JSON output, or a minimal heuristic fallback.
+            """LINT_JAVASCRIPT_FILE - ESLint JSON output, or a minimal heuristic fallback.
 
             ## Return Format
             {"success": bool, "issues": [...], "linter": str, "summary": str, "error": str | null}
@@ -449,7 +452,8 @@ class LintingOperationsTool:
                     eslint_exe = shutil.which("eslint")
                     if not eslint_exe:
                         raise FileNotFoundError("eslint not on PATH")
-                    result = subprocess.run(
+                    result = await asyncio.to_thread(
+                        subprocess.run,
                         [eslint_exe, "--format=json", abs_path],
                         capture_output=True,
                         text=True,
@@ -563,7 +567,7 @@ class LintingOperationsTool:
         async def lint_json_file(
             file_path: Annotated[str, Field(description="Path to a .json file to validate.")],
         ) -> dict[str, Any]:
-            """LINT_JSON_FILE — Parse JSON and report syntax or style nits (trailing commas, long lines).
+            """LINT_JSON_FILE - Parse JSON and report syntax or style nits (trailing commas, long lines).
 
             ## Return Format
             {"success": bool, "valid_json": bool, "issues": [...], "summary": str, "error": str | null}
@@ -653,7 +657,7 @@ class LintingOperationsTool:
         async def lint_markdown_file(
             file_path: Annotated[str, Field(description="Path to a .md file to check.")],
         ) -> dict[str, Any]:
-            """LINT_MARKDOWN_FILE — Lightweight Markdown structure checks (headers, links, code fences).
+            """LINT_MARKDOWN_FILE - Lightweight Markdown structure checks (headers, links, code fences).
 
             ## Return Format
             {"success": bool, "issues": [...], "summary": str, "error": str | null}
