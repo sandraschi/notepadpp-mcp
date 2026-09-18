@@ -17,18 +17,11 @@ bootstrap:
 
 # Execute Ruff SOTA v13.1 linting
 lint:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check .
-    Set-Location '{{justfile_directory()}}\web_sota'
-    npx @biomejs/biome ci .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check .; Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome ci .
 
 # Execute Ruff SOTA v13.1 fix and formatting
 fix:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check . --fix --unsafe-fixes
-    uv run ruff format .
-    Set-Location '{{justfile_directory()}}\web_sota'
-    npx @biomejs/biome check --write .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check . --fix --unsafe-fixes; uv run ruff format .; Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome check --write .
 
 # --- Hardening ---
 
@@ -65,11 +58,7 @@ test:
 
 # Ruff format + Biome write (fix in place)
 fmt:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff format src/
-    uv run ruff check src/ --fix
-    Set-Location '{{justfile_directory()}}\web_sota'
-    npx @biomejs/biome check --write .
+    Set-Location '{{justfile_directory()}}'; uv run ruff format src/; uv run ruff check src/ --fix; Set-Location '{{justfile_directory()}}\web_sota'; npx @biomejs/biome check --write .
 
 # Package the Claude Desktop .mcpb bundle
 mcpb-pack:
@@ -77,17 +66,8 @@ mcpb-pack:
 
 # Build the Tauri NSIS installer (frontend -> PyInstaller -> Rust -> NSIS)
 build-native:
-    Set-Location '{{justfile_directory()}}\native'
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    .\build.ps1
+    Set-Location '{{justfile_directory()}}\native'; $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; .\build.ps1
 
 # Full gate set: lint + typecheck + tests
 certify:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check src/
-    uv run ruff format src/ --check
-    uv run pyright src/
-    uv run python -m pytest tests/ -q --tb=short --no-cov
-    Set-Location '{{justfile_directory()}}\web_sota'
-    npx tsc -b --noEmit
-    npx @biomejs/biome ci .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check src/; uv run ruff format src/ --check; uv run pyright src/; uv run python -m pytest tests/ -q --tb=short --no-cov; Set-Location '{{justfile_directory()}}\web_sota'; npx tsc -b --noEmit; npx @biomejs/biome ci .
