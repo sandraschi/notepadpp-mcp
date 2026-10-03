@@ -1,10 +1,10 @@
 """Notepad++ MCP sampling handler for FastMCP 3.1 (OpenAI-compatible chat/completions).
 
 Environment:
-- NOTEPADPP_SAMPLING_BASE_URL — default ``http://127.0.0.1:11434/v1`` (Ollama)
-- NOTEPADPP_SAMPLING_MODEL — default ``llama3.2``
-- NOTEPADPP_SAMPLING_API_KEY — optional; omit on localhost/LAN for Ollama
-- NOTEPADPP_SAMPLING_USE_OPENAI_KEY=1 — use OPENAI_API_KEY when set
+- NOTEPADPP_SAMPLING_BASE_URL - default ``http://127.0.0.1:11434/v1`` (Ollama)
+- NOTEPADPP_SAMPLING_MODEL - default ``llama3.2``
+- NOTEPADPP_SAMPLING_API_KEY - optional; omit on localhost/LAN for Ollama
+- NOTEPADPP_SAMPLING_USE_OPENAI_KEY=1 - use OPENAI_API_KEY when set
 
 Set NOTEPADPP_SAMPLING_USE_CLIENT_LLM=1 on the FastMCP app so the MCP host provides sampling
 (``sampling_handler_behavior='fallback'``).
@@ -214,7 +214,7 @@ def _degraded_notepad_text(has_tools: bool) -> str:
         )
     )
     return (
-        "[Notepad++ MCP sampling — HTTP LLM not used]\n\n"
+        "[Notepad++ MCP sampling - HTTP LLM not used]\n\n"
         f"{tool_note}\n\n"
         "Typical tools: file_ops, text_ops, tab_ops, linting_ops, plugin_ops, status_ops. "
         "For multi-step automation use **agentic_notepad_workflow** when sampling is available."

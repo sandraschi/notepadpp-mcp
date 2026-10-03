@@ -44,7 +44,7 @@ def register_agentic_notepad_workflow(app: FastMCP) -> None:
         max_iterations: Annotated[int, Field(description="Maximum sample_step rounds (default 5).", ge=1, le=50)] = 5,
         ctx: Context | None = None,
     ) -> dict[str, Any]:
-        """AGENTIC_NOTEPAD_WORKFLOW — Multi-step Notepad++ automation via sampling with tools (FastMCP 3.1).
+        """AGENTIC_NOTEPAD_WORKFLOW - Multi-step Notepad++ automation via sampling with tools (FastMCP 3.1).
 
         Uses ctx.sample_step in a loop: the model selects tool calls, tools run, results return until
         the model answers with text or max_iterations is reached. Requires a reachable sampling endpoint

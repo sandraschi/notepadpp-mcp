@@ -61,7 +61,7 @@ class AutomationOperationsTool:
             ],
             name: Annotated[str | None, Field(description="Macro name for macro_play (from macro_list).")] = None,
         ) -> dict[str, Any]:
-            """AUTOMATION_OPS — List and run saved Notepad++ macros.
+            """AUTOMATION_OPS - List and run saved Notepad++ macros.
 
             PORTMANTEAU PATTERN RATIONALE: Groups macro automation under one entry point
             (TOOL_DESIGN_STANDARDS.md §1).

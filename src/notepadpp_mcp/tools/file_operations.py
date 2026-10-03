@@ -89,7 +89,7 @@ class FileOperationsTool:
                 int, Field(description="Max diff lines for diff_buffer (default 200).", ge=10, le=2000)
             ] = 200,
         ) -> dict[str, Any]:
-            """FILE_OPS — Open, create, save, inspect, and analyze documents in Notepad++.
+            """FILE_OPS - Open, create, save, inspect, and analyze documents in Notepad++.
 
             PORTMANTEAU PATTERN RATIONALE: Consolidates file lifecycle + analysis into one tool (see TOOL_DESIGN_STANDARDS.md §1).
 

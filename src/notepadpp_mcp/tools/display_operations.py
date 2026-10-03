@@ -62,7 +62,7 @@ class DisplayOperationsTool:
                 ),
             ] = None,
         ) -> dict[str, Any]:
-            """DISPLAY_OPS — Mitigate invisible text, display glitches, or adjust Notepad++ theme / dark mode.
+            """DISPLAY_OPS - Mitigate invisible text, display glitches, or adjust Notepad++ theme / dark mode.
 
             PORTMANTEAU PATTERN RATIONALE: Single entry for visibility vs general display fixes (TOOL_DESIGN_STANDARDS.md §1).
 
