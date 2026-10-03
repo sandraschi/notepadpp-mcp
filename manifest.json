@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "notepadpp-mcp",
-  "version": "0.2.0",
-  "description": "FastMCP 3.1 Notepad++ automation: portmanteau tools, sampling, prompts, skills, agentic workflow",
+  "version": "0.2.1",
+  "description": "FastMCP 3.4 Notepad++ automation: portmanteau tools, sampling, prompts, skills, agentic workflow",
   "long_description": "Enterprise production-ready MCP server for Notepad++ automation, plugin management, and code quality analysis. ✅ FULLY SOTA COMPLIANT: Uses 8 portmanteau tools consolidating 26 operations with enhanced response patterns. Includes plugin ecosystem integration with 1,400+ plugins.",
   "author": {
     "name": "Sandra Schi",

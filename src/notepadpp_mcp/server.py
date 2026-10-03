@@ -1,5 +1,5 @@
 """
-Notepad++ MCP Server — FastMCP 3.1
+Notepad++ MCP Server - FastMCP 3.1
 
 - Portmanteau tools (file_ops, text_ops, …), sampling (Ollama-compatible HTTP or client LLM),
   prompts, skill:// resources, and agentic_notepad_workflow (SEP-1577 sample_step).
@@ -65,7 +65,7 @@ sampling_handler = NotepadSamplingHandler()
 
 mcp = FastMCP(
     "Notepad++ MCP Server",
-    version="0.2.0",
+    version="0.2.1",
     instructions="""Notepad++ MCP (Windows): FastMCP 3.1 portmanteau tools (AGENT_PROTOCOLS / TOOL_DESIGN_STANDARDS).
 
 Primary tools: file_ops, text_ops, tab_ops, session_ops, linting_ops, display_ops, plugin_ops, status_ops.
@@ -91,7 +91,7 @@ async def server_lifespan(server: FastMCP):
     logger.info("Notepad++ MCP native lifespan stopping")
 
 
-# MCP Bridge — Proxy external MCP servers via MCP_BRIDGE_URLS
+# MCP Bridge - Proxy external MCP servers via MCP_BRIDGE_URLS
 _bridge_proxies: list[str] = []
 bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
 if bridge_urls:
@@ -132,14 +132,14 @@ plugin_tool.register_tools()
 automation_tool.register_tools()
 
 
-# —— Resources (FastMCP 3.1) ——
+# -- Resources (FastMCP 3.1) --
 
 
 @mcp.resource("resource://notepadpp-mcp/capabilities")
 def resource_capabilities() -> str:
     """Server capabilities: tools, sampling, prompts, skills."""
     return (
-        "Notepad++ MCP 0.2.0 (FastMCP 3.1)\n"
+        "Notepad++ MCP 0.2.1 (FastMCP 3.1)\n"
         "- Tools: file_ops, text_ops, tab_ops, session_ops, linting_ops, display_ops, plugin_ops, status_ops\n"
         "- Meta: agentic_notepad_workflow, suggest_notepad_plan\n"
         "- Sampling: NOTEPADPP_SAMPLING_BASE_URL, NOTEPADPP_SAMPLING_MODEL; optional NOTEPADPP_SAMPLING_USE_CLIENT_LLM=1\n"
@@ -148,7 +148,7 @@ def resource_capabilities() -> str:
     )
 
 
-# —— Prompts ——
+# -- Prompts --
 
 
 @mcp.prompt("prompt://notepadpp-mcp/workflow-guide")
@@ -182,7 +182,7 @@ def prompt_plugin_discovery(topic: str) -> str:
     )
 
 
-# —— Skills directory (skill://notepadpp-mcp/SKILL.md) ——
+# -- Skills directory (skill://notepadpp-mcp/SKILL.md) --
 
 try:
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
@@ -196,7 +196,7 @@ except OSError as e:
     logger.warning("Skills provider skipped: %s", e)
 
 
-# —— Sampling helpers ——
+# -- Sampling helpers --
 
 
 @mcp.tool()
@@ -204,7 +204,7 @@ async def suggest_notepad_plan(
     goal: Annotated[str, Field(description="What to achieve in Notepad++ (natural language goal).")],
     ctx: Context,
 ) -> dict[str, Any]:
-    """SUGGEST_NOTEPAD_PLAN — Short plan via MCP sampling (requires reachable LLM).
+    """SUGGEST_NOTEPAD_PLAN - Short plan via MCP sampling (requires reachable LLM).
 
     ## Return Format
     {"success": bool, "plan": str, "goal": str}
@@ -230,7 +230,7 @@ async def suggest_notepad_plan(
 
 @mcp.tool(app=True)
 async def notepad_dashboard() -> Column:
-    """NOTEPAD_DASHBOARD — Show the MCP server status, open tab info, and fleet status in a rich UI dashboard.
+    """NOTEPAD_DASHBOARD - Show the MCP server status, open tab info, and fleet status in a rich UI dashboard.
 
     PORTMANTEAU PATTERN RATIONALE: Integrates editor metrics, tab details, and fleet health into a unified interface (TOOL_DESIGN_STANDARDS.md §1).
 
@@ -330,13 +330,13 @@ async def notepad_dashboard() -> Column:
     )
 
 
-# —— Agentic workflow (register after portmanteau tools) ——
+# -- Agentic workflow (register after portmanteau tools) --
 register_agentic_notepad_workflow(mcp)
 
 
 @mcp.tool(annotations={"destructive": True})
 async def notepadpp_shutdown(confirm: bool = False) -> dict[str, Any]:
-    """NOTEPADPP_SHUTDOWN — Stop the Notepad++ MCP bridge process (agent-initiated exit).
+    """NOTEPADPP_SHUTDOWN - Stop the Notepad++ MCP bridge process (agent-initiated exit).
 
     [RATIONALE] Agents that manage server lifecycle need a way to stop the bridge
     cleanly (same pattern as filesystem-mcp server_shutdown).

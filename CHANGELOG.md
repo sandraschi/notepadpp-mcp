@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-10-03 (assfix: version sync + audit trail)
+
+### Fixed
+- Version sync: `server.py` 0.2.0 -> 0.2.1, `manifest.json` 0.2.0 -> 0.2.1 to match `pyproject.toml` 0.2.1.
+- README badges/text: FastMCP 3.4.2 -> 3.4.4 (matches `pyproject.toml` `fastmcp>=3.4.4,<4`), version badge 0.2.0 -> 0.2.1.
+- `.gitignore`: added `!docs/assess-reports/` negation (blanket `reports/` was swallowing the committed registry copy) + `mcpb/src/` staging ignore.
+- `.mcpbignore`: added `*.bak.*` (was only `*.bak`).
+
+### Added
+- Committed audit copy: `docs/assess-reports/2026-10-03.md` (mirrors `reports/assess-2026-10-03.md`).
+
 ## [0.2.0] - 2026-08-07 (assfix re-run: gates green)
 
 ### Fixed
