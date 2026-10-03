@@ -29,4 +29,5 @@ uv.lock
 demonstration_test.py
 docs-private/
 *.bak
+*.bak.*
 src/notepadpp_mcp.egg-info/
