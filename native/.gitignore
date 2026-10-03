@@ -1,4 +1,5 @@
 resources/*.exe
+resources/.env
 binaries/*.exe
 target/
 gen/
