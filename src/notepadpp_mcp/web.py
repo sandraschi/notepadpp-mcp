@@ -394,7 +394,7 @@ def setup_webapp(
         body: Annotated[PluginInstallBody, Body()],
         user: str = Depends(authenticate),
     ) -> dict[str, Any]:
-        """Triggers plugin_ops install (UI automation toward Plugin Admin — see tool response)."""
+        """Triggers plugin_ops install (UI automation toward Plugin Admin - see tool response)."""
         _ = user
         result = await mcp_app.call_tool(
             "plugin_ops",

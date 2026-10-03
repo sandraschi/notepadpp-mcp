@@ -1,3 +1,8 @@
+﻿import sys, os
+site_pkgs = os.path.abspath('.venv/Lib/site-packages')
+if site_pkgs not in sys.path:
+    sys.path.insert(0, site_pkgs)
+
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for notepadpp-mcp backend sidecar."""
 
@@ -14,7 +19,10 @@ for pkg in (
     "starlette",
     "httpx",
 ):
-    datas += copy_metadata(pkg)
+    try:
+        datas += copy_metadata(pkg)
+    except Exception:
+        pass
 
 hiddenimports = [
     "uvicorn.logging",
@@ -35,7 +43,7 @@ hiddenimports = [
 
 a = Analysis(
     ["run_server.py"],
-    pathex=["src"],
+    pathex=["src", site_pkgs],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
