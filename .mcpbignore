@@ -30,4 +30,6 @@ demonstration_test.py
 docs-private/
 *.bak
 *.bak.*
+glama.json
+glama.yml
 src/notepadpp_mcp.egg-info/
