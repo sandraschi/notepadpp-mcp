@@ -72,7 +72,7 @@ class PluginOperationsTool:
                 ),
             ] = "direct",
         ) -> dict[str, Any]:
-            """PLUGIN_OPS — Discover, install, list, or invoke Notepad++ plugins.
+            """PLUGIN_OPS - Discover, install, list, or invoke Notepad++ plugins.
 
             PORTMANTEAU PATTERN RATIONALE: One surface for plugin CRUD-style actions (TOOL_DESIGN_STANDARDS.md §1).
 
@@ -104,7 +104,7 @@ class PluginOperationsTool:
                             "success": False,
                             "error": fetch_err or "Could not load official plugin list",
                             "operation": operation,
-                            "summary": "Plugin discovery failed — catalog unavailable",
+                            "summary": "Plugin discovery failed - catalog unavailable",
                             "recovery_options": [
                                 "Check internet connection",
                                 "Set NOTEPADPP_PLUGIN_LIST_URL if using a mirror",

@@ -130,7 +130,7 @@ class TextOperationsTool:
             ] = None,
             reverse: Annotated[bool, Field(description="Sort descending for line_ops sort (default False).")] = False,
         ) -> dict[str, Any]:
-            """TEXT_OPS — Insert, find, write, replace, navigate, and transform the active buffer.
+            """TEXT_OPS - Insert, find, write, replace, navigate, and transform the active buffer.
 
             PORTMANTEAU PATTERN RATIONALE: Single tool for all buffer text operations per
             TOOL_DESIGN_STANDARDS.md §1.

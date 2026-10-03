@@ -53,7 +53,7 @@ class TabOperationsTool:
                 ),
             ] = False,
         ) -> dict[str, Any]:
-            """TAB_OPS — List, switch, or close editor tabs.
+            """TAB_OPS - List, switch, or close editor tabs.
 
             PORTMANTEAU PATTERN RATIONALE: One tool for list/switch/close (TOOL_DESIGN_STANDARDS.md §1).
 

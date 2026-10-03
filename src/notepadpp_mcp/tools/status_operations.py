@@ -47,7 +47,7 @@ class StatusOperationsTool:
             category: Annotated[str, Field(description="Help category filter (for help operation).")] = "",
             tool_name: Annotated[str, Field(description="Tool name for help drill-down (for help operation).")] = "",
         ) -> dict[str, Any]:
-            """STATUS_OPS — Help text, server status, or connectivity health checks.
+            """STATUS_OPS - Help text, server status, or connectivity health checks.
 
             PORTMANTEAU PATTERN RATIONALE: Single diagnostic entry (TOOL_DESIGN_STANDARDS.md §1).
 

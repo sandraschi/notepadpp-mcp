@@ -40,7 +40,7 @@ class SessionOperationsTool:
                 Field(description="Session stem name (required for save/load; .xml is appended automatically)."),
             ] = None,
         ) -> dict[str, Any]:
-            """SESSION_OPS — Save, load, or list persisted Notepad++ workspace sessions.
+            """SESSION_OPS - Save, load, or list persisted Notepad++ workspace sessions.
 
             PORTMANTEAU PATTERN RATIONALE: One tool for save/load/list (TOOL_DESIGN_STANDARDS.md).
 
