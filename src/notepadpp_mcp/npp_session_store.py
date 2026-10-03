@@ -82,7 +82,7 @@ def _atomic_write_bytes(dest: Path, data: bytes) -> None:
 def parse_session_file_paths(xml_bytes: bytes) -> list[str]:
     """Collect `filename` attributes from File nodes (main and sub view)."""
     try:
-        root = ET.fromstring(xml_bytes)  # noqa: S314 — parsed session files are local XML only
+        root = ET.fromstring(xml_bytes)  # noqa: S314 - parsed session files are local XML only
     except ET.ParseError:
         return []
     out: list[str] = []

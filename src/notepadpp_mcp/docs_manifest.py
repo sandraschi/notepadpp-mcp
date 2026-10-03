@@ -8,7 +8,7 @@ from typing import Any
 def get_help_manifest() -> dict[str, Any]:
     """Sections and API tables for the webapp Help UI."""
     return {
-        "title": "Notepad++ MCP — documentation",
+        "title": "Notepad++ MCP - documentation",
         "version": 1,
         "sections": [
             {

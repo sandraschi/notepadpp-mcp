@@ -41,7 +41,7 @@ def _load_tree(path: Path) -> ET.ElementTree[ET.Element]:
     if not path.is_file():
         raise FileNotFoundError(f"config.xml not found: {path}")
     try:
-        tree = ET.parse(path)  # noqa: S314 — local user config.xml path only
+        tree = ET.parse(path)  # noqa: S314 - local user config.xml path only
     except ET.ParseError as e:
         raise ValueError(f"Invalid XML in {path}: {e}") from e
     root = tree.getroot()

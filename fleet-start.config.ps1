@@ -4,8 +4,8 @@
     Name         = 'notepadpp-mcp'
     BackendPort  = 10815
     FrontendPort = 10814
-    HealthPath   = '/health'
-    WebRoot      = 'D:\Dev\repos\notepadpp-mcp\web_sota'
+    HealthPath   = '/api/health'
+    WebRoot      = 'web_sota'
     Backend = @{
         Kind          = 'uvicorn'
         UvicornTarget = 'notepadpp_mcp.server:app'
