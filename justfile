@@ -27,13 +27,11 @@ fix:
 
 # Execute Bandit security audit
 check-sec:
-    Set-Location '{{justfile_directory()}}'
-    uv run bandit -r src/
+    Set-Location '{{justfile_directory()}}'; uv run bandit -r src/
 
 # Execute safety audit of dependencies
 audit-deps:
-    Set-Location '{{justfile_directory()}}'
-    uv run safety check
+    Set-Location '{{justfile_directory()}}'; uv run safety check
 
 
 # Bootstrap: install dev deps + pre-commit hook
@@ -48,13 +46,11 @@ cua-webapp-test:
 
 # Start the full dev stack (backend 10815 + Vite 10814)
 serve:
-    Set-Location '{{justfile_directory()}}'
     powershell.exe -NoProfile -File "{{justfile_directory()}}\start.ps1"
 
 # Run the test suite (root tests/ - mirrors CI)
 test:
-    Set-Location '{{justfile_directory()}}'
-    uv run python -m pytest tests/ -q --tb=short --no-cov
+    Set-Location '{{justfile_directory()}}'; uv run python -m pytest tests/ -q --tb=short --no-cov
 
 # Ruff format + Biome write (fix in place)
 fmt:

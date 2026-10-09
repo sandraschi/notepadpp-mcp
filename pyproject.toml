@@ -150,11 +150,19 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008", "E501", "S106", "S110", "S112", "S101", "B008", "E501", "S106", "S110", "S112", "RUF012", "S603", "S607", "S324", "E402", "S108"]
+select = ["E", "F", "W", "I", "B", "S", "UP", "RUF", "T20"]
+ignore = ["S101", "B008", "E501", "S106", "RUF012", "S603", "S607", "S324", "E402", "S108"]
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/**" = ["S310"]
+"src/notepadpp_mcp/docs/examples/**" = ["T20"]
+"src/notepadpp_mcp/tests/**" = ["T20", "S101"]
+"tests/**" = ["T20", "S101"]
+# CLI __main__ demo/entry blocks (print is the interface there, not server logging)
+"src/notepadpp_mcp/file_validator.py" = ["T20"]
+"src/notepadpp_mcp/link_parser.py" = ["T20"]
+"src/notepadpp_mcp/sync_health.py" = ["T20"]
+"src/notepadpp_mcp/tools/server.py" = ["T20"]
 
 [tool.ruff.format]
 quote-style = "double"
