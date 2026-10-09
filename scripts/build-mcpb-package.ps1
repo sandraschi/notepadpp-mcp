@@ -46,7 +46,7 @@ $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $ManifestPath = Join-Path $ProjectRoot "manifest.json"
 $PackageName = "notepadpp-mcp.mcpb"
-$Version = "1.2.0"
+$Version = "0.2.1"
 
 # Colors for output
 function Write-Success { Write-Host "[OK] $args" -ForegroundColor Green }

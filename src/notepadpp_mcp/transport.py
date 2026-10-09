@@ -34,6 +34,8 @@ import logging
 import os
 from typing import Literal
 
+import uvicorn
+
 logger = logging.getLogger(__name__)
 
 TransportType = Literal["stdio", "http", "sse"]
@@ -217,7 +219,13 @@ async def run_server_async(mcp_app, args: argparse.Namespace | None = None, serv
             path = config["path"]
             endpoint = f"http://{host}:{port}{path}"
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
-            await mcp_app.run_http_async(host=host, port=port, path=path)
+            # Fleet CORS standard: serve via uvicorn on mcp.http_app() so
+            # CORSMiddleware (wired by web.setup_webapp) stays in the stack.
+            # mcp.run_http_async() drops it — do not use (assfix 2026-10-09).
+            http_app = mcp_app.http_app(path=path)
+            config = uvicorn.Config(http_app, host=host, port=port, log_level="info")
+            server = uvicorn.Server(config)
+            await server.serve()
 
         elif transport == "sse":
             host = config["host"]

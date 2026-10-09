@@ -9,6 +9,11 @@
 
 
 > 📖 **[Installation Guide](INSTALL.md)** — quick start, manual setup, and troubleshooting
+> **[Onboarding](docs/ONBOARDING.md)** — Notepad++ wrappee required (Windows, N++ 8+); sanity checks + pitfalls
+
+**Claude Desktop one-click:** download `notepadpp-mcp.mcpb` from
+[releases/latest](https://github.com/sandraschi/notepadpp-mcp/releases/latest/download/notepadpp-mcp.mcpb)
+and drag it into Claude Desktop, or run `.\dist\install.ps1` after `just mcpb-pack`.
 
 [![CI](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/ci.yml)
 [![Release](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/sandraschi/notepadpp-mcp/actions/workflows/release.yml)

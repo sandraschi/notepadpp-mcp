@@ -78,6 +78,17 @@ export function Dashboard() {
         </div>
       </div>
 
+      {health?.ok !== true && (
+        <Link
+          to="/help"
+          data-testid="onboarding-cue"
+          className="block rounded-lg bg-red-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-red-500"
+        >
+          Notepad++ bridge not connected — complete onboarding (install
+          Notepad++ 8+, start the backend) to go live
+        </Link>
+      )}
+
       <Card className="border-emerald-900/50 bg-slate-950/50 ring-1 ring-emerald-500/20">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
           <MonitorPlay className="h-5 w-5 text-emerald-400" />

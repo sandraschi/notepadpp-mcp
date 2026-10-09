@@ -15,11 +15,14 @@ TRANSPORT NOTE (empirical, Notepad++ 8.x):
 
 import asyncio
 import ctypes
+import logging
 import os
 import subprocess
 import time
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Windows-specific imports
 try:
@@ -258,8 +261,8 @@ class NotepadPPController:
                     _, pid = win32process.GetWindowThreadProcessId(hwnd)
                     if pid == npp_pid:
                         found.append(hwnd)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("modal dialog probe skipped a window: %s", e)
             return True
 
         win32gui.EnumWindows(cb, None)
@@ -284,8 +287,8 @@ class NotepadPPController:
             try:
                 if win32gui.GetClassName(hwnd) == "Button":
                     buttons.append((hwnd, win32gui.GetWindowText(hwnd)))
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("dialog button probe skipped a window: %s", e)
             return True
 
         win32gui.EnumChildWindows(dlg, cb, None)
@@ -308,8 +311,8 @@ class NotepadPPController:
         try:
             win32gui.SetForegroundWindow(self.hwnd)
             return True
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("SetForegroundWindow fast path failed, trying thread-attach: %s", e)
         try:
             import win32process
 
@@ -324,8 +327,8 @@ class NotepadPPController:
             win32gui.BringWindowToTop(self.hwnd)
             try:
                 win32gui.SetForegroundWindow(self.hwnd)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("attached SetForegroundWindow also failed: %s", e)
             if cur_tid and cur_tid != my_tid:
                 win32process.AttachThreadInput(my_tid, cur_tid, False)
             return True
@@ -438,8 +441,8 @@ class NotepadPPController:
                 path = buf.value.decode("utf-8", errors="replace")
                 if path and os.path.exists(path):
                     return path
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("NPPM path probe failed, falling back to window title: %s", e)
         # Title fallback: Notepad++ often shows the full path in the title.
         try:
             title = win32gui.GetWindowText(self.hwnd) or ""
