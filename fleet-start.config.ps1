@@ -1,4 +1,4 @@
-﻿# Per-repo fleet start config for notepadpp-mcp
+# Per-repo fleet start config for notepadpp-mcp
 # Edit ports/backend target here - start.ps1 is fleet-standard.
 @{
     Name         = 'notepadpp-mcp'
@@ -10,6 +10,7 @@
         Kind          = 'uvicorn'
         UvicornTarget = 'notepadpp_mcp.server:app'
         SyncExtras    = @('dev')
+        SyncOnStart  = $true
         Env           = @{ WEB_PORT = '10815' }
     }
     Frontend = @{
