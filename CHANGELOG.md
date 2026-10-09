@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - 2026-10-09 (assfix: MCPB NONSPEC, ruff hardening, onboarding, GH triage)
+
+### Fixed
+- MCPB NONSPEC (CRITICAL): `manifest.json` + `glama.json` `PYTHONPATH ${PWD}` ->
+  `${__dirname}` (Claude Desktop never expands `${PWD}`).
+- Ruff hardening: removed S110/S112 from `ignore` (was masking silent swallows);
+  added T20 + per-file-ignores for CLI `__main__` blocks. Fixed 5 `except: pass`
+  in `tools/controller.py` with `logger.debug` fallbacks.
+- Transport: `run_http_async()` (drops CORSMiddleware) replaced with
+  `uvicorn.Server` on `mcp.http_app()`.
+- `glama.json`: version 0.2.0 -> 0.2.1, FastMCP 2.14.1 -> 3.4.4, tools 26 -> 8.
+- Pack script version 1.2.0 -> 0.2.1; justfile bare `Set-Location` lines joined;
+  dashboard.tsx biome format.
+- GitHub triage: closed 9 superseded dependabot PRs (#1-#7, #9-#10, ~374d old,
+  red CI; Renovate now owns github-actions bumps); closed issue #11 (regex
+  search already supported via `find_in_files` + `replace_all regex` flag).
+
+### Added
+- `docs/ONBOARDING.md` (Notepad++ wrappee: Windows, N++ 8+, sanity checks,
+  pitfalls) + red `data-testid="onboarding-cue"` CTA on dashboard when the
+  bridge is down.
+- `renovate.json` (Monday schedule, stabilityDays 3, github-actions automerge).
+- README: onboarding pointer + Claude Desktop `.mcpb` one-liner.
+
+### Gates (all pass)
+ruff 0 · pyright 0 · format clean · pytest 118 passed · tsc 0 · biome clean (35 files)
+
 ## [0.2.1] - 2026-10-03 (assfix: version sync + audit trail)
 
 ### Fixed
