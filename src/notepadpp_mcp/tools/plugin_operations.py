@@ -311,7 +311,10 @@ class PluginOperationsTool:
                         with tempfile.TemporaryDirectory(prefix="npp-plugin-") as tmp:
                             zip_path = Path(tmp) / "plugin.zip"
                             # URL comes from the pinned official catalog (https only) - safe to open
-                            with urllib.request.urlopen(download_url, timeout=120) as resp, open(zip_path, "wb") as f:  # noqa: S310 - catalog-pinned https URLs
+                            with (
+                                await asyncio.to_thread(urllib.request.urlopen, download_url, timeout=120) as resp,
+                                open(zip_path, "wb") as f,
+                            ):
                                 total = 0
                                 while True:
                                     chunk = resp.read(1 << 20)
